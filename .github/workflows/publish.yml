@@ -1,0 +1,24 @@
+
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Publish python package
+      uses: JRubics/poetry-publish@v1.13
+      with:
+        pypi_token: ${{ secrets.PYPI_TOKEN }}
+        ignore_dev_requirements: "yes"
