@@ -1,3 +1,9 @@
+## v2.2.0 (2023-05-12)
+
+### Feat
+
+- run twyn in the pipeline (#7)
+
 ## v2.1.0 (2023-05-05)
 
 ### Feat
