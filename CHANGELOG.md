@@ -1,3 +1,13 @@
+## v2.3.0 (2023-05-21)
+
+### chore
+
+- trigger dependabot on mondays and take it out of `workflows` folder (#9)
+
+### feat
+
+- add commit linting and improve commitizen settings (#15)
+
 ## v2.2.0 (2023-05-12)
 
 ### Feat
