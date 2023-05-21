@@ -101,3 +101,40 @@ exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover"]
 version_files = ["pyproject.toml:version"]
 version = "2.2.0"
 tag_format = "v$version"
+name = "cz_customize"
+
+
+[tool.commitizen.customize]
+bump_pattern = "^(BREAKING[\\-\\ ]CHANGE|feat|fix|refactor|perf|ci|docs|style|test|chore|revert|build)(\\(.+\\))?(!)?"
+change_type_order = [
+    "BREAKING CHANGE",
+    "Feat",
+    "Fix",
+    "Refactor",
+    "Perf",
+    "CI",
+    "Docs",
+    "Technical",
+    "Tests",
+]
+bump_message = "bump: version $current_version → $new_version"
+schema = "<type>(<scope>): <subject>\n<BLANK LINE>\n<body>\n<BLANK LINE>\n(BREAKING CHANGE: )<footer>"
+schema_pattern = "(?s)(build|ci|docs|feat|fix|perf|refactor|style|test|chore|revert|bump)(\\(\\S+\\))?!?:( [^\\n\\r]+)((\\n\\n.*)|(\\s*))?$"
+commit_parser = "^(?P<change_type>feat|fix|refactor|perf|BREAKING CHANGE|ci|docs|style|test|chore|revert|build)(?:\\((?P<scope>[^()\\r\\n]*)\\)|\\()?(?P<breaking>!)?:\\s(?P<message>.*)?"
+version_parser = "(?P<version>([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?(?:\\+[0-9A-Za-z-]+)?(\\w+)?)"
+
+[tool.commitizen.customize.bump_map]
+"^.+!$" = "MAJOR"
+"^BREAKING[\\-\\ ]CHANGE" = "MAJOR"
+"^feat" = "MINOR"
+"^fix" = "PATCH"
+"^refactor" = "PATCH"
+"^perf" = "PATCH"
+"^ci" = "PATCH"
+"^docs" = "PATCH"
+"^style" = "PATCH"
+"^test" = "PATCH"
+"^chore" = "PATCH"
+"^revert" = "PATCH"
+"^build" = "PATCH"
+
