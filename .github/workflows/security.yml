@@ -39,4 +39,5 @@ jobs:
           poetry install --only main
       - name: Run Twyn against our dependencies
         run: |
+          poetry run twyn --version
           poetry run twyn run -vv
