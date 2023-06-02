@@ -77,10 +77,10 @@ def pyproject_toml_file(tmp_path):
     rich = "^13.3.1"
     rapidfuzz = "^2.13.7"
     regex = "^2022.10.31"
-    
+
     [tool.poetry.scripts]
     twyn = "twyn.cli:entry_point"
-    
+
     [tool.twyn]
     dependency_file="my_file.txt"
     selector_method="my_selector"
