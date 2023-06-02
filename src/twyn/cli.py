@@ -2,6 +2,7 @@ import sys
 
 import click
 
+from twyn.__version__ import __version__
 from twyn.base.constants import (
     DEPENDENCY_FILE_MAPPING,
     SELECTOR_METHOD_MAPPING,
@@ -12,6 +13,7 @@ from twyn.main import check_dependencies
 
 
 @click.group()
+@click.version_option(__version__, "--version")
 def entry_point() -> None:
     pass
 
