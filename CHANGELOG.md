@@ -1,3 +1,9 @@
+## v2.4.1 (2023-07-10)
+
+### chore
+
+- rename BREAKING CHANGE to break to meet other types naming format (#17)
+
 ## v2.4.0 (2023-06-02)
 
 ### feat
