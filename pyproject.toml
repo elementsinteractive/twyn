@@ -64,7 +64,6 @@ src = ["twyn", "tests"]
 convention = "pep257"
 
 
-
 [tool.mypy]
 python_version = "3.11"
 ignore_missing_imports = true
@@ -105,9 +104,9 @@ name = "cz_customize"
 
 
 [tool.commitizen.customize]
-bump_pattern = "^(BREAKING[\\-\\ ]CHANGE|feat|fix|refactor|perf|ci|docs|style|test|chore|revert|build)(\\(.+\\))?(!)?"
+bump_pattern = "^(break|feat|fix|refactor|perf|ci|docs|style|test|chore|revert|build)(\\(.+\\))?(!)?"
 change_type_order = [
-    "BREAKING CHANGE",
+    "Breaking",
     "Feat",
     "Fix",
     "Refactor",
@@ -120,12 +119,12 @@ change_type_order = [
 bump_message = "bump: version $current_version → $new_version"
 schema = "<type>(<scope>): <subject>\n<BLANK LINE>\n<body>\n<BLANK LINE>\n(BREAKING CHANGE: )<footer>"
 schema_pattern = "(?s)(build|ci|docs|feat|fix|perf|refactor|style|test|chore|revert|bump)(\\(\\S+\\))?!?:( [^\\n\\r]+)((\\n\\n.*)|(\\s*))?$"
-commit_parser = "^(?P<change_type>feat|fix|refactor|perf|BREAKING CHANGE|ci|docs|style|test|chore|revert|build)(?:\\((?P<scope>[^()\\r\\n]*)\\)|\\()?(?P<breaking>!)?:\\s(?P<message>.*)?"
+commit_parser = "^(?P<change_type>feat|fix|refactor|perf|break|ci|docs|style|test|chore|revert|build)(?:\\((?P<scope>[^()\\r\\n]*)\\)|\\()?(?P<breaking>!)?:\\s(?P<message>.*)?"
 version_parser = "(?P<version>([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?(?:\\+[0-9A-Za-z-]+)?(\\w+)?)"
 
 [tool.commitizen.customize.bump_map]
 "^.+!$" = "MAJOR"
-"^BREAKING[\\-\\ ]CHANGE" = "MAJOR"
+"^break" = "MAJOR"
 "^feat" = "MINOR"
 "^fix" = "PATCH"
 "^refactor" = "PATCH"
@@ -137,4 +136,3 @@ version_parser = "(?P<version>([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9A-Za-z-]+(?
 "^chore" = "PATCH"
 "^revert" = "PATCH"
 "^build" = "PATCH"
-
