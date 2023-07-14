@@ -1,3 +1,9 @@
+## v2.5.0 (2023-07-14)
+
+### feat
+
+- Support poetry version format >= 1.5.0 (#23)
+
 ## v2.4.1 (2023-07-10)
 
 ### chore
