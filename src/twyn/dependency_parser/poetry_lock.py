@@ -1,8 +1,6 @@
 """Parser for poetry.lock dependencies."""
-
-
-from dparse import filetypes, parse
-from dparse.dependencies import Dependency, DependencyFile
+import tomllib
+from dparse import filetypes
 
 from twyn.dependency_parser.abstract_parser import AbstractParser
 
@@ -15,8 +13,5 @@ class PoetryLockParser(AbstractParser):
 
     def parse(self) -> set[str]:
         """Parse poetry.lock dependencies into set of dependency names."""
-        dependency_file: DependencyFile = parse(
-            self._read(), file_type=filetypes.poetry_lock
-        )
-        dependencies: list[Dependency] = dependency_file.resolved_dependencies
-        return {dependency.name for dependency in dependencies}
+        data = tomllib.loads(self._read())
+        return {dependency["name"] for dependency in data["package"]}

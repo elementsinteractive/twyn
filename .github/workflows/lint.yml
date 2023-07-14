@@ -1,3 +1,5 @@
+# This workflow will check our code for having a proper format, as well as the commit message to meet the expected ones
+
 name: Lint
 
 on:
