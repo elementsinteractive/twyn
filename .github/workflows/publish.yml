@@ -1,3 +1,4 @@
+# This workflow will publish our package on pypi
 
 name: Publish
 
@@ -12,9 +13,7 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Publish python package

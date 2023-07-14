@@ -52,6 +52,10 @@ class TestRequirementsTxtParser:
 
 
 class TestPoetryLockParser:
-    def test_parse_poetry_lock_file(self, poetry_lock_file):
-        parser = PoetryLockParser(file_path=poetry_lock_file)
+    def test_parse_poetry_lock_file_lt_1_5(self, poetry_lock_file_lt_1_5):
+        parser = PoetryLockParser(file_path=poetry_lock_file_lt_1_5)
+        assert parser.parse() == {"charset-normalizer", "flake8", "mccabe"}
+
+    def test_parse_poetry_lock_file_ge_1_5(self, poetry_lock_file_ge_1_5):
+        parser = PoetryLockParser(file_path=poetry_lock_file_ge_1_5)
         assert parser.parse() == {"charset-normalizer", "flake8", "mccabe"}

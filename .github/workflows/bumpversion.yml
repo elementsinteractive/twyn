@@ -1,3 +1,5 @@
+# This workflow will bump the version of our project once is merged
+
 name: Bump version
 
 on:

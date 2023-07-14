@@ -17,7 +17,8 @@ def requirements_txt_file(tmp_path):
 
 
 @pytest.fixture
-def poetry_lock_file(tmp_path):
+def poetry_lock_file_lt_1_5(tmp_path):
+    """Poetry lock version < 1.5."""
     poetry_lock_file = tmp_path / "poetry.lock"
     poetry_lock_file.write_text(
         """
@@ -46,6 +47,52 @@ def poetry_lock_file(tmp_path):
             version = "0.7.0"
             description = "McCabe checker, plugin for flake8"
             category = "dev"
+            optional = false
+            python-versions = ">=3.6"
+
+            [metadata]
+            lock-version = "1.1"
+            python-versions = "^3.9"
+            content-hash = "d518428f67ed390edb669028a3136be9a363472e206d4dec455af35381e"
+
+            [metadata.files]
+            charset-normalizer = []
+            flake8 = []
+            mccabe = []
+        """
+    )
+    yield poetry_lock_file
+    os.remove(poetry_lock_file)
+
+
+@pytest.fixture
+def poetry_lock_file_ge_1_5(tmp_path):
+    """Poetry lock version >= 1.5."""
+    poetry_lock_file = tmp_path / "poetry.lock"
+    poetry_lock_file.write_text(
+        """
+            [[package]]
+            name = "charset-normalizer"
+            version = "3.0.1"
+            description = "The Real First Universal Charset Detector. Open, modern and \
+                actively maintained alternative to Chardet."
+            optional = false
+            python-versions = "*"
+
+            [[package]]
+            name = "flake8"
+            version = "5.0.4"
+            description = "the modular source code checker: pep8 pyflakes and co"
+            optional = false
+            python-versions = ">=3.6.1"
+
+            [package.dependencies]
+            mccabe = ">=0.7.0,<0.8.0"
+
+            [[package]]
+            name = "mccabe"
+            version = "0.7.0"
+            description = "McCabe checker, plugin for flake8"
             optional = false
             python-versions = ">=3.6"
 
