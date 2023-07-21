@@ -1,3 +1,9 @@
+## v2.5.7 (2023-07-21)
+
+### chore
+
+- bump `pygments` to patch vulnerability (#30)
+
 ## v2.5.6 (2023-07-18)
 
 ### chore
