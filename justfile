@@ -34,7 +34,7 @@ clean:
 
 # Runs the tests with the specified arguments (any path or pytest argument).
 test *test-args='': venv
-    poetry run pytest {{ test-args }} --no-cov
+    poetry run pytest {{ test-args }} --cov=twyn
 
 # Runs all tests including coverage report.
 test-all: venv

@@ -33,3 +33,10 @@ jobs:
     - name: Test with pytest
       run: |
         just test
+
+    - name: Code coverage
+      uses: codecov/codecov-action@v3
+      with:
+        env_vars: PYTHON
+        files: coverage.xml
+        fail_ci_if_error: false
