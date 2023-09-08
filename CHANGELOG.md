@@ -1,3 +1,9 @@
+## v2.6.0 (2023-09-08)
+
+### feat
+
+- add Dockerfile and publish docker image to Docker Hub (#56)
+
 ## v2.5.20 (2023-08-17)
 
 ### chore
