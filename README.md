@@ -20,10 +20,8 @@ It works as follows:
 3. If the name of your package is similar to the name one of the most used packages, Twyn will prompt an error.
 4. If your package name is not in the list of the most known ones and is not similar enough to any of those to be considered misspelled, the package is accepted. Twyn assumes that you're using either a not so popular package (therefore it can't verify its legitimacy) or a package created by yourself, therefore unknown for the rest.
 
-You can choose between different operational modes:
-- `all`: Default option. It is the most exhaustive mode. It will check your package names against the trusted ones without any assumption.
-- `nearby-letter`: will consider a possible typo in the first letter of your package name, so it will also consider all the nearby characters (in an English keyboard) when computing the distance between words.
-- `first-letter`: will assume the first letter of your package is correct. It is the fastest mode but the least reliable one.
+## Docker
+Twyn provides a Docker image, which can be found [here](https://hub.docker.com/r/elementsinteractive/twyn).
 
 ## Quickstart
 ### Installation
@@ -43,6 +41,35 @@ For a list of all the available options as well as their expected arguments run:
 
 ## Configuration
 
+### Allowlist
+It can happen that a legitimate package known by the user raises an error because is too similar to one of the most trusted ones.
+You can then add this packages to the `allowlist`, so it will be skipped:
+
+    twyn allowlist add <package>
+
+To remove it simply:
+
+    twyn allowlist remove <package>
+
+### Dependency files
+To specify a dependency file through the command line run:
+
+    twyn run --dependency-file <file path>
+
+Currently it supports these dependency file formats.
+- `requirements.txt`
+- `poetry.lock`
+
+### Selector method
+You can choose between different operational modes:
+- `all`: Default option. It is the most exhaustive mode. It will check your package names against the trusted ones without any assumption.
+- `nearby-letter`: will consider a possible typo in the first letter of your package name, so it will also consider all the nearby characters (in an English keyboard) when computing the distance between words.
+- `first-letter`: will assume the first letter of your package is correct. It is the fastest mode but the least reliable one.
+
+To select a specific operational mode through the CLI use the following command
+
+    twyn run --selector-method <method>
+
 ### Configuration file
 You can save your configurations in a `.toml` file, so you don't need to specify them everytime you run Twyn in your terminal.
 
@@ -58,17 +85,3 @@ All the configurations available through the command line are also supported in 
     selector_method="first_letter"
     logging_level="debug"
     allowlist=["my_package"]
-
-### Allowlist
-It can happen that a legitimate package known by the user raises an error because is too similar to one of the most trusted ones.
-You can then add this packages to the `allowlist`, so it will be skipped:
-
-    twyn allowlist add <package>
-
-To remove it simply:
-
-    twyn allowlist remove <package>
-
-## Supported dependency file formats
-- `requirements.txt`
-- `poetry.lock`
