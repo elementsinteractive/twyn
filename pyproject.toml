@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "twyn"
-version = "2.6.7"
+version = "2.6.8"
 description = ""
 authors = ["Daniel Sanz, Sergio Castillo, Ludo van Orden, Dmitrii Fedotov"]
 readme = "README.md"
@@ -98,7 +98,7 @@ exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover"]
 
 [tool.commitizen]
 version_files = ["pyproject.toml:version"]
-version = "2.6.7"
+version = "2.6.8"
 tag_format = "v$version"
 name = "cz_customize"
 
