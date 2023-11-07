@@ -1,3 +1,9 @@
+## v2.6.15 (2023-11-07)
+
+### chore
+
+- group depenencies updates (#85)
+
 ## v2.6.14 (2023-11-07)
 
 ### chore
