@@ -1,6 +1,5 @@
 """Parser for requirements.txt dependencies."""
 
-
 from dparse import filetypes, parse
 from dparse.dependencies import Dependency, DependencyFile
 
