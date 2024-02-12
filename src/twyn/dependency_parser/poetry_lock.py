@@ -1,4 +1,5 @@
 """Parser for poetry.lock dependencies."""
+
 import tomllib
 from dparse import filetypes
 

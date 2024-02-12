@@ -13,5 +13,4 @@ class EmptyPackagesListError(TwynError):
     message = "Downloaded packages list is empty"
 
 
-class CharacterNotInMatrixError(TwynError, KeyError):
-    ...
+class CharacterNotInMatrixError(TwynError, KeyError): ...
