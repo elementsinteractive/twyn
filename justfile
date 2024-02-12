@@ -43,10 +43,8 @@ test-all: venv
 # Format all code in the project.
 format: venv
     poetry run ruff {{ target_dirs }} --fix
-    poetry run black {{ target_dirs }}
 
 # Lint all code in the project.
 lint: venv
-    poetry run black --check {{ target_dirs }}
     poetry run ruff check {{ target_dirs }}
     poetry run mypy {{ target_dirs }}
