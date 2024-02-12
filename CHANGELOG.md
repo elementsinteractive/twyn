@@ -1,3 +1,9 @@
+## v2.6.29 (2024-02-12)
+
+### chore
+
+- remove black dependency and adjust ruff settings format (#104)
+
 ## v2.6.28 (2024-02-12)
 
 ### chore
