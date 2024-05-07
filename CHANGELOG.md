@@ -1,3 +1,9 @@
+## v2.6.38 (2024-05-07)
+
+### chore
+
+- bump the dependencies group across 1 directory with 5 updates (#117)
+
 ## v2.6.37 (2024-05-07)
 
 ### chore
