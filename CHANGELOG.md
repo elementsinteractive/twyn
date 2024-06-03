@@ -1,3 +1,9 @@
+## v2.6.42 (2024-06-03)
+
+### chore
+
+- bump the dependencies group with 4 updates (#123)
+
 ## v2.6.41 (2024-05-27)
 
 ### chore
