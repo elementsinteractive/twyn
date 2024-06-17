@@ -1,3 +1,9 @@
+## v2.6.44 (2024-06-17)
+
+### chore
+
+- bump ruff from 0.4.8 to 0.4.9 in the dependencies group (#125)
+
 ## v2.6.43 (2024-06-10)
 
 ### chore
