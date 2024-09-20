@@ -1,3 +1,9 @@
+## v2.6.56 (2024-09-20)
+
+### chore
+
+- auto merge non major dependency updates (#142)
+
 ## v2.6.55 (2024-09-16)
 
 ### chore
