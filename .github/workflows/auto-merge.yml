@@ -1,16 +1,23 @@
 
 
 name: Dependabot auto-approve
-on: pull_request_target
+on: 
+  pull_request_target:
+    types: [opened, synchronize]  
+  workflow_run:
+    workflows: ["Lint", "Security", "Test"] 
+    types:
+      - completed  # This means it will run after the first workflow is completed (regardless of success or failure)
 
 permissions:
   contents: write
   pull-requests: write
 
+
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'workflow_run' }}
     steps:
       - name: Dependabot metadata
         id: metadata
