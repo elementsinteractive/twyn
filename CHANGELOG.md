@@ -1,3 +1,9 @@
+## v2.7.1 (2024-11-08)
+
+### chore
+
+- Introduce FileHandler (#153)
+
 ## v2.7.0 (2024-11-08)
 
 ### feat
