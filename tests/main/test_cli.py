@@ -28,7 +28,7 @@ class TestCli:
         assert mock_allowlist_add.call_args == call("requests")
 
     @patch("twyn.cli.check_dependencies")
-    def test_click_arguments(self, mock_check_dependencies):
+    def test_click_arguments_dependency_file(self, mock_check_dependencies):
         runner = CliRunner()
         runner.invoke(
             cli.run,
@@ -47,8 +47,62 @@ class TestCli:
             call(
                 config_file="my-config",
                 dependency_file="requirements.txt",
+                dependencies_cli=None,
                 selector_method="first-letter",
                 verbosity=AvailableLoggingLevels.debug,
+            )
+        ]
+
+    @patch("twyn.cli.check_dependencies")
+    def test_click_arguments_single_dependency_cli(self, mock_check_dependencies):
+        runner = CliRunner()
+        runner.invoke(
+            cli.run,
+            [
+                "--dependency",
+                "reqests",
+            ],
+        )
+        assert mock_check_dependencies.call_args_list == [
+            call(
+                config_file=None,
+                dependency_file=None,
+                dependencies_cli={"reqests"},
+                selector_method=None,
+                verbosity=AvailableLoggingLevels.none,
+            )
+        ]
+
+    def test_click_raises_error_dependency_and_dependency_file_set(self):
+        runner = CliRunner()
+        result = runner.invoke(
+            cli.run,
+            ["--dependency", "requests", "--dependency-file", "requirements.txt"],
+        )
+        with pytest.raises(ValueError, match="Only one of --dependency or --dependency-file can be set at a time."):
+            raise result.exception
+        assert result.exit_code == 1
+
+    @patch("twyn.cli.check_dependencies")
+    def test_click_arguments_multiple_dependencies_cli(self, mock_check_dependencies):
+        runner = CliRunner()
+        runner.invoke(
+            cli.run,
+            [
+                "--dependency",
+                "reqests",
+                "--dependency",
+                "reqeusts",
+            ],
+        )
+
+        assert mock_check_dependencies.call_args_list == [
+            call(
+                config_file=None,
+                dependency_file=None,
+                dependencies_cli={"reqests", "reqeusts"},
+                selector_method=None,
+                verbosity=AvailableLoggingLevels.none,
             )
         ]
 
@@ -62,6 +116,7 @@ class TestCli:
                 config_file=None,
                 dependency_file=None,
                 selector_method=None,
+                dependencies_cli=None,
                 verbosity=AvailableLoggingLevels.none,
             )
         ]

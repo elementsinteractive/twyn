@@ -1,4 +1,5 @@
 import sys
+from typing import Optional
 
 import click
 
@@ -29,6 +30,12 @@ def entry_point() -> None:
     ),
 )
 @click.option(
+    "--dependency",
+    type=str,
+    multiple=True,
+    help="Dependency to analyze. Cannot be set together with --dependency-file. If provided, it will take precedence over the default dependency file.",
+)
+@click.option(
     "--selector-method",
     type=click.Choice(list(SELECTOR_METHOD_MAPPING.keys())),
     help=(
@@ -51,15 +58,14 @@ def entry_point() -> None:
 )
 def run(
     config: str,
-    dependency_file: str,
+    dependency_file: Optional[str],
+    dependency: tuple[str],
     selector_method: str,
     v: bool,
     vv: bool,
 ) -> int:
     if v and vv:
-        raise ValueError(
-            "Only one verbosity level is allowed. Choose either -v or -vv."
-        )
+        raise ValueError("Only one verbosity level is allowed. Choose either -v or -vv.")
 
     if v:
         verbosity = AvailableLoggingLevels.info
@@ -68,10 +74,14 @@ def run(
     else:
         verbosity = AvailableLoggingLevels.none
 
+    if dependency and dependency_file:
+        raise ValueError("Only one of --dependency or --dependency-file can be set at a time.")
+
     return int(
         check_dependencies(
             config_file=config,
             dependency_file=dependency_file,
+            dependencies_cli=set(dependency) or None,
             selector_method=selector_method,
             verbosity=verbosity,
         )

@@ -42,7 +42,7 @@ test-all: venv
 
 # Format all code in the project.
 format: venv
-    poetry run ruff {{ target_dirs }} --fix
+    poetry run ruff check {{ target_dirs }} --fix
 
 # Lint all code in the project.
 lint: venv
