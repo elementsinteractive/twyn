@@ -3,41 +3,30 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from twyn.base.exceptions import TwynError
-from twyn.dependency_parser.exceptions import (
-    PathIsNotFileError,
-    PathNotFoundError,
-)
+from twyn.file_handler.file_handler import FileHandlerPathlib
 
 logger = logging.getLogger()
 
 
 class AbstractParser(ABC):
-    def __init__(self, file_path: str = "") -> None:
-        self.file_path = Path(os.path.abspath(os.path.join(os.getcwd(), file_path)))
+    """
+    Abstract class for file parsers.
 
-    def __str__(self):
+    Provides basic methods to deal with the dependecies file.
+    """
+
+    def __init__(self, file_path: str) -> None:
+        self.file_path = Path(os.path.abspath(os.path.join(os.getcwd(), file_path)))
+        self.file_handler = FileHandlerPathlib(file_path=self.file_path)
+
+    def __str__(self) -> str:
         return self.__class__.__name__
 
     def _read(self) -> str:
-        content = self.file_path.read_text()
-        logger.debug("Successfully read content from local dependencies file")
-
-        return content
+        return self.file_handler.read()
 
     def file_exists(self) -> bool:
-        try:
-            self.raise_for_valid_file()
-        except TwynError:
-            return False
-        return True
-
-    def raise_for_valid_file(self) -> None:
-        if not self.file_path.exists():
-            raise PathNotFoundError
-
-        if not self.file_path.is_file():
-            raise PathIsNotFileError
+        return self.file_handler.file_exists()
 
     @abstractmethod
     def parse(self) -> set[str]:

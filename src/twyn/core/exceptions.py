@@ -13,3 +13,4 @@ class AllowlistPackageAlreadyExistsError(AllowlistError):
 
 class AllowlistPackageDoesNotExistError(AllowlistError):
     message = "Package '{}' is not present in the allowlist. Skipping."
+
