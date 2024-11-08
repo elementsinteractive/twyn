@@ -30,12 +30,14 @@ logger = logging.getLogger()
 
 def check_dependencies(
     config_file: Optional[str],
-    dependency_file: str,
+    dependency_file: Optional[str],
+    dependencies_cli: Optional[set[str]],
     selector_method: str,
     verbosity: AvailableLoggingLevels = AvailableLoggingLevels.none,
 ) -> bool:
     """Check if dependencies could be typosquats."""
     config = get_configuration(config_file, dependency_file, selector_method, verbosity)
+
     trusted_packages = TrustedPackages(
         names=TopPyPiReference().get_packages(),
         algorithm=EditDistance(),
@@ -43,7 +45,7 @@ def check_dependencies(
         threshold_class=SimilarityThreshold,
     )
     normalized_allowlist_packages = normalize_packages(config.allowlist)
-    dependencies = get_parsed_dependencies(config.dependency_file)
+    dependencies = dependencies_cli if dependencies_cli else get_parsed_dependencies_from_file(config.dependency_file)
     normalized_dependencies = normalize_packages(dependencies)
 
     errors: list[TyposquatCheckResult] = []
@@ -53,9 +55,7 @@ def check_dependencies(
             continue
 
         logger.info(f"Analyzing {dependency}")
-        if dependency not in trusted_packages and (
-            typosquat_results := trusted_packages.get_typosquat(dependency)
-        ):
+        if dependency not in trusted_packages and (typosquat_results := trusted_packages.get_typosquat(dependency)):
             errors.append(typosquat_results)
 
     for possible_typosquats in errors:
@@ -69,8 +69,8 @@ def check_dependencies(
 
 def get_configuration(
     config_file: Optional[str],
-    dependency_file: str,
-    selector_method: str,
+    dependency_file: Optional[str],
+    selector_method: Optional[str],
     verbosity: AvailableLoggingLevels,
 ) -> ConfigHandler:
     """Read configuration and return configuration object.
@@ -80,18 +80,14 @@ def get_configuration(
     # Read config from file
     config = ConfigHandler(file_path=config_file, enforce_file=False)
 
-    # Set logging level according to priority order
-    logging_level: AvailableLoggingLevels = get_logging_level(
+    # Set logging level
+    config.logging_level = get_logging_level(
         logging_level=verbosity,
         config_logging_level=config.logging_level,
     )
-    set_logging_level(logging_level)
-    config.logging_level = logging_level.value
-
+    set_logging_level(config.logging_level)
     # Set selector method according to priority order
-    config.selector_method = (
-        selector_method or config.selector_method or DEFAULT_SELECTOR_METHOD
-    )
+    config.selector_method = selector_method or config.selector_method or DEFAULT_SELECTOR_METHOD
 
     # Set dependency file according to priority order
     config.dependency_file = dependency_file or config.dependency_file or None
@@ -126,7 +122,7 @@ def get_candidate_selector(selector_method_name: Optional[str]) -> AbstractSelec
     return selector_method
 
 
-def get_parsed_dependencies(dependency_file: Optional[str] = None) -> set[str]:
+def get_parsed_dependencies_from_file(dependency_file: Optional[str] = None) -> set[str]:
     dependency_parser = DependencySelector(dependency_file).get_dependency_parser()
     dependencies = dependency_parser.parse()
     logger.debug("Successfully parsed local dependencies file.")

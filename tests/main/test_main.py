@@ -7,7 +7,7 @@ from twyn.main import (
     check_dependencies,
     get_configuration,
     get_logging_level,
-    get_parsed_dependencies,
+    get_parsed_dependencies_from_file,
 )
 
 
@@ -129,16 +129,17 @@ class TestCheckDependencies:
         ),
     )
     @patch("twyn.main.TopPyPiReference")
-    @patch("twyn.main.get_parsed_dependencies")
+    @patch("twyn.main.get_parsed_dependencies_from_file")
     def test_check_dependencies_detects_typosquats(
-        self, mock_get_parsed_dependencies, mock_top_pypi_reference, package_name
+        self, mock_get_parsed_dependencies_from_file, mock_top_pypi_reference, package_name
     ):
         mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
-        mock_get_parsed_dependencies.return_value = {package_name}
+        mock_get_parsed_dependencies_from_file.return_value = {package_name}
 
         error = check_dependencies(
             config_file=None,
             dependency_file=None,
+            dependencies_cli=None,
             selector_method="first-letter",
         )
 
@@ -154,16 +155,52 @@ class TestCheckDependencies:
         ),
     )
     @patch("twyn.main.TopPyPiReference")
-    @patch("twyn.main.get_parsed_dependencies")
+    def test_check_dependencies_with_input_from_cli_detects_typosquats(self, mock_top_pypi_reference, package_name):
+        mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
+
+        error = check_dependencies(
+            config_file=None,
+            dependency_file=None,
+            dependencies_cli={package_name},
+            selector_method="first-letter",
+        )
+
+        assert error is True
+
+    @patch("twyn.main.TopPyPiReference")
+    def test_check_dependencies_with_input_from_cli_accepts_multiple_dependencies(self, mock_top_pypi_reference):
+        mock_top_pypi_reference.return_value.get_packages.return_value = {"requests", "mypackage"}
+
+        error = check_dependencies(
+            config_file=None,
+            dependency_file=None,
+            dependencies_cli={"my-package", "requests"},
+            selector_method="first-letter",
+        )
+
+        assert error is True
+
+    @pytest.mark.parametrize(
+        "package_name",
+        (
+            "my.package",
+            "my-package",
+            "my_package",
+            "My.Package",
+        ),
+    )
+    @patch("twyn.main.TopPyPiReference")
+    @patch("twyn.main.get_parsed_dependencies_from_file")
     def test_check_dependencies_ignores_package_in_allowlist(
-        self, mock_get_parsed_dependencies, mock_top_pypi_reference, package_name
+        self, mock_get_parsed_dependencies_from_file, mock_top_pypi_reference, package_name
     ):
         mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
-        mock_get_parsed_dependencies.return_value = {package_name}
+        mock_get_parsed_dependencies_from_file.return_value = {package_name}
 
         m_config = Mock(
             allowlist={package_name},
             dependency_file=None,
+            dependencies_cli=None,
             selector_method="first-letter",
         )
 
@@ -171,35 +208,33 @@ class TestCheckDependencies:
             error = check_dependencies(
                 config_file=None,
                 dependency_file=None,
+                dependencies_cli=None,
                 selector_method="first-letter",
             )
 
         assert error is False
 
-    @pytest.mark.parametrize(
-        "package_name", ("my.package", "my-package", "my_package", "My.Package")
-    )
+    @pytest.mark.parametrize("package_name", ("my.package", "my-package", "my_package", "My.Package"))
     @patch("twyn.main.TopPyPiReference")
-    @patch("twyn.main.get_parsed_dependencies")
+    @patch("twyn.main.get_parsed_dependencies_from_file")
     def test_check_dependencies_does_not_error_on_same_package(
-        self, mock_get_parsed_dependencies, mock_top_pypi_reference, package_name
+        self, mock_get_parsed_dependencies_from_file, mock_top_pypi_reference, package_name
     ):
         mock_top_pypi_reference.return_value.get_packages.return_value = {"my-package"}
-        mock_get_parsed_dependencies.return_value = {package_name}
+        mock_get_parsed_dependencies_from_file.return_value = {package_name}
 
         error = check_dependencies(
             config_file=None,
             dependency_file=None,
+            dependencies_cli=None,
             selector_method="first-letter",
         )
 
         assert error is False
 
-    @patch(
-        "twyn.dependency_parser.dependency_selector.DependencySelector.get_dependency_parser"
-    )
+    @patch("twyn.dependency_parser.dependency_selector.DependencySelector.get_dependency_parser")
     @patch("twyn.dependency_parser.requirements_txt.RequirementsTxtParser.parse")
-    def test_get_parsed_dependencies(self, mock_parse, mock_get_dependency_parser):
+    def test_get_parsed_dependencies_from_file(self, mock_parse, mock_get_dependency_parser):
         mock_get_dependency_parser.return_value = RequirementsTxtParser()
         mock_parse.return_value = {"boto3"}
-        assert get_parsed_dependencies() == {"boto3"}
+        assert get_parsed_dependencies_from_file() == {"boto3"}
