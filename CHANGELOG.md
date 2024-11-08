@@ -1,3 +1,9 @@
+## v2.7.0 (2024-11-08)
+
+### feat
+
+- allow searching dependencies from the command line (#152)
+
 ## v2.6.57 (2024-11-07)
 
 ### chore
