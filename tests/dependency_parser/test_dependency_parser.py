@@ -1,10 +1,9 @@
 from unittest.mock import patch
 
 import pytest
-from twyn.base.exceptions import TwynError
 from twyn.dependency_parser import PoetryLockParser, RequirementsTxtParser
 from twyn.dependency_parser.abstract_parser import AbstractParser
-from twyn.dependency_parser.exceptions import PathIsNotFileError, PathNotFoundError
+from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
 
 
 class TestAbstractParser:
@@ -15,19 +14,13 @@ class TestAbstractParser:
             self._read()
             return set()
 
-    @patch("twyn.dependency_parser.abstract_parser.AbstractParser.raise_for_valid_file")
-    def test_file_exists_success(self, _mock_raise_for_valid_file):
+    @patch("pathlib.Path.exists")
+    @patch("pathlib.Path.is_file")
+    def test_file_exists(self, _mock_exists, _mock_is_file):
+        _mock_exists.return_value = True
+        _mock_is_file.return_value = True
         parser = self.TemporaryParser("fake_path.txt")
         assert parser.file_exists() is True
-
-    @patch("twyn.dependency_parser.abstract_parser.AbstractParser.raise_for_valid_file")
-    def test_file_exists_fail(self, mock_raise_for_valid_file):
-        def raise_twyn_error():
-            raise TwynError
-
-        mock_raise_for_valid_file.side_effect = raise_twyn_error
-        parser = self.TemporaryParser("fake_path.txt")
-        assert parser.file_exists() is False
 
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.is_file")
@@ -35,14 +28,12 @@ class TestAbstractParser:
         "file_exists, is_file, exception",
         [[False, False, PathNotFoundError], [True, False, PathIsNotFileError]],
     )
-    def test_raise_for_valid_file(
-        self, mock_is_file, mock_exists, file_exists, is_file, exception
-    ):
+    def test_raise_for_valid_file(self, mock_is_file, mock_exists, file_exists, is_file, exception):
         mock_exists.return_value = file_exists
         mock_is_file.return_value = is_file
 
-        with pytest.raises(exception):
-            self.TemporaryParser("fake_path").raise_for_valid_file()
+        parser = self.TemporaryParser("fake_path.txt")
+        assert parser.file_exists() is False
 
 
 class TestRequirementsTxtParser:

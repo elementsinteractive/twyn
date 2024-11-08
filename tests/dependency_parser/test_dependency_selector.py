@@ -12,10 +12,7 @@ from twyn.dependency_parser.exceptions import (
 class TestDependencySelector:
     @patch("twyn.dependency_parser.poetry_lock.PoetryLockParser.file_exists")
     @patch("twyn.dependency_parser.requirements_txt.RequirementsTxtParser.file_exists")
-    @patch("twyn.dependency_parser.abstract_parser.AbstractParser.raise_for_valid_file")
-    @patch(
-        "twyn.dependency_parser.dependency_selector.DependencySelector._raise_for_selected_parsers"
-    )
+    @patch("twyn.dependency_parser.dependency_selector.DependencySelector._raise_for_selected_parsers")
     @pytest.mark.parametrize(
         "file_name, requirements_exists, poetry_exists, parser_obj",
         [
@@ -35,7 +32,6 @@ class TestDependencySelector:
     def test_get_dependency_parser(
         self,
         _raise_for_selected_parsers,
-        _raise_for_valid_file,
         req_exists,
         poet_exists,
         file_name,
@@ -53,9 +49,7 @@ class TestDependencySelector:
         [(True, MultipleParsersError), (False, NoMatchingParserError)],
     )
     @patch("twyn.dependency_parser.abstract_parser.AbstractParser.file_exists")
-    def test_auto_detect_dependency_file_parser_exceptions(
-        self, file_exists, exists, exception
-    ):
+    def test_auto_detect_dependency_file_parser_exceptions(self, file_exists, exists, exception):
         file_exists.return_value = exists
         with pytest.raises(exception):
             DependencySelector().get_dependency_parser()

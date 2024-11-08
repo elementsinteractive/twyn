@@ -1,10 +1,11 @@
 import os
+from typing import Generator
 
 import pytest
 
 
 @pytest.fixture
-def requirements_txt_file(tmp_path):
+def requirements_txt_file(tmp_path) -> Generator[str, None, None]:
     requirements_txt_file = tmp_path / "requirements.txt"
     requirements_txt_file.write_text(
         """
@@ -12,12 +13,12 @@ def requirements_txt_file(tmp_path):
         pycrypto>=2.6
         """
     )
-    yield requirements_txt_file
+    yield str(requirements_txt_file)
     os.remove(requirements_txt_file)
 
 
 @pytest.fixture
-def poetry_lock_file_lt_1_5(tmp_path):
+def poetry_lock_file_lt_1_5(tmp_path) -> Generator[str, None, None]:
     """Poetry lock version < 1.5."""
     poetry_lock_file = tmp_path / "poetry.lock"
     poetry_lock_file.write_text(
@@ -61,12 +62,12 @@ def poetry_lock_file_lt_1_5(tmp_path):
             mccabe = []
         """
     )
-    yield poetry_lock_file
+    yield str(poetry_lock_file)
     os.remove(poetry_lock_file)
 
 
 @pytest.fixture
-def poetry_lock_file_ge_1_5(tmp_path):
+def poetry_lock_file_ge_1_5(tmp_path) -> Generator[str, None, None]:
     """Poetry lock version >= 1.5."""
     poetry_lock_file = tmp_path / "poetry.lock"
     poetry_lock_file.write_text(
@@ -107,12 +108,12 @@ def poetry_lock_file_ge_1_5(tmp_path):
             mccabe = []
         """
     )
-    yield poetry_lock_file
+    yield str(poetry_lock_file)
     os.remove(poetry_lock_file)
 
 
 @pytest.fixture
-def pyproject_toml_file(tmp_path):
+def pyproject_toml_file(tmp_path) -> Generator[str, None, None]:
     pyproject_toml = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """
@@ -136,5 +137,5 @@ def pyproject_toml_file(tmp_path):
 
     """
     )
-    yield pyproject_toml
+    yield str(pyproject_toml)
     os.remove(pyproject_toml)

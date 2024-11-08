@@ -56,6 +56,5 @@ class DependencySelector:
 
         file_parser = dependency_file_parser()
         logger.debug(f"Assigned {file_parser} parser for local dependencies file.")
-        file_parser.raise_for_valid_file()
 
         return file_parser
