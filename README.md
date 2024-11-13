@@ -15,9 +15,9 @@ In short, Twyn protects you against [typosquatting attacks](https://en.wikipedia
 
 It works as follows:
 
-1. It will try to find a dependencies file in your working path. You can freely specify a different path for that file.
-2. If your installed package name matches with the name of one of the most well known packages, the package is accepted.
-3. If the name of your package is similar to the name one of the most used packages, Twyn will prompt an error.
+1. Either choose to scan the dependencies in a dependencies file you specify (`--dependency-file`) or some dependencies introduced through the CLI (`--dependency`). If no option was provided, it will try to find a dependencies file in your working path.
+2. If the name of your package name matches with the name of one of the most well known packages, the package is accepted.
+3. If the name of your package is similar to the name of one of the most used packages, Twyn will prompt an error.
 4. If your package name is not in the list of the most known ones and is not similar enough to any of those to be considered misspelled, the package is accepted. Twyn assumes that you're using either a not so popular package (therefore it can't verify its legitimacy) or a package created by yourself, therefore unknown for the rest.
 
 ## Docker
@@ -59,6 +59,17 @@ To specify a dependency file through the command line run:
 Currently it supports these dependency file formats.
 - `requirements.txt`
 - `poetry.lock`
+
+### Check dependencies introduced through the CLI
+You can also check a dependency by entering it through the command line:
+
+    twyn run --dependency <dependency>
+
+It does accept multiple dependencies at a time:
+
+    twyn run --dependency <dependency> --dependency <another_dependency>
+
+When this option is selected, no dependency file is checked.
 
 ### Selector method
 You can choose between different operational modes:
