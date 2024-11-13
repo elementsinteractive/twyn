@@ -50,11 +50,12 @@ class DependencySelector:
         if self.dependency_file:
             logger.debug("Dependency file provided. Assigning a parser.")
             dependency_file_parser = self.get_dependency_file_parser_from_file_name()
+            file_parser = dependency_file_parser(self.dependency_file)
         else:
             logger.debug("No dependency file provided. Attempting to locate one.")
             dependency_file_parser = self.auto_detect_dependency_file_parser()
+            file_parser = dependency_file_parser()
 
-        file_parser = dependency_file_parser()
         logger.debug(f"Assigned {file_parser} parser for local dependencies file.")
 
         return file_parser

@@ -10,6 +10,8 @@ from twyn.main import (
     get_parsed_dependencies_from_file,
 )
 
+from tests.conftest import create_tmp_file
+
 
 @pytest.mark.usefixtures("disable_track")
 class TestCheckDependencies:
@@ -164,6 +166,23 @@ class TestCheckDependencies:
             dependencies_cli={package_name},
             selector_method="first-letter",
         )
+
+        assert error is True
+
+    @patch("twyn.main.TopPyPiReference")
+    def test_check_dependencies_with_input_loads_file_from_different_location(
+        self, mock_top_pypi_reference, tmp_path, tmpdir
+    ):
+        mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
+        tmpdir.mkdir("fake-dir")
+        tmp_file = tmp_path / "fake-dir" / "requirements.txt"
+        with create_tmp_file(tmp_file, "mypackag"):
+            error = check_dependencies(
+                config_file=None,
+                dependency_file=str(tmp_file),
+                dependencies_cli=None,
+                selector_method="first-letter",
+            )
 
         assert error is True
 
