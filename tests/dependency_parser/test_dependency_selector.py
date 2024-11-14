@@ -10,39 +10,39 @@ from twyn.dependency_parser.exceptions import (
 
 
 class TestDependencySelector:
-    @patch("twyn.dependency_parser.poetry_lock.PoetryLockParser.file_exists")
-    @patch("twyn.dependency_parser.requirements_txt.RequirementsTxtParser.file_exists")
-    @patch("twyn.dependency_parser.dependency_selector.DependencySelector._raise_for_selected_parsers")
     @pytest.mark.parametrize(
-        "file_name, requirements_exists, poetry_exists, parser_obj",
+        "file_name, parser_obj",
         [
-            (None, True, False, RequirementsTxtParser),  # auto detect requirements.txt
-            (None, False, True, PoetryLockParser),  # auto detect poetry.lock
             (
                 "requirements.txt",
-                None,
-                None,
                 RequirementsTxtParser,
             ),  # because file is specified, we won't autocheck
-            ("poetry.lock", None, None, PoetryLockParser),
-            ("/some/path/poetry.lock", None, None, PoetryLockParser),
-            ("/some/path/requirements.txt", None, None, RequirementsTxtParser),
+            ("poetry.lock", PoetryLockParser),
+            ("/some/path/poetry.lock", PoetryLockParser),
+            ("/some/path/requirements.txt", RequirementsTxtParser),
         ],
     )
-    def test_get_dependency_parser(
-        self,
-        _raise_for_selected_parsers,
-        req_exists,
-        poet_exists,
-        file_name,
-        requirements_exists,
-        poetry_exists,
-        parser_obj,
-    ):
-        req_exists.return_value = requirements_exists
-        poet_exists.return_value = poetry_exists
+    def test_get_dependency_parser(self, file_name, parser_obj):
         parser = DependencySelector(file_name).get_dependency_parser()
         assert isinstance(parser, parser_obj)
+        assert str(parser.file_handler.file_path).endswith(file_name)
+
+    @patch("twyn.dependency_parser.poetry_lock.PoetryLockParser.file_exists")
+    @patch("twyn.dependency_parser.requirements_txt.RequirementsTxtParser.file_exists")
+    def test_get_dependency_parser_auto_detect_requirements_file(
+        self, req_file_exists, poetry_file_exists, requirements_txt_file
+    ):
+        # Twyn finds the local poetry.lock file.
+        # It proves that it can show a requirements.txt file still after mocking the poetry file parser.
+        poetry_file_exists.return_value = False
+        req_file_exists.return_value = True
+
+        parser = DependencySelector("").get_dependency_parser()
+        assert isinstance(parser, RequirementsTxtParser)
+
+    def test_get_dependency_parser_auto_detect_poetry_file(self, poetry_lock_file_lt_1_5):
+        parser = DependencySelector("").get_dependency_parser()
+        assert isinstance(parser, PoetryLockParser)
 
     @pytest.mark.parametrize(
         "exists, exception",

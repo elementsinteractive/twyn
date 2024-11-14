@@ -23,7 +23,7 @@ def entry_point() -> None:
 @click.option("--config", type=click.STRING)
 @click.option(
     "--dependency-file",
-    type=click.Choice(list(DEPENDENCY_FILE_MAPPING.keys())),
+    type=str,
     help=(
         "Dependency file to analyze. By default, twyn will search in the current directory "
         "for supported files, but this option will override that behavior."
@@ -76,6 +76,9 @@ def run(
 
     if dependency and dependency_file:
         raise ValueError("Only one of --dependency or --dependency-file can be set at a time.")
+
+    if dependency_file and not any(dependency_file.endswith(key) for key in DEPENDENCY_FILE_MAPPING):
+        raise ValueError("Dependency file name not supported.")
 
     return int(
         check_dependencies(

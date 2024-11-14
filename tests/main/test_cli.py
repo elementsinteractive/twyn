@@ -54,6 +54,27 @@ class TestCli:
         ]
 
     @patch("twyn.cli.check_dependencies")
+    def test_click_arguments_dependency_file_in_different_path(self, mock_check_dependencies):
+        runner = CliRunner()
+        runner.invoke(
+            cli.run,
+            [
+                "--dependency-file",
+                "/path/requirements.txt",
+            ],
+        )
+
+        assert mock_check_dependencies.call_args_list == [
+            call(
+                config_file=None,
+                dependency_file="/path/requirements.txt",
+                dependencies_cli=None,
+                selector_method=None,
+                verbosity=AvailableLoggingLevels.none,
+            )
+        ]
+
+    @patch("twyn.cli.check_dependencies")
     def test_click_arguments_single_dependency_cli(self, mock_check_dependencies):
         runner = CliRunner()
         runner.invoke(
@@ -128,3 +149,11 @@ class TestCli:
             match="Only one verbosity level is allowed. Choose either -v or -vv.",
         ):
             runner.invoke(cli.run, ["-v", "-vv"], catch_exceptions=False)
+
+    def test_dependency_file_name_has_to_be_recognized(self):
+        runner = CliRunner()
+        with pytest.raises(
+            ValueError,
+            match="Dependency file name not supported.",
+        ):
+            runner.invoke(cli.run, ["--dependency-file", "requirements-dev.txt"], catch_exceptions=False)

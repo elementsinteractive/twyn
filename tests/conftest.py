@@ -1,28 +1,36 @@
 import os
-from typing import Generator
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Iterator
 
 import pytest
 
 
+@contextmanager
+def create_tmp_file(path: Path, data: str) -> Iterator[str]:
+    path.write_text(data)
+    yield str(path)
+    os.remove(path)
+
+
 @pytest.fixture
-def requirements_txt_file(tmp_path) -> Generator[str, None, None]:
+def requirements_txt_file(tmp_path: Path) -> Iterator[str]:
     requirements_txt_file = tmp_path / "requirements.txt"
-    requirements_txt_file.write_text(
-        """
+
+    data = """
         South==1.0.1 --hash=sha256:abcdefghijklmno
         pycrypto>=2.6
         """
-    )
-    yield str(requirements_txt_file)
-    os.remove(requirements_txt_file)
+
+    with create_tmp_file(requirements_txt_file, data) as tmp_file:
+        yield tmp_file
 
 
 @pytest.fixture
-def poetry_lock_file_lt_1_5(tmp_path) -> Generator[str, None, None]:
+def poetry_lock_file_lt_1_5(tmp_path: Path) -> Iterator[str]:
     """Poetry lock version < 1.5."""
     poetry_lock_file = tmp_path / "poetry.lock"
-    poetry_lock_file.write_text(
-        """
+    data = """
             [[package]]
             name = "charset-normalizer"
             version = "3.0.1"
@@ -61,17 +69,15 @@ def poetry_lock_file_lt_1_5(tmp_path) -> Generator[str, None, None]:
             flake8 = []
             mccabe = []
         """
-    )
-    yield str(poetry_lock_file)
-    os.remove(poetry_lock_file)
+    with create_tmp_file(poetry_lock_file, data) as tmp_file:
+        yield tmp_file
 
 
 @pytest.fixture
-def poetry_lock_file_ge_1_5(tmp_path) -> Generator[str, None, None]:
+def poetry_lock_file_ge_1_5(tmp_path: Path) -> Iterator[str]:
     """Poetry lock version >= 1.5."""
     poetry_lock_file = tmp_path / "poetry.lock"
-    poetry_lock_file.write_text(
-        """
+    data = """
             [[package]]
             name = "charset-normalizer"
             version = "3.0.1"
@@ -107,16 +113,14 @@ def poetry_lock_file_ge_1_5(tmp_path) -> Generator[str, None, None]:
             flake8 = []
             mccabe = []
         """
-    )
-    yield str(poetry_lock_file)
-    os.remove(poetry_lock_file)
+    with create_tmp_file(poetry_lock_file, data) as tmp_file:
+        yield tmp_file
 
 
 @pytest.fixture
-def pyproject_toml_file(tmp_path) -> Generator[str, None, None]:
+def pyproject_toml_file(tmp_path: Path) -> Iterator[str]:
     pyproject_toml = tmp_path / "pyproject.toml"
-    pyproject_toml.write_text(
-        """
+    data = """
     [tool.poetry.dependencies]
     python = "^3.11"
     requests = "^2.28.2"
@@ -136,6 +140,5 @@ def pyproject_toml_file(tmp_path) -> Generator[str, None, None]:
     allowlist=["boto4", "boto2"]
 
     """
-    )
-    yield str(pyproject_toml)
-    os.remove(pyproject_toml)
+    with create_tmp_file(pyproject_toml, data) as tmp_file:
+        yield tmp_file
