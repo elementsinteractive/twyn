@@ -1,3 +1,14 @@
+## v2.7.2 (2024-11-14)
+
+### chore
+
+- bump the dependencies group with 3 updates (#154)
+- bump the dependencies group with 3 updates
+
+### docs
+
+- Add docs for --dependency option and fix typo (closes #155) (#156)
+
 ## v2.7.1 (2024-11-08)
 
 ### chore
