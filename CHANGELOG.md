@@ -1,3 +1,9 @@
+## v2.7.3 (2024-11-14)
+
+### fix
+
+- select file from paths that are not in the root folder (#157)
+
 ## v2.7.2 (2024-11-14)
 
 ### chore
