@@ -1,3 +1,9 @@
+## v2.7.4 (2024-11-15)
+
+### ci
+
+- support and test against range of python versions
+
 ## v2.7.3 (2024-11-14)
 
 ### fix
