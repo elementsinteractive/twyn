@@ -2,7 +2,13 @@
 name = "twyn"
 version = "2.7.3"
 description = ""
-authors = ["Daniel Sanz, Sergio Castillo, Ludo van Orden, Dmitrii Fedotov"]
+authors = [
+    "Daniel Sanz",
+    "Sergio Castillo <s.cast.lara@gmail.com>",
+    "Ludo van Orden",
+    "Dmitrii Fedotov",
+]
+maintainers = ["Daniel Sanz", "Sergio Castillo <s.cast.lara@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
