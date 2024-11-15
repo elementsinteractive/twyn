@@ -1,3 +1,9 @@
+## v2.8.1 (2024-11-15)
+
+### refactor
+
+- simplify config a bit more
+
 ## v2.8.0 (2024-11-15)
 
 ### feat
