@@ -9,6 +9,7 @@ from twyn.trusted_packages import selectors
 if TYPE_CHECKING:
     from twyn.dependency_parser.abstract_parser import AbstractParser
 
+
 SELECTOR_METHOD_MAPPING: dict[str, type[selectors.AbstractSelector]] = {
     "first-letter": selectors.FirstLetterExact,
     "nearby-letter": selectors.FirstLetterNearbyInKeyboard,
@@ -23,6 +24,7 @@ DEPENDENCY_FILE_MAPPING: dict[str, type[AbstractParser]] = {
 DEFAULT_SELECTOR_METHOD = "all"
 DEFAULT_DEPENDENCY_FILE = "requirements.txt"
 DEFAULT_PROJECT_TOML_FILE = "pyproject.toml"
+DEFAULT_TOP_PYPI_PACKAGES = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages-30-days.min.json"
 
 
 class AvailableLoggingLevels(enum.Enum):

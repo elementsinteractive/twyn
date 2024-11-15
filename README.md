@@ -131,9 +131,25 @@ twyn run --config <file>
 All the configurations available through the command line are also supported in the config file.
 
 ```toml
-  [tool.twyn]
-  dependency_file="/my/path/requirements.txt"
-  selector_method="first_letter"
-  logging_level="debug"
-  allowlist=["my_package"]
+[tool.twyn]
+dependency_file="/my/path/requirements.txt"
+selector_method="first_letter"
+logging_level="debug"
+allowlist=["my_package"]
+pypi_reference="https://mirror-with-trusted-dependencies.com/file.json"
+```
+
+> [!WARNING]
+> `twyn` will have a default reference URL for every source of trusted packages that is configurable.
+> If you want to protect yourself against spoofing attacks, it is recommended to set your own
+> reference url.
+
+The file format for each reference is as follows:
+
+- **PyPI reference**:
+
+```ts
+{
+    rows: {project: string}[]
+}
 ```

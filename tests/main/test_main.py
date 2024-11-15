@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from twyn.base.constants import AvailableLoggingLevels
+from twyn.base.constants import DEFAULT_TOP_PYPI_PACKAGES, AvailableLoggingLevels
 from twyn.core.config_handler import ConfigHandler, TwynConfiguration, _get_logging_level
 from twyn.dependency_parser import RequirementsTxtParser
 from twyn.main import (
@@ -34,6 +34,7 @@ class TestCheckDependencies:
                     selector_method="first-letter",
                     logging_level=AvailableLoggingLevels.info,
                     allowlist={"boto4", "boto2"},
+                    pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
                 ),
             ),
             (
@@ -51,6 +52,7 @@ class TestCheckDependencies:
                     selector_method="nearby-letter",
                     logging_level=AvailableLoggingLevels.debug,
                     allowlist={"boto4", "boto2"},
+                    pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
                 ),
             ),
             (
@@ -63,6 +65,7 @@ class TestCheckDependencies:
                     selector_method="all",
                     logging_level=AvailableLoggingLevels.warning,
                     allowlist=set(),
+                    pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
                 ),
             ),
             (
@@ -81,6 +84,7 @@ class TestCheckDependencies:
                     selector_method=None,
                     logging_level=AvailableLoggingLevels.debug,
                     allowlist=set(),
+                    pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
                 ),
             ),
         ],
@@ -232,6 +236,7 @@ class TestCheckDependencies:
             dependency_file=None,
             selector_method="first-letter",
             logging_level=AvailableLoggingLevels.info,
+            pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
         )
 
         with patch("twyn.main.ConfigHandler.resolve_config", return_value=m_config):

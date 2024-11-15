@@ -41,7 +41,7 @@ def check_dependencies(
     _set_logging_level(config.logging_level)
 
     trusted_packages = TrustedPackages(
-        names=TopPyPiReference().get_packages(),
+        names=TopPyPiReference(source=config.pypi_reference).get_packages(),
         algorithm=EditDistance(),
         selector=get_candidate_selector(config.selector_method),
         threshold_class=SimilarityThreshold,
