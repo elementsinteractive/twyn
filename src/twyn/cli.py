@@ -9,7 +9,7 @@ from twyn.base.constants import (
     SELECTOR_METHOD_MAPPING,
     AvailableLoggingLevels,
 )
-from twyn.core.config_handler import ConfigHandler
+from twyn.config.config_handler import ConfigHandler
 from twyn.main import check_dependencies
 
 

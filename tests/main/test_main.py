@@ -1,8 +1,9 @@
 from unittest.mock import patch
 
 import pytest
+from tomlkit import dumps, parse
 from twyn.base.constants import DEFAULT_TOP_PYPI_PACKAGES, AvailableLoggingLevels
-from twyn.core.config_handler import ConfigHandler, TwynConfiguration, _get_logging_level
+from twyn.config.config_handler import ConfigHandler, TwynConfiguration, _get_logging_level
 from twyn.dependency_parser import RequirementsTxtParser
 from twyn.main import (
     check_dependencies,
@@ -27,7 +28,7 @@ class TestCheckDependencies:
                     "logging_level": "WARNING",
                     "selector_method": "nearby-letter",
                     "dependency_file": "poetry.lock",
-                    "allowlist": {"boto4", "boto2"},
+                    "allowlist": ["boto4", "boto2"],
                 },
                 TwynConfiguration(
                     dependency_file="requirements.txt",
@@ -45,7 +46,7 @@ class TestCheckDependencies:
                     "logging_level": "debug",
                     "selector_method": "nearby-letter",
                     "dependency_file": "poetry.lock",
-                    "allowlist": {"boto4", "boto2"},
+                    "allowlist": ["boto4", "boto2"],
                 },
                 TwynConfiguration(
                     dependency_file="poetry.lock",
@@ -75,13 +76,12 @@ class TestCheckDependencies:
                 },
                 {
                     "logging_level": "INFO",
-                    "selector_method": None,
                     "dependency_file": "poetry.lock",
-                    "allowlist": set(),
+                    "allowlist": [],
                 },
                 TwynConfiguration(
                     dependency_file="requirements.txt",
-                    selector_method=None,
+                    selector_method="all",
                     logging_level=AvailableLoggingLevels.debug,
                     allowlist=set(),
                     pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
@@ -106,7 +106,7 @@ class TestCheckDependencies:
         """
         handler = ConfigHandler(file_path=None, enforce_file=False)
 
-        with patch.object(handler, "_get_twyn_data_from_toml", return_value=file_config):
+        with patch.object(handler, "_read_toml", return_value=parse(dumps({"tool": {"twyn": file_config}}))):
             resolved = handler.resolve_config(
                 selector_method=cli_config.get("selector_method"),
                 dependency_file=cli_config.get("dependency_file"),
@@ -117,8 +117,6 @@ class TestCheckDependencies:
         assert resolved.selector_method == expected_resolved_config.selector_method
         assert resolved.logging_level == expected_resolved_config.logging_level
         assert resolved.allowlist == expected_resolved_config.allowlist
-
-        # assert mock_logging_level.call_args == call(log_level)
 
     @pytest.mark.parametrize(
         "passed_logging_level, config, logging_level",
