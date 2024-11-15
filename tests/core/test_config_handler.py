@@ -5,8 +5,8 @@ from unittest.mock import patch
 import pytest
 from tomlkit import TOMLDocument, dumps, parse
 from twyn.base.constants import DEFAULT_TOP_PYPI_PACKAGES, AvailableLoggingLevels
-from twyn.core.config_handler import ConfigHandler, ReadTwynConfiguration, TwynConfiguration
-from twyn.core.exceptions import (
+from twyn.config.config_handler import ConfigHandler, ReadTwynConfiguration, TwynConfiguration
+from twyn.config.exceptions import (
     AllowlistPackageAlreadyExistsError,
     AllowlistPackageDoesNotExistError,
     TOMLError,
@@ -17,13 +17,13 @@ class TestConfig:
     def throw_exception(self):
         raise FileNotFoundError
 
-    @patch("twyn.core.config_handler.ConfigHandler._get_toml_file_pointer")
+    @patch("twyn.config.config_handler.ConfigHandler._get_toml_file_pointer")
     def test_enforce_file_error(self, mock_is_file):
         mock_is_file.side_effect = self.throw_exception
         with pytest.raises(TOMLError):
             ConfigHandler(enforce_file=True).resolve_config()
 
-    @patch("twyn.core.config_handler.ConfigHandler._get_toml_file_pointer")
+    @patch("twyn.config.config_handler.ConfigHandler._get_toml_file_pointer")
     def test_no_enforce_file_on_non_existent_file(self, mock_is_file):
         """Resolving the config without enforcing the file to be present gives you defaults."""
         mock_is_file.side_effect = self.throw_exception
@@ -103,8 +103,8 @@ class TestConfig:
 
 
 class TestAllowlistConfigHandler:
-    @patch("twyn.core.config_handler.ConfigHandler._write_toml")
-    @patch("twyn.core.config_handler.ConfigHandler._read_toml")
+    @patch("twyn.config.config_handler.ConfigHandler._write_toml")
+    @patch("twyn.config.config_handler.ConfigHandler._read_toml")
     def test_allowlist_add(self, mock_toml, mock_write_toml):
         mock_toml.return_value = TOMLDocument()
 
@@ -117,8 +117,8 @@ class TestAllowlistConfigHandler:
         assert final_toml == {"tool": {"twyn": {"allowlist": ["mypackage"]}}}
         assert mock_write_toml.called
 
-    @patch("twyn.core.config_handler.ConfigHandler._write_toml")
-    @patch("twyn.core.config_handler.ConfigHandler._read_toml")
+    @patch("twyn.config.config_handler.ConfigHandler._write_toml")
+    @patch("twyn.config.config_handler.ConfigHandler._read_toml")
     def test_allowlist_add_duplicate_error(self, mock_toml, mock_write_toml):
         mock_toml.return_value = parse(dumps({"tool": {"twyn": {"allowlist": ["mypackage"]}}}))
 
@@ -131,8 +131,8 @@ class TestAllowlistConfigHandler:
 
         assert not mock_write_toml.called
 
-    @patch("twyn.core.config_handler.ConfigHandler._write_toml")
-    @patch("twyn.core.config_handler.ConfigHandler._read_toml")
+    @patch("twyn.config.config_handler.ConfigHandler._write_toml")
+    @patch("twyn.config.config_handler.ConfigHandler._read_toml")
     def test_allowlist_remove_completely(self, mock_toml, mock_write_toml):
         mock_toml.return_value = parse(dumps({"tool": {"twyn": {"allowlist": ["mypackage"]}}}))
 
@@ -141,8 +141,8 @@ class TestAllowlistConfigHandler:
         config.remove_package_from_allowlist("mypackage")
         assert config._read_toml() == {"tool": {"twyn": {}}}
 
-    @patch("twyn.core.config_handler.ConfigHandler._write_toml")
-    @patch("twyn.core.config_handler.ConfigHandler._read_toml")
+    @patch("twyn.config.config_handler.ConfigHandler._write_toml")
+    @patch("twyn.config.config_handler.ConfigHandler._read_toml")
     def test_allowlist_remove(self, mock_toml, mock_write_toml):
         mock_toml.return_value = parse(dumps({"tool": {"twyn": {"allowlist": ["mypackage", "another-package"]}}}))
 
@@ -151,8 +151,8 @@ class TestAllowlistConfigHandler:
         config.remove_package_from_allowlist("mypackage")
         assert config._read_toml() == {"tool": {"twyn": {"allowlist": ["another-package"]}}}
 
-    @patch("twyn.core.config_handler.ConfigHandler._write_toml")
-    @patch("twyn.core.config_handler.ConfigHandler._read_toml")
+    @patch("twyn.config.config_handler.ConfigHandler._write_toml")
+    @patch("twyn.config.config_handler.ConfigHandler._read_toml")
     def test_allowlist_remove_non_existent_package_error(self, mock_toml, mock_write_toml):
         mock_toml.return_value = parse(dumps({"tool": {"twyn": {"allowlist": ["mypackage"]}}}))
 

@@ -7,7 +7,7 @@ from twyn.base.constants import AvailableLoggingLevels
 
 
 class TestCli:
-    @patch("twyn.core.config_handler.ConfigHandler.add_package_to_allowlist")
+    @patch("twyn.config.config_handler.ConfigHandler.add_package_to_allowlist")
     def test_allowlist_add_package_to_allowlist(self, mock_allowlist_add):
         runner = CliRunner()
         runner.invoke(
@@ -17,7 +17,7 @@ class TestCli:
 
         assert mock_allowlist_add.call_args == call("requests")
 
-    @patch("twyn.core.config_handler.ConfigHandler.remove_package_from_allowlist")
+    @patch("twyn.config.config_handler.ConfigHandler.remove_package_from_allowlist")
     def test_allowlist_remove(self, mock_allowlist_add):
         runner = CliRunner()
         runner.invoke(

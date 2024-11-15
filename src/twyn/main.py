@@ -9,7 +9,7 @@ from twyn.base.constants import (
     SELECTOR_METHOD_MAPPING,
     AvailableLoggingLevels,
 )
-from twyn.core.config_handler import ConfigHandler
+from twyn.config.config_handler import ConfigHandler
 from twyn.dependency_parser.dependency_selector import DependencySelector
 from twyn.similarity.algorithm import EditDistance, SimilarityThreshold
 from twyn.trusted_packages import TopPyPiReference

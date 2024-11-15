@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass
 from enum import Enum
 from os import getcwd
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 from tomlkit import TOMLDocument, dumps, parse, table
 
@@ -13,7 +13,7 @@ from twyn.base.constants import (
     DEFAULT_TOP_PYPI_PACKAGES,
     AvailableLoggingLevels,
 )
-from twyn.core.exceptions import (
+from twyn.config.exceptions import (
     AllowlistPackageAlreadyExistsError,
     AllowlistPackageDoesNotExistError,
     TOMLError,
@@ -33,7 +33,7 @@ class TwynConfiguration:
     pypi_reference: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class ReadTwynConfiguration:
     """Configuration for twyn as set by the user. It may have None values."""
 
@@ -65,16 +65,14 @@ class ConfigHandler:
         It will also handle default values, when appropriate.
         """
         toml = self._read_toml()
-        twyn_config_data = self._get_twyn_data_from_toml(toml)
+        read_config = self._get_read_config(toml)
 
-        # Resolve the configuration so that it is ready to be used by Twyn,
-        # handling defaults etc
         return TwynConfiguration(
-            dependency_file=dependency_file or twyn_config_data.get("dependency_file"),
-            selector_method=selector_method or twyn_config_data.get("selector_method", DEFAULT_SELECTOR_METHOD),
-            logging_level=_get_logging_level(verbosity, twyn_config_data.get("logging_level")),
-            allowlist=set(twyn_config_data.get("allowlist", set())),
-            pypi_reference=twyn_config_data.get("pypi_reference", DEFAULT_TOP_PYPI_PACKAGES),
+            dependency_file=dependency_file or read_config.dependency_file,
+            selector_method=selector_method or read_config.selector_method or DEFAULT_SELECTOR_METHOD,
+            logging_level=_get_logging_level(verbosity, read_config.logging_level),
+            allowlist=read_config.allowlist,
+            pypi_reference=read_config.pypi_reference or DEFAULT_TOP_PYPI_PACKAGES,
         )
 
     def add_package_to_allowlist(self, package_name: str) -> None:
@@ -84,14 +82,8 @@ class ConfigHandler:
         if package_name in config.allowlist:
             raise AllowlistPackageAlreadyExistsError(package_name)
 
-        new_config = ReadTwynConfiguration(
-            dependency_file=config.dependency_file,
-            selector_method=config.selector_method,
-            logging_level=config.logging_level,
-            allowlist=config.allowlist | {package_name},
-            pypi_reference=config.pypi_reference,
-        )
-        self._write_config(toml, new_config)
+        config.allowlist.add(package_name)
+        self._write_config(toml, config)
         logger.info(f"Package '{package_name}' successfully added to allowlist")
 
     def remove_package_from_allowlist(self, package_name: str) -> None:
@@ -101,19 +93,13 @@ class ConfigHandler:
         if package_name not in config.allowlist:
             raise AllowlistPackageDoesNotExistError(package_name)
 
-        new_config = ReadTwynConfiguration(
-            dependency_file=config.dependency_file,
-            selector_method=config.selector_method,
-            logging_level=config.logging_level,
-            allowlist=config.allowlist - {package_name},
-            pypi_reference=config.pypi_reference,
-        )
-        self._write_config(toml, new_config)
+        config.allowlist.remove(package_name)
+        self._write_config(toml, config)
         logger.info(f"Package '{package_name}' successfully removed from allowlist")
 
     def _get_read_config(self, toml: TOMLDocument) -> ReadTwynConfiguration:
         """Read the twyn configuration from a provided toml document."""
-        twyn_config_data = self._get_twyn_data_from_toml(toml)
+        twyn_config_data = toml.get("tool", {}).get("twyn", {})
         return ReadTwynConfiguration(
             dependency_file=twyn_config_data.get("dependency_file"),
             selector_method=twyn_config_data.get("selector_method"),
@@ -145,10 +131,7 @@ class ConfigHandler:
 
         with open(fp, "r") as f:
             content = parse(f.read())
-        return parse(dumps(content))
-
-    def _get_twyn_data_from_toml(self, toml: TOMLDocument) -> dict[str, Any]:
-        return toml.get("tool", {}).get("twyn", {})
+        return content
 
     def _get_toml_file_pointer(self) -> Path:
         """Create a path for the toml file with the format <current working directory>/self.file_path."""
