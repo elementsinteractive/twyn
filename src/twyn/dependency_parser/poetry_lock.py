@@ -1,9 +1,15 @@
 """Parser for poetry.lock dependencies."""
 
-import tomllib
+import sys
+
 from dparse import filetypes
 
 from twyn.dependency_parser.abstract_parser import AbstractParser
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 
 
 class PoetryLockParser(AbstractParser):
