@@ -14,7 +14,7 @@ rich = "^13.9.4"
 rapidfuzz = ">=2.13.7,<4.0.0"
 pyparsing = "^3.2.0"
 tomlkit = ">=0.11.6,<0.14.0"
-
+tomli = { version = "^2.0.1", python = "<3.11" }
 
 [tool.poetry.scripts]
 twyn = "twyn.cli:entry_point"
@@ -85,9 +85,7 @@ addopts = """
 """
 
 [tool.coverage.run]
-omit = [
-    "tests/*",
-]
+omit = ["tests/*"]
 
 [tool.coverage.report]
 fail_under = 95
