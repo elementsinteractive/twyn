@@ -1,3 +1,13 @@
+## v2.7.5 (2024-11-15)
+
+### chore
+
+- add CODEOWNERS file and fix up authors and maintainers
+
+### docs
+
+- copy edit README
+
 ## v2.7.4 (2024-11-15)
 
 ### ci
