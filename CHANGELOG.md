@@ -1,3 +1,9 @@
+## v2.7.7 (2024-11-15)
+
+### refactor
+
+- rewrite configuration handle
+
 ## v2.7.6 (2024-11-15)
 
 ### fix
