@@ -1,3 +1,9 @@
+## v2.7.6 (2024-11-15)
+
+### fix
+
+- move docker to python 3.13 and change entrypoint
+
 ## v2.7.5 (2024-11-15)
 
 ### chore
