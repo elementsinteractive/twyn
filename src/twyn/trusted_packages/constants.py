@@ -1,11 +1,3 @@
-from typing import NewType
-
-Url = NewType("Url", str)
-
-TOP_PYPI_PACKAGES = Url(
-    "https://hugovk.github.io/top-pypi-packages/top-pypi-packages-30-days.min.json"
-)
-
 
 ADJACENCY_MATRIX = {
     "1": ["2", "q", "w"],

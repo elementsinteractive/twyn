@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 from tomlkit import TOMLDocument, dumps, parse
-from twyn.base.constants import AvailableLoggingLevels
+from twyn.base.constants import DEFAULT_TOP_PYPI_PACKAGES, AvailableLoggingLevels
 from twyn.core.config_handler import ConfigHandler, ReadTwynConfiguration, TwynConfiguration
 from twyn.core.exceptions import (
     AllowlistPackageAlreadyExistsError,
@@ -30,7 +30,11 @@ class TestConfig:
         config = ConfigHandler(enforce_file=False).resolve_config()
 
         assert config == TwynConfiguration(
-            dependency_file=None, selector_method="all", logging_level=AvailableLoggingLevels.warning, allowlist=set()
+            dependency_file=None,
+            selector_method="all",
+            logging_level=AvailableLoggingLevels.warning,
+            allowlist=set(),
+            pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
         )
 
     def test_config_raises_for_unknown_file(self):
@@ -54,6 +58,7 @@ class TestConfig:
             selector_method="my_selector",
             logging_level="debug",
             allowlist={"boto4", "boto2"},
+            pypi_reference=None,
         )
 
     def test_write_toml(self, pyproject_toml_file):
@@ -91,6 +96,7 @@ class TestConfig:
                     "selector_method": "my_selector",
                     "logging_level": "debug",
                     "allowlist": {},
+                    "pypi_reference": DEFAULT_TOP_PYPI_PACKAGES,
                 },
             }
         }

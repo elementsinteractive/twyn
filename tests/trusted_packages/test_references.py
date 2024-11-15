@@ -35,7 +35,7 @@ class TestAbstractPackageReference:
             return {"foo", "bar"}
 
     def test_get_packages(self):
-        assert self.HardcodedPackageReference().get_packages() == {"foo", "bar"}
+        assert self.HardcodedPackageReference(source="foo").get_packages() == {"foo", "bar"}
 
 
 class TestTopPyPiReference:

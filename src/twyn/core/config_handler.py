@@ -10,6 +10,7 @@ from tomlkit import TOMLDocument, dumps, parse, table
 from twyn.base.constants import (
     DEFAULT_PROJECT_TOML_FILE,
     DEFAULT_SELECTOR_METHOD,
+    DEFAULT_TOP_PYPI_PACKAGES,
     AvailableLoggingLevels,
 )
 from twyn.core.exceptions import (
@@ -29,6 +30,7 @@ class TwynConfiguration:
     selector_method: str
     logging_level: AvailableLoggingLevels
     allowlist: set[str]
+    pypi_reference: str
 
 
 @dataclass(frozen=True)
@@ -39,6 +41,7 @@ class ReadTwynConfiguration:
     selector_method: Optional[str]
     logging_level: Optional[AvailableLoggingLevels]
     allowlist: set[str]
+    pypi_reference: Optional[str]
 
 
 class ConfigHandler:
@@ -71,6 +74,7 @@ class ConfigHandler:
             selector_method=selector_method or twyn_config_data.get("selector_method", DEFAULT_SELECTOR_METHOD),
             logging_level=_get_logging_level(verbosity, twyn_config_data.get("logging_level")),
             allowlist=set(twyn_config_data.get("allowlist", set())),
+            pypi_reference=twyn_config_data.get("pypi_reference", DEFAULT_TOP_PYPI_PACKAGES),
         )
 
     def add_package_to_allowlist(self, package_name: str) -> None:
@@ -85,6 +89,7 @@ class ConfigHandler:
             selector_method=config.selector_method,
             logging_level=config.logging_level,
             allowlist=config.allowlist | {package_name},
+            pypi_reference=config.pypi_reference,
         )
         self._write_config(toml, new_config)
         logger.info(f"Package '{package_name}' successfully added to allowlist")
@@ -101,6 +106,7 @@ class ConfigHandler:
             selector_method=config.selector_method,
             logging_level=config.logging_level,
             allowlist=config.allowlist - {package_name},
+            pypi_reference=config.pypi_reference,
         )
         self._write_config(toml, new_config)
         logger.info(f"Package '{package_name}' successfully removed from allowlist")
@@ -113,6 +119,7 @@ class ConfigHandler:
             selector_method=twyn_config_data.get("selector_method"),
             logging_level=twyn_config_data.get("logging_level"),
             allowlist=set(twyn_config_data.get("allowlist", set())),
+            pypi_reference=twyn_config_data.get("pypi_reference"),
         )
 
     def _write_config(self, toml: TOMLDocument, config: ReadTwynConfiguration) -> None:
