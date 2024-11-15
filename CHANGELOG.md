@@ -1,3 +1,9 @@
+## v2.8.0 (2024-11-15)
+
+### feat
+
+- configurable pypi-reference
+
 ## v2.7.7 (2024-11-15)
 
 ### refactor
