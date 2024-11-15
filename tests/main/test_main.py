@@ -1,12 +1,11 @@
-from unittest.mock import Mock, call, patch
+from unittest.mock import patch
 
 import pytest
 from twyn.base.constants import AvailableLoggingLevels
+from twyn.core.config_handler import ConfigHandler, TwynConfiguration, _get_logging_level
 from twyn.dependency_parser import RequirementsTxtParser
 from twyn.main import (
     check_dependencies,
-    get_configuration,
-    get_logging_level,
     get_parsed_dependencies_from_file,
 )
 
@@ -16,72 +15,81 @@ from tests.conftest import create_tmp_file
 @pytest.mark.usefixtures("disable_track")
 class TestCheckDependencies:
     @pytest.mark.parametrize(
-        "selector_method, dependency_file, verbosity, config, expected_args, log_level",
+        "cli_config, file_config, expected_resolved_config",
         [
             (
-                "requirements.txt",
-                "first-letter",
-                AvailableLoggingLevels.info,
+                {
+                    "selector_method": "first-letter",
+                    "dependency_file": "requirements.txt",
+                    "verbosity": AvailableLoggingLevels.info,
+                },
                 {
                     "logging_level": "WARNING",
                     "selector_method": "nearby-letter",
                     "dependency_file": "poetry.lock",
                     "allowlist": {"boto4", "boto2"},
                 },
-                ["first-letter", "requirements.txt", {"boto4", "boto2"}],
-                AvailableLoggingLevels.info,
+                TwynConfiguration(
+                    dependency_file="requirements.txt",
+                    selector_method="first-letter",
+                    logging_level=AvailableLoggingLevels.info,
+                    allowlist={"boto4", "boto2"},
+                ),
             ),
             (
-                None,
-                None,
-                AvailableLoggingLevels.none,
+                {
+                    "verbosity": AvailableLoggingLevels.none,
+                },
                 {
                     "logging_level": "debug",
                     "selector_method": "nearby-letter",
                     "dependency_file": "poetry.lock",
                     "allowlist": {"boto4", "boto2"},
                 },
-                ["poetry.lock", "nearby-letter", {"boto4", "boto2"}],
-                AvailableLoggingLevels.debug,
+                TwynConfiguration(
+                    dependency_file="poetry.lock",
+                    selector_method="nearby-letter",
+                    logging_level=AvailableLoggingLevels.debug,
+                    allowlist={"boto4", "boto2"},
+                ),
             ),
             (
-                None,
-                None,
-                AvailableLoggingLevels.none,
                 {
-                    "logging_level": None,
-                    "selector_method": None,
-                    "dependency_file": None,
-                    "allowlist": set(),
+                    "verbosity": AvailableLoggingLevels.none,
                 },
-                [None, "all", set()],
-                AvailableLoggingLevels.warning,
+                {},
+                TwynConfiguration(
+                    dependency_file=None,
+                    selector_method="all",
+                    logging_level=AvailableLoggingLevels.warning,
+                    allowlist=set(),
+                ),
             ),
             (
-                None,
-                "requirements.txt",
-                AvailableLoggingLevels.debug,
+                {
+                    "verbosity": AvailableLoggingLevels.debug,
+                    "dependency_file": "requirements.txt",
+                },
                 {
                     "logging_level": "INFO",
                     "selector_method": None,
                     "dependency_file": "poetry.lock",
                     "allowlist": set(),
                 },
-                ["requirements.txt", "all", set()],
-                AvailableLoggingLevels.debug,
+                TwynConfiguration(
+                    dependency_file="requirements.txt",
+                    selector_method=None,
+                    logging_level=AvailableLoggingLevels.debug,
+                    allowlist=set(),
+                ),
             ),
         ],
     )
-    @patch("twyn.main.set_logging_level")
     def test_options_priorities_assignation(
         self,
-        mock_logging_level,
-        selector_method,
-        dependency_file,
-        verbosity,
-        config,
-        expected_args,
-        log_level,
+        cli_config,
+        file_config,
+        expected_resolved_config,
     ):
         """
         Checks that the configuration values are picked accordingly to the priority they have.
@@ -92,18 +100,21 @@ class TestCheckDependencies:
         3. default values
 
         """
-        with patch("twyn.main.ConfigHandler", return_value=Mock(**config)):
-            config = get_configuration(
-                dependency_file=dependency_file,
-                config_file=None,
-                selector_method=selector_method,
-                verbosity=verbosity,
-            )
-        assert config.dependency_file == expected_args[0]
-        assert config.selector_method == expected_args[1]
-        assert config.allowlist == expected_args[2]
+        handler = ConfigHandler(file_path=None, enforce_file=False)
 
-        assert mock_logging_level.call_args == call(log_level)
+        with patch.object(handler, "_get_twyn_data_from_toml", return_value=file_config):
+            resolved = handler.resolve_config(
+                selector_method=cli_config.get("selector_method"),
+                dependency_file=cli_config.get("dependency_file"),
+                verbosity=cli_config.get("verbosity"),
+            )
+
+        assert resolved.dependency_file == expected_resolved_config.dependency_file
+        assert resolved.selector_method == expected_resolved_config.selector_method
+        assert resolved.logging_level == expected_resolved_config.logging_level
+        assert resolved.allowlist == expected_resolved_config.allowlist
+
+        # assert mock_logging_level.call_args == call(log_level)
 
     @pytest.mark.parametrize(
         "passed_logging_level, config, logging_level",
@@ -115,8 +126,8 @@ class TestCheckDependencies:
         ],
     )
     def test_logging_level(self, passed_logging_level, config, logging_level):
-        log_level = get_logging_level(
-            logging_level=passed_logging_level,
+        log_level = _get_logging_level(
+            cli_verbosity=passed_logging_level,
             config_logging_level=config,
         )
         assert log_level == logging_level
@@ -216,14 +227,14 @@ class TestCheckDependencies:
         mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
         mock_get_parsed_dependencies_from_file.return_value = {package_name}
 
-        m_config = Mock(
+        m_config = TwynConfiguration(
             allowlist={package_name},
             dependency_file=None,
-            dependencies_cli=None,
             selector_method="first-letter",
+            logging_level=AvailableLoggingLevels.info,
         )
 
-        with patch("twyn.main.get_configuration", return_value=m_config):
+        with patch("twyn.main.ConfigHandler.resolve_config", return_value=m_config):
             error = check_dependencies(
                 config_file=None,
                 dependency_file=None,

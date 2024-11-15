@@ -6,7 +6,6 @@ from rich.logging import RichHandler
 from rich.progress import track
 
 from twyn.base.constants import (
-    DEFAULT_SELECTOR_METHOD,
     SELECTOR_METHOD_MAPPING,
     AvailableLoggingLevels,
 )
@@ -36,7 +35,10 @@ def check_dependencies(
     verbosity: AvailableLoggingLevels = AvailableLoggingLevels.none,
 ) -> bool:
     """Check if dependencies could be typosquats."""
-    config = get_configuration(config_file, dependency_file, selector_method, verbosity)
+    config = ConfigHandler(file_path=config_file, enforce_file=False).resolve_config(
+        verbosity=verbosity, selector_method=selector_method, dependency_file=dependency_file
+    )
+    _set_logging_level(config.logging_level)
 
     trusted_packages = TrustedPackages(
         names=TopPyPiReference().get_packages(),
@@ -44,9 +46,9 @@ def check_dependencies(
         selector=get_candidate_selector(config.selector_method),
         threshold_class=SimilarityThreshold,
     )
-    normalized_allowlist_packages = normalize_packages(config.allowlist)
+    normalized_allowlist_packages = _normalize_packages(config.allowlist)
     dependencies = dependencies_cli if dependencies_cli else get_parsed_dependencies_from_file(config.dependency_file)
-    normalized_dependencies = normalize_packages(dependencies)
+    normalized_dependencies = _normalize_packages(dependencies)
 
     errors: list[TyposquatCheckResult] = []
     for dependency in track(normalized_dependencies, description="Processing..."):
@@ -67,56 +69,14 @@ def check_dependencies(
     return bool(errors)
 
 
-def get_configuration(
-    config_file: Optional[str],
-    dependency_file: Optional[str],
-    selector_method: Optional[str],
-    verbosity: AvailableLoggingLevels,
-) -> ConfigHandler:
-    """Read configuration and return configuration object.
-
-    Selects the appropriate values based on priorities between those in the file, and those directly provided.
-    """
-    # Read config from file
-    config = ConfigHandler(file_path=config_file, enforce_file=False)
-
-    # Set logging level
-    config.logging_level = get_logging_level(
-        logging_level=verbosity,
-        config_logging_level=config.logging_level,
-    )
-    set_logging_level(config.logging_level)
-    # Set selector method according to priority order
-    config.selector_method = selector_method or config.selector_method or DEFAULT_SELECTOR_METHOD
-
-    # Set dependency file according to priority order
-    config.dependency_file = dependency_file or config.dependency_file or None
-    return config
-
-
-def get_logging_level(
-    logging_level: AvailableLoggingLevels,
-    config_logging_level: Optional[str],
-) -> AvailableLoggingLevels:
-    """Return the appropriate logging level, considering that the one in config has less priority than the one passed directly."""
-    if logging_level is AvailableLoggingLevels.none:
-        if config_logging_level:
-            return AvailableLoggingLevels[config_logging_level.lower()]
-        else:
-            # default logging level
-            return AvailableLoggingLevels.warning
-
-    return logging_level
-
-
-def set_logging_level(logging_level: AvailableLoggingLevels) -> None:
+def _set_logging_level(logging_level: AvailableLoggingLevels) -> None:
     logger.setLevel(logging_level.value)
     logger.debug(f"Logging level: {logging_level.value}")
 
 
-def get_candidate_selector(selector_method_name: Optional[str]) -> AbstractSelector:
+def get_candidate_selector(selector_method_name: str) -> AbstractSelector:
     logger.debug(f"Selector method received {selector_method_name}")
-    selector_method_name = selector_method_name or DEFAULT_SELECTOR_METHOD
+    selector_method_name = selector_method_name
     selector_method = SELECTOR_METHOD_MAPPING[selector_method_name]()
     logger.debug(f"Instantiated {selector_method} selector")
     return selector_method
@@ -129,6 +89,6 @@ def get_parsed_dependencies_from_file(dependency_file: Optional[str] = None) -> 
     return dependencies
 
 
-def normalize_packages(packages: set[str]) -> set[str]:
+def _normalize_packages(packages: set[str]) -> set[str]:
     """Normalize dependency names according to PyPi https://packaging.python.org/en/latest/specifications/name-normalization/."""
     return {re.sub(r"[-_.]+", "-", name).lower() for name in packages}
