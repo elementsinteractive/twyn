@@ -1,3 +1,9 @@
+## v2.8.2 (2024-11-16)
+
+### fix
+
+- **#167**: Separate "messages" from "logging"
+
 ## v2.8.1 (2024-11-15)
 
 ### refactor
