@@ -65,7 +65,9 @@ def run(
     vv: bool,
 ) -> int:
     if v and vv:
-        raise ValueError("Only one verbosity level is allowed. Choose either -v or -vv.")
+        raise click.UsageError(
+            "Only one verbosity level is allowed. Choose either -v or -vv.", ctx=click.get_current_context()
+        )
 
     if v:
         verbosity = AvailableLoggingLevels.info
@@ -75,10 +77,12 @@ def run(
         verbosity = AvailableLoggingLevels.none
 
     if dependency and dependency_file:
-        raise ValueError("Only one of --dependency or --dependency-file can be set at a time.")
+        raise click.UsageError(
+            "Only one of --dependency or --dependency-file can be set at a time.", ctx=click.get_current_context()
+        )
 
     if dependency_file and not any(dependency_file.endswith(key) for key in DEPENDENCY_FILE_MAPPING):
-        raise ValueError("Dependency file name not supported.")
+        raise click.UsageError("Dependency file name not supported.", ctx=click.get_current_context())
 
     return int(
         check_dependencies(

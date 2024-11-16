@@ -6,7 +6,7 @@ from typing import Protocol
 from twyn.base.exceptions import TwynError
 from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
 
-logger = logging.getLogger()
+logger = logging.getLogger("twyn")
 
 
 class BaseFileHandler(Protocol):

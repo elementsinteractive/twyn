@@ -10,7 +10,7 @@ from twyn.trusted_packages.exceptions import CharacterNotInMatrixError
 if TYPE_CHECKING:
     from twyn.trusted_packages.trusted_packages import _PackageNames
 
-logger = logging.getLogger()
+logger = logging.getLogger("twyn")
 
 
 class AbstractSelector(ABC):

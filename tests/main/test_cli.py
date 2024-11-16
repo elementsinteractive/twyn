@@ -1,6 +1,5 @@
 from unittest.mock import call, patch
 
-import pytest
 from click.testing import CliRunner
 from twyn import cli
 from twyn.base.constants import AvailableLoggingLevels
@@ -97,12 +96,11 @@ class TestCli:
     def test_click_raises_error_dependency_and_dependency_file_set(self):
         runner = CliRunner()
         result = runner.invoke(
-            cli.run,
-            ["--dependency", "requests", "--dependency-file", "requirements.txt"],
+            cli.run, ["--dependency", "requests", "--dependency-file", "requirements.txt"], catch_exceptions=False
         )
-        with pytest.raises(ValueError, match="Only one of --dependency or --dependency-file can be set at a time."):
-            raise result.exception
-        assert result.exit_code == 1
+        assert isinstance(result.exception, SystemExit)
+        assert result.exit_code == 2
+        assert "Only one of --dependency or --dependency-file can be set at a time." in result.output
 
     @patch("twyn.cli.check_dependencies")
     def test_click_arguments_multiple_dependencies_cli(self, mock_check_dependencies):
@@ -144,16 +142,16 @@ class TestCli:
 
     def test_only_one_verbosity_level_is_allowed(self):
         runner = CliRunner()
-        with pytest.raises(
-            ValueError,
-            match="Only one verbosity level is allowed. Choose either -v or -vv.",
-        ):
-            runner.invoke(cli.run, ["-v", "-vv"], catch_exceptions=False)
+        result = runner.invoke(cli.run, ["-v", "-vv"], catch_exceptions=False)
+
+        assert isinstance(result.exception, SystemExit)
+        assert result.exit_code == 2
+        assert "Only one verbosity level is allowed. Choose either -v or -vv." in result.output
 
     def test_dependency_file_name_has_to_be_recognized(self):
         runner = CliRunner()
-        with pytest.raises(
-            ValueError,
-            match="Dependency file name not supported.",
-        ):
-            runner.invoke(cli.run, ["--dependency-file", "requirements-dev.txt"], catch_exceptions=False)
+        result = runner.invoke(cli.run, ["--dependency-file", "requirements-dev.txt"], catch_exceptions=False)
+
+        assert isinstance(result.exception, SystemExit)
+        assert result.exit_code == 2
+        assert "Dependency file name not supported." in result.output

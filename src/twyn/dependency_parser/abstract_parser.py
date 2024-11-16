@@ -5,7 +5,7 @@ from pathlib import Path
 
 from twyn.file_handler.file_handler import FileHandlerPathlib
 
-logger = logging.getLogger()
+logger = logging.getLogger("twyn")
 
 
 class AbstractParser(ABC):

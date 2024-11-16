@@ -8,7 +8,7 @@ from twyn.dependency_parser.exceptions import (
     NoMatchingParserError,
 )
 
-logger = logging.getLogger()
+logger = logging.getLogger("twyn")
 
 
 class DependencySelector:

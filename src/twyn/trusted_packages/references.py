@@ -10,7 +10,7 @@ from twyn.trusted_packages.exceptions import (
     InvalidPyPiFormatError,
 )
 
-logger = logging.getLogger()
+logger = logging.getLogger("twyn")
 
 
 class AbstractPackageReference(ABC):
