@@ -2,6 +2,7 @@ import logging
 import re
 from typing import Optional
 
+import click
 from rich.logging import RichHandler
 from rich.progress import track
 
@@ -24,7 +25,7 @@ logging.basicConfig(
     datefmt="[%X]",
     handlers=[RichHandler(rich_tracebacks=True, show_path=False)],
 )
-logger = logging.getLogger()
+logger = logging.getLogger("twyn")
 
 
 def check_dependencies(
@@ -61,10 +62,14 @@ def check_dependencies(
             errors.append(typosquat_results)
 
     for possible_typosquats in errors:
-        logger.error(
-            f"Possible typosquat detected: `{possible_typosquats.candidate_dependency}`, "
-            f"did you mean any of [{', '.join(possible_typosquats.similar_dependencies)}]?"
+        click.echo(
+            click.style("Possible typosquat detected: ", fg="red") + f"`{possible_typosquats.candidate_dependency}`, "
+            f"did you mean any of [{', '.join(possible_typosquats.similar_dependencies)}]?",
+            color=True,
         )
+
+    if not errors:
+        click.echo(click.style("No typosquats detected", fg="green"), color=True)
 
     return bool(errors)
 

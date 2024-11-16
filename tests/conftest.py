@@ -2,8 +2,15 @@ import os
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
+from unittest import mock
 
 import pytest
+
+
+@pytest.fixture(autouse=True)
+def disable_click_echo():
+    with mock.patch("click.echo"):
+        yield
 
 
 @contextmanager

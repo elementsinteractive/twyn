@@ -19,7 +19,7 @@ from twyn.config.exceptions import (
     TOMLError,
 )
 
-logger = logging.getLogger()
+logger = logging.getLogger("twyn")
 
 
 @dataclass(frozen=True)
