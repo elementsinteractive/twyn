@@ -1,3 +1,9 @@
+## v2.8.3 (2024-11-18)
+
+### chore
+
+- bump the dependencies group with 2 updates
+
 ## v2.8.2 (2024-11-16)
 
 ### fix
