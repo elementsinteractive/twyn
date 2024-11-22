@@ -5,11 +5,13 @@ import click
 
 from twyn.__version__ import __version__
 from twyn.base.constants import (
+    DEFAULT_PROJECT_TOML_FILE,
     DEPENDENCY_FILE_MAPPING,
     SELECTOR_METHOD_MAPPING,
     AvailableLoggingLevels,
 )
 from twyn.config.config_handler import ConfigHandler
+from twyn.file_handler.file_handler import FileHandler
 from twyn.main import check_dependencies
 
 
@@ -101,15 +103,19 @@ def allowlist() -> None:
 
 
 @allowlist.command()
+@click.option("--config", type=click.STRING)
 @click.argument("package_name")
-def add(package_name: str) -> None:
-    ConfigHandler().add_package_to_allowlist(package_name)
+def add(package_name: str, config: str) -> None:
+    fh = FileHandler(config or DEFAULT_PROJECT_TOML_FILE)
+    ConfigHandler(fh).add_package_to_allowlist(package_name)
 
 
 @allowlist.command()
+@click.option("--config", type=click.STRING)
 @click.argument("package_name")
-def remove(package_name: str) -> None:
-    ConfigHandler().remove_package_from_allowlist(package_name)
+def remove(package_name: str, config: str) -> None:
+    fh = FileHandler(config or DEFAULT_PROJECT_TOML_FILE)
+    ConfigHandler(fh).remove_package_from_allowlist(package_name)
 
 
 if __name__ == "__main__":

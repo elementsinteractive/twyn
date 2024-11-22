@@ -2,16 +2,16 @@ from unittest.mock import patch
 
 import pytest
 from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
-from twyn.file_handler.file_handler import FileHandlerPathlib
+from twyn.file_handler.file_handler import FileHandler
 
 
-class TestFileHandlerPathlib:
+class TestFileHandler:
     def test_file_exists(self, pyproject_toml_file: str):
-        parser = FileHandlerPathlib(pyproject_toml_file)
+        parser = FileHandler(pyproject_toml_file)
         assert parser.file_exists() is True
 
     def test_read_file_success(self, pyproject_toml_file: str):
-        parser = FileHandlerPathlib(pyproject_toml_file)
+        parser = FileHandler(pyproject_toml_file)
         read = parser.read()
         assert len(read) > 1
         assert isinstance(read, str)
@@ -19,7 +19,7 @@ class TestFileHandlerPathlib:
     def test_read_file_does_not_exist(
         self,
     ):
-        parser = FileHandlerPathlib("")
+        parser = FileHandler("")
         with pytest.raises(PathIsNotFileError):
             parser.read()
 
@@ -33,5 +33,5 @@ class TestFileHandlerPathlib:
         mock_exists.return_value = file_exists
         mock_is_file.return_value = is_file
 
-        parser = FileHandlerPathlib("fake.txt")
+        parser = FileHandler("fake.txt")
         assert parser.file_exists() is False
