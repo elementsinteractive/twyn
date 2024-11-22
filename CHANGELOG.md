@@ -1,3 +1,9 @@
+## v2.8.4 (2024-11-22)
+
+### chore
+
+- Use FileHandlerPathlib in ConfigHandler (#171)
+
 ## v2.8.3 (2024-11-18)
 
 ### chore
