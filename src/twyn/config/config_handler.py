@@ -1,8 +1,6 @@
 import logging
 from dataclasses import asdict, dataclass
 from enum import Enum
-from os import getcwd
-from pathlib import Path
 from typing import Optional
 
 from tomlkit import TOMLDocument, dumps, parse, table
@@ -18,6 +16,8 @@ from twyn.config.exceptions import (
     AllowlistPackageDoesNotExistError,
     TOMLError,
 )
+from twyn.file_handler.exceptions import PathNotFoundError
+from twyn.file_handler.file_handler import BaseFileHandler
 
 logger = logging.getLogger("twyn")
 
@@ -47,8 +47,8 @@ class ReadTwynConfiguration:
 class ConfigHandler:
     """Manage reading and writing configurations for Twyn."""
 
-    def __init__(self, file_path: Optional[str] = None, enforce_file: bool = True):
-        self._file_path = file_path or DEFAULT_PROJECT_TOML_FILE
+    def __init__(self, file_handler: BaseFileHandler, enforce_file: bool = True) -> None:
+        self.file_handler = file_handler
         self._enforce_file = enforce_file
 
     def resolve_config(
@@ -119,36 +119,19 @@ class ConfigHandler:
         if "twyn" not in toml["tool"]:  # type: ignore[operator]
             toml["tool"]["twyn"] = {}  # type: ignore[index]
         toml["tool"]["twyn"] = twyn_toml_data  # type: ignore[index]
+
         self._write_toml(toml)
+
+    def _write_toml(self, toml: TOMLDocument) -> None:
+        self.file_handler.write(dumps(toml))
 
     def _read_toml(self) -> TOMLDocument:
         try:
-            fp = self._get_toml_file_pointer()
-        except FileNotFoundError:
-            if not self._enforce_file and self._file_path == DEFAULT_PROJECT_TOML_FILE:
+            return parse(self.file_handler.read())
+        except PathNotFoundError:
+            if not self._enforce_file and self.file_handler.is_handler_of_file(DEFAULT_PROJECT_TOML_FILE):
                 return TOMLDocument()
-            raise TOMLError(f"Error reading toml from {self._file_path}") from None
-
-        with open(fp, "r") as f:
-            content = parse(f.read())
-        return content
-
-    def _get_toml_file_pointer(self) -> Path:
-        """Create a path for the toml file with the format <current working directory>/self.file_path."""
-        fp = Path(getcwd()) / Path(self._file_path)
-
-        if not fp.is_file():
-            raise FileNotFoundError(f"File not found at path '{fp}'.")
-
-        return fp
-
-    def _write_toml(self, toml: TOMLDocument) -> None:
-        with open(self._get_toml_file_pointer(), "w") as f:
-            try:
-                f.write(dumps(toml))
-            except Exception:
-                logger.exception("Error writing toml file")
-                raise TOMLError(f"Error writing toml to {self._file_path}") from None
+            raise TOMLError(f"Error reading toml from {self.file_handler.file_path}") from None
 
 
 def _get_logging_level(

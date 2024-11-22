@@ -10,14 +10,20 @@ logger = logging.getLogger("twyn")
 
 
 class BaseFileHandler(Protocol):
-    def __init__(self, file_path: str) -> None: ...
     def read(self) -> str: ...
     def file_exists(self) -> bool: ...
+    def write(self, data: str) -> None: ...
 
 
-class FileHandlerPathlib(BaseFileHandler):
+class FileHandler(BaseFileHandler):
     def __init__(self, file_path: str) -> None:
-        self.file_path = Path(os.path.abspath(os.path.join(os.getcwd(), file_path)))
+        self.file_path = self._get_file_path(file_path)
+
+    def _get_file_path(self, file_path: str) -> Path:
+        return Path(os.path.abspath(os.path.join(os.getcwd(), file_path)))
+
+    def is_handler_of_file(self, name: str) -> bool:
+        return self._get_file_path(name) == self.file_path
 
     def read(self) -> str:
         self._raise_for_file_exists()
@@ -40,3 +46,7 @@ class FileHandlerPathlib(BaseFileHandler):
 
         if not self.file_path.is_file():
             raise PathIsNotFileError
+
+    def write(self, data: str) -> None:
+        self._raise_for_file_exists()
+        self.file_path.write_text(data)

@@ -5,6 +5,7 @@ from tomlkit import dumps, parse
 from twyn.base.constants import DEFAULT_TOP_PYPI_PACKAGES, AvailableLoggingLevels
 from twyn.config.config_handler import ConfigHandler, TwynConfiguration, _get_logging_level
 from twyn.dependency_parser import RequirementsTxtParser
+from twyn.file_handler.file_handler import FileHandler
 from twyn.main import (
     check_dependencies,
     get_parsed_dependencies_from_file,
@@ -104,7 +105,7 @@ class TestCheckDependencies:
         3. default values
 
         """
-        handler = ConfigHandler(file_path=None, enforce_file=False)
+        handler = ConfigHandler(FileHandler(""), enforce_file=False)
 
         with patch.object(handler, "_read_toml", return_value=parse(dumps({"tool": {"twyn": file_config}}))):
             resolved = handler.resolve_config(

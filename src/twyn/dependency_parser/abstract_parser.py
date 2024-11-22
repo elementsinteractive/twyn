@@ -3,7 +3,7 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from twyn.file_handler.file_handler import FileHandlerPathlib
+from twyn.file_handler.file_handler import FileHandler
 
 logger = logging.getLogger("twyn")
 
@@ -17,7 +17,7 @@ class AbstractParser(ABC):
 
     def __init__(self, file_path: str) -> None:
         self.file_path = Path(os.path.abspath(os.path.join(os.getcwd(), file_path)))
-        self.file_handler = FileHandlerPathlib(file_path=self.file_path)
+        self.file_handler = FileHandler(file_path=self.file_path)
 
     def __str__(self) -> str:
         return self.__class__.__name__

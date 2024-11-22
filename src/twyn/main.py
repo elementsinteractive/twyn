@@ -7,11 +7,13 @@ from rich.logging import RichHandler
 from rich.progress import track
 
 from twyn.base.constants import (
+    DEFAULT_PROJECT_TOML_FILE,
     SELECTOR_METHOD_MAPPING,
     AvailableLoggingLevels,
 )
 from twyn.config.config_handler import ConfigHandler
 from twyn.dependency_parser.dependency_selector import DependencySelector
+from twyn.file_handler.file_handler import FileHandler
 from twyn.similarity.algorithm import EditDistance, SimilarityThreshold
 from twyn.trusted_packages import TopPyPiReference
 from twyn.trusted_packages.selectors import AbstractSelector
@@ -36,7 +38,8 @@ def check_dependencies(
     verbosity: AvailableLoggingLevels = AvailableLoggingLevels.none,
 ) -> bool:
     """Check if dependencies could be typosquats."""
-    config = ConfigHandler(file_path=config_file, enforce_file=False).resolve_config(
+    config_file_handler = FileHandler(config_file or DEFAULT_PROJECT_TOML_FILE)
+    config = ConfigHandler(config_file_handler, enforce_file=False).resolve_config(
         verbosity=verbosity, selector_method=selector_method, dependency_file=dependency_file
     )
     _set_logging_level(config.logging_level)
