@@ -1,3 +1,9 @@
+## v2.8.5 (2024-11-25)
+
+### chore
+
+- bump ruff from 0.7.4 to 0.8.0 in the dependencies group
+
 ## v2.8.4 (2024-11-22)
 
 ### chore
