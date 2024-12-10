@@ -1,3 +1,13 @@
+## v2.8.7 (2024-12-10)
+
+### chore
+
+- bump the dependencies group with 4 updates (#174)
+
+### ci
+
+- create release pages
+
 ## v2.8.5 (2024-11-25)
 
 ### chore
