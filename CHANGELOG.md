@@ -1,3 +1,9 @@
+## v2.8.9 (2024-12-24)
+
+### fix
+
+- bump jinja2 to get rid of vulnerability (#177)
+
 ## v2.8.8 (2024-12-24)
 
 ### chore
