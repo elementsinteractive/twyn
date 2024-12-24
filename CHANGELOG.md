@@ -1,3 +1,9 @@
+## v2.8.8 (2024-12-24)
+
+### chore
+
+- bump the dependencies group across 1 directory with 4 updates (#176)
+
 ## v2.8.7 (2024-12-10)
 
 ### chore
