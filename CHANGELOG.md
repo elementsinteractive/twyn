@@ -1,3 +1,9 @@
+## v2.8.10 (2025-01-13)
+
+### chore
+
+- bump the dependencies group across 1 directory with 3 updates (#179)
+
 ## v2.8.9 (2024-12-24)
 
 ### fix
