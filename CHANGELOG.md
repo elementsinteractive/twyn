@@ -1,3 +1,9 @@
+## v2.8.11 (2025-01-21)
+
+### chore
+
+- bump ruff from 0.9.1 to 0.9.2 in the dependencies group (#180)
+
 ## v2.8.10 (2025-01-13)
 
 ### chore
