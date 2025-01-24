@@ -7,7 +7,6 @@ on:
     tags:
       - "v*.*.*"
 
-
 permissions:
   contents: write
 
@@ -15,22 +14,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Release
-      uses: softprops/action-gh-release@v2
-      with:
-        generate_release_notes: true
-        token: "${{ secrets.GITHUB_TOKEN }}"
+      - uses: actions/checkout@v4
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          token: "${{ secrets.GITHUB_TOKEN }}"
 
   push_to_pypi:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Publish python package
-      uses: JRubics/poetry-publish@v1.13
-      with:
-        pypi_token: ${{ secrets.PYPI_TOKEN }}
-        ignore_dev_requirements: "yes"
+      - uses: actions/checkout@v3
+      - name: Publish python package
+        uses: JRubics/poetry-publish@v2.1
+        with:
+          pypi_token: ${{ secrets.PYPI_TOKEN }}
+          poetry_install_options: "--without dev"
 
   push_to_docker_hub:
     needs: push_to_pypi
