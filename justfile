@@ -2,7 +2,7 @@
 venv := ".venv"
 bin := venv + "/bin"
 python := bin + "/python"
-python_version := "python3.12"
+python_version := "python3.13"
 target_dirs := "src tests"
 
 
