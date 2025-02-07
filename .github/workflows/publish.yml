@@ -11,16 +11,6 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          token: "${{ secrets.GITHUB_TOKEN }}"
-
   push_to_pypi:
     runs-on: ubuntu-latest
     steps:
@@ -59,3 +49,13 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+  release_notes:
+    runs-on: ubuntu-latest
+    needs: push_to_docker_hub
+    steps:
+      - uses: actions/checkout@v4
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          token: "${{ secrets.GITHUB_TOKEN }}"
