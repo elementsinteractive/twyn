@@ -1,3 +1,14 @@
+## v2.8.13 (2025-02-07)
+
+### chore
+
+- bump the dependencies group across 1 directory with 4 updates (#184)
+
+### ci
+
+- Trigger release notes job after publishing has succeeded (#185)
+- fix publish_to_pypi job (#181)
+
 ## v2.8.11 (2025-01-21)
 
 ### chore
