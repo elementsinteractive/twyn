@@ -1,3 +1,13 @@
+## v2.8.15 (2025-02-25)
+
+### chore
+
+- bump the dependencies group with 2 updates (#187)
+
+### fix
+
+- pin osv's version to 1.9.2 (#189)
+
 ## v2.8.14 (2025-02-07)
 
 ### chore
