@@ -10,7 +10,7 @@ For new feature proposals, please create first an issue to start a discussion ab
 
         git clone git@github.com:<username>/twyn.git
         cd twyn/
-3. Make sure to have [poetry](https://python-poetry.org/) installed in your system, as well as [just](https://github.com/casey/just).
+3. Make sure to have [uv](https://docs.astral.sh/uv/getting-started/installation/) installed in your system, as well as [just](https://github.com/casey/just).
 4. Set up your working environment: create a virtual environment and install the project dependencies. 
 The following command will do both:
     
