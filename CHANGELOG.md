@@ -1,3 +1,10 @@
+## v2.8.16 (2025-02-28)
+
+### chore
+
+- replace poetry with uv (#191)
+- bump the dependencies group with 2 updates (#188)
+
 ## v2.8.15 (2025-02-25)
 
 ### chore
