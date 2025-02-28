@@ -1011,7 +1011,7 @@ wheels = [
 
 [[package]]
 name = "twyn"
-version = "2.8.16"
+version = "2.8.18"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
