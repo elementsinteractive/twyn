@@ -1,3 +1,9 @@
+## v2.8.18 (2025-02-28)
+
+### ci
+
+- use OIDC when publishing to PyPi (#193)
+
 ## v2.8.17 (2025-02-28)
 
 ### fix
