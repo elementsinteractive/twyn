@@ -1,3 +1,9 @@
+## v2.8.17 (2025-02-28)
+
+### fix
+
+- replace setuptools with hatchling (#192)
+
 ## v2.8.16 (2025-02-28)
 
 ### chore
