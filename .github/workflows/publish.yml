@@ -23,8 +23,6 @@ jobs:
         run: |
           uv build
           uv publish
-        env:
-          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
   push_to_docker_hub:
     needs: publish_to_pypi
