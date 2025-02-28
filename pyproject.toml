@@ -23,7 +23,6 @@ dependencies = [
     "pyparsing<4.0.0,>=3.2.1",
     "tomlkit<0.14.0,>=0.11.6",
     "tomli<3.0.0,>=2.2.1; python_version < \"3.13\"",
-    "setuptools>=75.8.2",
 ]
 
 [dependency-groups]
@@ -39,8 +38,16 @@ dev = [
 ]
 
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "wheel"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/*",       
+    "README.md",        
+    "LICENSE",           
+]
+
 
 [tool.uv]
 package = true
