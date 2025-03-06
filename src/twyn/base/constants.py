@@ -24,7 +24,7 @@ DEPENDENCY_FILE_MAPPING: dict[str, type[AbstractParser]] = {
 DEFAULT_SELECTOR_METHOD = "all"
 DEFAULT_DEPENDENCY_FILE = "requirements.txt"
 DEFAULT_PROJECT_TOML_FILE = "pyproject.toml"
-DEFAULT_TOP_PYPI_PACKAGES = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages-30-days.min.json"
+DEFAULT_TOP_PYPI_PACKAGES = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages.min.json"
 
 
 class AvailableLoggingLevels(enum.Enum):
