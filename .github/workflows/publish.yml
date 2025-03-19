@@ -1,4 +1,4 @@
-# This workflow will publish our package on pypi, dockerhub, and create the release notes
+# This workflow will publish our package on pypi
 
 name: Publish
 
@@ -11,21 +11,18 @@ permissions:
   contents: write
 
 jobs:
-  publish_to_pypi:
+  push_to_pypi:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - name: Publish python package
+        uses: JRubics/poetry-publish@v2.1
         with:
-          version: "0.6.3"
-      - name: Publish to PyPi
-        run: |
-          uv build
-          uv publish
+          pypi_token: ${{ secrets.PYPI_TOKEN }}
+          poetry_install_options: "--without dev"
 
   push_to_docker_hub:
-    needs: publish_to_pypi
+    needs: push_to_pypi
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
