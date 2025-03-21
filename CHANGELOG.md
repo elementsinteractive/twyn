@@ -1,3 +1,9 @@
+## v2.8.21 (2025-03-21)
+
+### chore
+
+- update depdendencies (#198)
+
 ## v2.8.20 (2025-03-19)
 
 ### chore
