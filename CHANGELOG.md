@@ -1,3 +1,9 @@
+## v2.8.23 (2025-04-01)
+
+### ci
+
+- group dependabot updates (#201)
+
 ## v2.8.22 (2025-04-01)
 
 ### chore
