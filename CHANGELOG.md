@@ -1,3 +1,10 @@
+## v2.8.22 (2025-04-01)
+
+### chore
+
+- bump the dependencies group with 3 updates (#200)
+- bump the dependencies group with 2 updates (#199)
+
 ## v2.8.21 (2025-03-21)
 
 ### chore
