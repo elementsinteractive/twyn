@@ -1,3 +1,9 @@
+## v2.8.24 (2025-04-08)
+
+### chore
+
+- bump the minor-updates group with 3 updates (#203)
+
 ## v2.8.23 (2025-04-01)
 
 ### ci
