@@ -1,3 +1,21 @@
+## v2.8.25 (2025-05-22)
+
+### chore
+
+- bump the patch-updates group with 2 updates (#211)
+- bump commitizen from 4.6.1 to 4.7.0 in the minor-updates group (#210)
+- bump ruff from 0.11.8 to 0.11.9 in the patch-updates group (#209)
+- bump the patch-updates group with 2 updates (#208)
+- bump ruff from 0.11.6 to 0.11.7 in the patch-updates group (#207)
+- bump the patch-updates group with 2 updates (#206)
+- bump the minor-updates group with 2 updates (#205)
+- bump ruff from 0.11.4 to 0.11.5 in the patch-updates group (#204)
+- bump ruff from 0.11.2 to 0.11.4 in the patch-updates group (#202)
+
+### ci
+
+- publish to pypi using OIDC (#213)
+
 ## v2.8.24 (2025-04-08)
 
 ### chore
