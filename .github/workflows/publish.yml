@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  pypi-publish:
+  push_to_pypi:
     runs-on: ubuntu-latest
 
     permissions:
