@@ -7,7 +7,6 @@ updates:
       day: "monday"
     labels:
       - "dependencies"
-      - "ignore-for-release"
     commit-message:
       prefix: "chore"
     groups:
