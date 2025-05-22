@@ -1,3 +1,13 @@
+## v2.8.26 (2025-05-22)
+
+### chore
+
+- bump types-requests from 2.32.0.20250328 to 2.32.0.20250515 (#212)
+
+### ci
+
+- Fix typo in push_to_docker_hub action (#215)
+
 ## v2.8.25 (2025-05-22)
 
 ### chore
