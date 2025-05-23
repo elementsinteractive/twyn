@@ -8,7 +8,7 @@ authors = [
     "Ludo van Orden",
     "Dmitrii Fedotov",
 ]
-maintainers = ["Daniel Sanz", "Sergio Castillo <s.cast.lara@gmail.com>"]
+maintainers = ["Daniel Sanz <imsdn4z@gmail.com>", "Sergio Castillo <s.cast.lara@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
