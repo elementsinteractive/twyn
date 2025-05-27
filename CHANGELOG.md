@@ -1,3 +1,19 @@
+## v2.8.27 (2025-05-27)
+
+### chore
+
+- bump ruff from 0.11.10 to 0.11.11 in the patch-updates group (#218)
+- add maintainer email (#217)
+- bump commitizen from 4.7.2 to 4.8.2 in the minor-updates group (#214)
+
+### ci
+
+- require manual action to create tag (#216)
+
+### fix
+
+- handle return code (#219)
+
 ## v2.8.26 (2025-05-22)
 
 ### chore
