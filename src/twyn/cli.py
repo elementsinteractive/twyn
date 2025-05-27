@@ -86,13 +86,15 @@ def run(
     if dependency_file and not any(dependency_file.endswith(key) for key in DEPENDENCY_FILE_MAPPING):
         raise click.UsageError("Dependency file name not supported.", ctx=click.get_current_context())
 
-    return int(
-        check_dependencies(
-            config_file=config,
-            dependency_file=dependency_file,
-            dependencies_cli=set(dependency) or None,
-            selector_method=selector_method,
-            verbosity=verbosity,
+    sys.exit(
+        int(
+            check_dependencies(
+                config_file=config,
+                dependency_file=dependency_file,
+                dependencies_cli=set(dependency) or None,
+                selector_method=selector_method,
+                verbosity=verbosity,
+            )
         )
     )
 

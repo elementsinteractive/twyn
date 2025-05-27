@@ -140,6 +140,22 @@ class TestCli:
             )
         ]
 
+    @patch("twyn.cli.check_dependencies")
+    def test_return_code_1(self, mock_check_dependencies):
+        runner = CliRunner()
+        mock_check_dependencies.return_value = True
+
+        result = runner.invoke(cli.run)
+        assert result.exit_code == 1
+
+    @patch("twyn.cli.check_dependencies")
+    def test_return_code_0(self, mock_check_dependencies):
+        runner = CliRunner()
+        mock_check_dependencies.return_value = False
+
+        result = runner.invoke(cli.run)
+        assert result.exit_code == 0
+
     def test_only_one_verbosity_level_is_allowed(self):
         runner = CliRunner()
         result = runner.invoke(cli.run, ["-v", "-vv"], catch_exceptions=False)
