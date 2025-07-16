@@ -1,3 +1,27 @@
+## v2.8.28 (2025-07-16)
+
+### chore
+
+- bump ruff from 0.12.2 to 0.12.3 in the patch-updates group (#234)
+- bump ruff from 0.12.1 to 0.12.2 in the patch-updates group (#233)
+- bump ruff from 0.12.0 to 0.12.1 in the patch-updates group (#232)
+- bump mypy from 1.16.0 to 1.16.1 in the patch-updates group (#231)
+- bump the minor-updates group across 1 directory with 3 updates (#230)
+- bump urllib3 from 2.3.0 to 2.5.0 (#229)
+- bump types-requests from 2.32.0.20250602 to 2.32.4.20250611 in the patch-updates group (#227)
+- bump requests from 2.32.3 to 2.32.4 (#226)
+- bump types-requests from 2.32.0.20250515 to 2.32.0.20250602 (#223)
+- bump the patch-updates group across 1 directory with 3 updates (#225)
+- bump mypy from 1.15.0 to 1.16.0 in the minor-updates group (#222)
+
+### ci
+
+- add lgtm AI auto-reviewer (#221)
+
+### fix
+
+- Change Dockerfile to install twyn directly from the source code (#220)
+
 ## v2.8.27 (2025-05-27)
 
 ### chore
