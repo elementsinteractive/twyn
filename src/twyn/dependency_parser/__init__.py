@@ -1,6 +1,6 @@
 """Dependency parsers."""
 
-from twyn.dependency_parser.poetry_lock import PoetryLockParser
-from twyn.dependency_parser.requirements_txt import RequirementsTxtParser
+from twyn.dependency_parser.lock_parser import PoetryLockParser, UvLockParser
+from twyn.dependency_parser.requirements_txt_parser import RequirementsTxtParser
 
-__all__ = ["RequirementsTxtParser", "PoetryLockParser"]
+__all__ = ["RequirementsTxtParser", "PoetryLockParser", "UvLockParser"]

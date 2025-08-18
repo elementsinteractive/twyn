@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from twyn.dependency_parser import PoetryLockParser, RequirementsTxtParser
+from twyn.dependency_parser import PoetryLockParser, RequirementsTxtParser, UvLockParser
 from twyn.dependency_parser.abstract_parser import AbstractParser
 from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
 
@@ -42,7 +42,7 @@ class TestRequirementsTxtParser:
         assert parser.parse() == {"South", "pycrypto"}
 
 
-class TestPoetryLockParser:
+class TestLockParser:
     def test_parse_poetry_lock_file_lt_1_5(self, poetry_lock_file_lt_1_5):
         parser = PoetryLockParser(file_path=poetry_lock_file_lt_1_5)
         assert parser.parse() == {"charset-normalizer", "flake8", "mccabe"}
@@ -50,3 +50,7 @@ class TestPoetryLockParser:
     def test_parse_poetry_lock_file_ge_1_5(self, poetry_lock_file_ge_1_5):
         parser = PoetryLockParser(file_path=poetry_lock_file_ge_1_5)
         assert parser.parse() == {"charset-normalizer", "flake8", "mccabe"}
+
+    def test_uv_lock_parser(self, uv_lock_file) -> None:
+        parser = UvLockParser(file_path=uv_lock_file)
+        assert parser.parse() == {"annotated-types", "anyio", "argcomplete"}
