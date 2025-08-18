@@ -11,35 +11,40 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    if: "!startsWith(github.event.head_commit.message, 'bump:')"
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@7edac99f961f18b581bbd960d59d049f04c0002f # v6.4.1
+
+      - name: Install the project
+        run: uv sync --locked --group dev
+
+      - name: Cache mypy cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.1
         with:
-          python-version: "3.13"
-      - name: Install just
-        run: |
-          sudo apt update
-          sudo snap install --edge --classic just
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install poetry
-          poetry install
+          path: .mypy_cache
+          key: mypy-${{ runner.os }}
+          restore-keys: |
+            mypy-${{ runner.os }}
 
       - name: Lint
         run: |
-          just lint
+          uv run ruff format --check src tests
+          uv run ruff check src tests
+          uv run mypy src tests
 
   lint-commit:
     runs-on: ubuntu-latest
+    if: "!startsWith(github.event.head_commit.message, 'bump:')"
     name: "Lint commit message"
+    container:
+      image: commitizen/commitizen:4.8.3@sha256:08a078c52b368f85f34257a66e10645ee74d8cbe9b471930b80b2b4e95a9bd4a
     steps:
       - name: Check out
-        uses: actions/checkout@v4
-      - name: Install commitizen
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install commitizen
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Check commit message
-        run: cz check --rev-range HEAD
+        run: |
+          git config --global --add safe.directory /__w/twyn/twyn
+          cz check --rev-range HEAD

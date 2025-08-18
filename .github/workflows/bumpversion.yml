@@ -7,24 +7,34 @@ jobs:
   bump_version:
     if: ${{ !startsWith(github.event.head_commit.message, 'bump:') && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    container:
+      image: commitizen/commitizen:4.8.3@sha256:08a078c52b368f85f34257a66e10645ee74d8cbe9b471930b80b2b4e95a9bd4a
+
     name: "Bump version and create changelog with commitizen"
     steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
         id: app-token
         with:
           app-id: ${{ vars.ELEMENTSINTERACTIVE_BOT_APP_ID }}
           private-key: ${{ secrets.ELEMENTSINTERACTIVE_BOT_PRIVATE_KEY }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
           ref: ${{ github.head_ref }}
-          # Make sure the value of GITHUB_TOKEN will not be persisted in repo's config
-          persist-credentials: false
+
+      - name: Configure git
+        run: |
+          git config --global --add safe.directory "*"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - id: cz
         name: Create bump and changelog
-        uses: commitizen-tools/commitizen-action@master
-        with:
-          github_token: ${{ steps.app-token.outputs.token }}
+        run: |
+          cz bump --yes --changelog
+          git push origin HEAD:main
+          git push origin --tags
+
       - name: Print Version
-        run: echo "Bumped to version ${{ steps.cz.outputs.version }}"
+        run: echo "Bumped to version $(cz version -p)"
