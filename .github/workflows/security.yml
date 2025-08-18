@@ -1,4 +1,4 @@
-# This workflow will run some security checks against our project
+# This workflow will run security checks against our project
 
 name: Security
 
@@ -11,28 +11,30 @@ on:
 jobs:
   osv-scanner:
     runs-on: ubuntu-latest
+    if: "!startsWith(github.event.head_commit.message, 'bump:')"
     container:
-      image: ghcr.io/google/osv-scanner:v1.9.2
+      image: ghcr.io/google/osv-scanner:v2.1.0@sha256:9a1ba57d2a1506c9e9d0dfbeaf46346507e829745b70d47d77e12c38e66de8d7
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Run OSV Scanner
         run: |
-          /osv-scanner --skip-git --format table -r .
+          /osv-scanner --format table -r .
   semgrep:
     runs-on: ubuntu-latest
+    if: "!startsWith(github.event.head_commit.message, 'bump:')"
     container:
-      image: returntocorp/semgrep:latest
+      image: returntocorp/semgrep:1.128.1@sha256:144d315f7354c2b2c53021a76165a500f67252c47464be75e951b67050f54a9e
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Run Semgrep
         run: |
           semgrep scan --config auto
   twyn:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c #v4.9.1
         with:
           python-version: "3.13"
       - name: Install dependencies
