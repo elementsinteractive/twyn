@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from tomlkit import dumps, parse
@@ -267,8 +267,8 @@ class TestCheckDependencies:
         assert error is False
 
     @patch("twyn.dependency_parser.dependency_selector.DependencySelector.get_dependency_parser")
-    @patch("twyn.dependency_parser.requirements_txt.RequirementsTxtParser.parse")
-    def test_get_parsed_dependencies_from_file(self, mock_parse, mock_get_dependency_parser):
+    @patch("twyn.dependency_parser.requirements_txt_parser.RequirementsTxtParser.parse")
+    def test_get_parsed_dependencies_from_file(self, mock_parse: Mock, mock_get_dependency_parser: Mock):
         mock_get_dependency_parser.return_value = RequirementsTxtParser()
         mock_parse.return_value = {"boto3"}
         assert get_parsed_dependencies_from_file() == {"boto3"}

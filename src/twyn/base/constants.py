@@ -17,12 +17,12 @@ SELECTOR_METHOD_MAPPING: dict[str, type[selectors.AbstractSelector]] = {
 }
 
 DEPENDENCY_FILE_MAPPING: dict[str, type[AbstractParser]] = {
-    "requirements.txt": dependency_parser.requirements_txt.RequirementsTxtParser,
-    "poetry.lock": dependency_parser.poetry_lock.PoetryLockParser,
+    "requirements.txt": dependency_parser.requirements_txt_parser.RequirementsTxtParser,
+    "poetry.lock": dependency_parser.lock_parser.PoetryLockParser,
+    "uv.lock": dependency_parser.lock_parser.UvLockParser,
 }
 
 DEFAULT_SELECTOR_METHOD = "all"
-DEFAULT_DEPENDENCY_FILE = "requirements.txt"
 DEFAULT_PROJECT_TOML_FILE = "pyproject.toml"
 DEFAULT_TOP_PYPI_PACKAGES = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages.min.json"
 
