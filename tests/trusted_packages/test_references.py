@@ -1,9 +1,7 @@
-from contextlib import contextmanager
-from unittest.mock import Mock, call, patch
+from unittest.mock import call, patch
 
 import pytest
 import requests
-from pyparsing import Iterable, Iterator
 from twyn.trusted_packages import TopPyPiReference
 from twyn.trusted_packages.exceptions import (
     EmptyPackagesListError,
@@ -12,19 +10,7 @@ from twyn.trusted_packages.exceptions import (
 )
 from twyn.trusted_packages.references import AbstractPackageReference
 
-
-@contextmanager
-def patch_pypi_requests_get(packages: Iterable[str]) -> Iterator[Mock]:
-    """Patcher of `requests.get` for Top PyPi list.
-
-    Replaces call with the output you would get from downloading the top PyPi packages list.
-    """
-    json_response = {"rows": [{"project": name} for name in packages]}
-
-    with patch("requests.get") as mock_get:
-        mock_get.return_value.json.return_value = json_response
-
-        yield mock_get
+from tests.conftest import patch_pypi_requests_get
 
 
 class TestAbstractPackageReference:

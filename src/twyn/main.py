@@ -2,7 +2,6 @@ import logging
 import re
 from typing import Optional
 
-import click
 from rich.logging import RichHandler
 from rich.progress import track
 
@@ -10,6 +9,7 @@ from twyn.base.constants import (
     DEFAULT_PROJECT_TOML_FILE,
     SELECTOR_METHOD_MAPPING,
     AvailableLoggingLevels,
+    SelectorMethod,
 )
 from twyn.config.config_handler import ConfigHandler
 from twyn.dependency_parser.dependency_selector import DependencySelector
@@ -31,12 +31,12 @@ logger = logging.getLogger("twyn")
 
 
 def check_dependencies(
-    config_file: Optional[str],
-    dependency_file: Optional[str],
-    dependencies_cli: Optional[set[str]],
-    selector_method: str,
+    selector_method: SelectorMethod,
+    config_file: Optional[str] = None,
+    dependency_file: Optional[str] = None,
+    dependencies: Optional[set[str]] = None,
     verbosity: AvailableLoggingLevels = AvailableLoggingLevels.none,
-) -> bool:
+) -> list[TyposquatCheckResult]:
     """Check if dependencies could be typosquats."""
     config_file_handler = FileHandler(config_file or DEFAULT_PROJECT_TOML_FILE)
     config = ConfigHandler(config_file_handler, enforce_file=False).resolve_config(
@@ -51,7 +51,7 @@ def check_dependencies(
         threshold_class=SimilarityThreshold,
     )
     normalized_allowlist_packages = _normalize_packages(config.allowlist)
-    dependencies = dependencies_cli if dependencies_cli else get_parsed_dependencies_from_file(config.dependency_file)
+    dependencies = dependencies if dependencies else get_parsed_dependencies_from_file(config.dependency_file)
     normalized_dependencies = _normalize_packages(dependencies)
 
     errors: list[TyposquatCheckResult] = []
@@ -64,17 +64,7 @@ def check_dependencies(
         if dependency not in trusted_packages and (typosquat_results := trusted_packages.get_typosquat(dependency)):
             errors.append(typosquat_results)
 
-    for possible_typosquats in errors:
-        click.echo(
-            click.style("Possible typosquat detected: ", fg="red") + f"`{possible_typosquats.candidate_dependency}`, "
-            f"did you mean any of [{', '.join(possible_typosquats.similar_dependencies)}]?",
-            color=True,
-        )
-
-    if not errors:
-        click.echo(click.style("No typosquats detected", fg="green"), color=True)
-
-    return bool(errors)
+    return errors
 
 
 def _set_logging_level(logging_level: AvailableLoggingLevels) -> None:

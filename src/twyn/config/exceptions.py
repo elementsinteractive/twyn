@@ -18,3 +18,7 @@ class AllowlistPackageAlreadyExistsError(AllowlistError):
 
 class AllowlistPackageDoesNotExistError(AllowlistError):
     message = "Package '{}' is not present in the allowlist. Skipping."
+
+
+class InvalidSelectorMethodError(TwynError):
+    """Exception for when an invalid selector method has been specified."""

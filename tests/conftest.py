@@ -1,5 +1,5 @@
 import os
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from unittest import mock
@@ -18,6 +18,20 @@ def create_tmp_file(path: Path, data: str) -> Iterator[str]:
     path.write_text(data)
     yield str(path)
     os.remove(path)
+
+
+@contextmanager
+def patch_pypi_requests_get(packages: Iterable[str]) -> Iterator[mock.Mock]:
+    """Patcher of `requests.get` for Top PyPi list.
+
+    Replaces call with the output you would get from downloading the top PyPi packages list.
+    """
+    json_response = {"rows": [{"project": name} for name in packages]}
+
+    with mock.patch("requests.get") as mock_get:
+        mock_get.return_value.json.return_value = json_response
+
+        yield mock_get
 
 
 @pytest.fixture
@@ -187,7 +201,7 @@ def pyproject_toml_file(tmp_path: Path) -> Iterator[str]:
 
     [tool.twyn]
     dependency_file="my_file.txt"
-    selector_method="my_selector"
+    selector_method="all"
     logging_level="debug"
     allowlist=["boto4", "boto2"]
 

@@ -86,17 +86,26 @@ def run(
     if dependency_file and not any(dependency_file.endswith(key) for key in DEPENDENCY_FILE_MAPPING):
         raise click.UsageError("Dependency file name not supported.", ctx=click.get_current_context())
 
-    sys.exit(
-        int(
-            check_dependencies(
-                config_file=config,
-                dependency_file=dependency_file,
-                dependencies_cli=set(dependency) or None,
-                selector_method=selector_method,
-                verbosity=verbosity,
-            )
-        )
+    errors = check_dependencies(
+        dependencies=set(dependency) or None,
+        config_file=config,
+        dependency_file=dependency_file,
+        selector_method=selector_method,
+        verbosity=verbosity,
     )
+
+    if errors:
+        for possible_typosquats in errors:
+            click.echo(
+                click.style("Possible typosquat detected: ", fg="red")
+                + f"`{possible_typosquats.candidate_dependency}`, "
+                f"did you mean any of [{', '.join(possible_typosquats.similar_dependencies)}]?",
+                color=True,
+            )
+        sys.exit(1)
+    else:
+        click.echo(click.style("No typosquats detected", fg="green"), color=True)
+        sys.exit(0)
 
 
 @entry_point.group()
