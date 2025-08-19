@@ -20,9 +20,7 @@ class TestTrustedPackages:
         "package_name, is_a_trusted_package",
         [("foo", True), ("FOO", False), ("asdf", False)],
     )
-    def test_can_check_package_is_trusted(
-        self, package_name: str, is_a_trusted_package: bool
-    ):
+    def test_can_check_package_is_trusted(self, package_name: str, is_a_trusted_package: bool):
         trusted_packages = TrustedPackages(
             names={"foo", "bar"},
             algorithm=Mock(),
@@ -119,8 +117,6 @@ class TestTrustedPackages:
             threshold_class=SimilarityThreshold,
         )
 
-        assert trusted_packages.get_typosquat(
-            package_name=package_name
-        ) == TyposquatCheckResult(
+        assert trusted_packages.get_typosquat(package_name=package_name) == TyposquatCheckResult(
             candidate_dependency=package_name, similar_dependencies=matches
         )

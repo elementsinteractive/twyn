@@ -69,9 +69,7 @@ class TrustedPackages:
         """
         threshold = self.threshold_class.from_name(package_name)
         typosquat_result = TyposquatCheckResult(package_name)
-        for trusted_package_name in self.selector.select_similar_names(
-            names=self.names, name=package_name
-        ):
+        for trusted_package_name in self.selector.select_similar_names(names=self.names, name=package_name):
             distance = self.algorithm.get_distance(package_name, trusted_package_name)
             if threshold.is_inside_threshold(distance):
                 typosquat_result.add(trusted_package_name)

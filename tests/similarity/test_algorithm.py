@@ -11,9 +11,7 @@ from twyn.similarity.exceptions import DistanceAlgorithmError, ThresholdError
 
 class TestAbstractSimilarityAlgorithm:
     class DifferentLettersSimilarityAlgorithm(AbstractSimilarityAlgorithm):
-        def _run_algorithm(
-            self, first_sequence: str, second_sequence: str
-        ) -> Union[float, int]:
+        def _run_algorithm(self, first_sequence: str, second_sequence: str) -> Union[float, int]:
             first_letters = set(first_sequence)
             second_letters = set(second_sequence)
             return len(first_letters.symmetric_difference(second_letters))
@@ -48,9 +46,7 @@ class TestEditDistance:
 
 class TestExceptions:
     class ExceptionAlgorithm(AbstractSimilarityAlgorithm):
-        def _run_algorithm(
-            self, first_sequence: str, second_sequence: str
-        ) -> Union[float, int]:
+        def _run_algorithm(self, first_sequence: str, second_sequence: str) -> Union[float, int]:
             raise KeyError
 
     def test_exception(self):

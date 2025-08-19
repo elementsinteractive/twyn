@@ -14,8 +14,6 @@ class RequirementsTxtParser(AbstractParser):
 
     def parse(self) -> set[str]:
         """Parse requirements.txt dependencies into set of dependency names."""
-        dependency_file: DependencyFile = parse(
-            self._read(), file_type=filetypes.requirements_txt
-        )
+        dependency_file: DependencyFile = parse(self._read(), file_type=filetypes.requirements_txt)
         dependencies: list[Dependency] = dependency_file.resolved_dependencies
         return {dependency.name for dependency in dependencies}

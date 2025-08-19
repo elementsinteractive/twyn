@@ -79,10 +79,11 @@ To specify a dependency file through the command line run:
 twyn run --dependency-file <file path>
 ```
 
-Currently it supports these dependency file formats:
+The following dependency file formats are supported:
 
 - `requirements.txt`
 - `poetry.lock`
+- `uv.lock`
 
 ### Check dependencies introduced through the CLI
 
