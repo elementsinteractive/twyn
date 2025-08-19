@@ -1,6 +1,6 @@
 
 [tool.commitizen]
-version_files = ["pyproject.toml:version"]
+version_files = ["VERSION"]
 version = "2.9.1"
 tag_format = "v$version"
 name = "cz_customize"
