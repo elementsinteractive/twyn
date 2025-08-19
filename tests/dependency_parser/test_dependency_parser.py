@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from twyn.dependency_parser import PoetryLockParser, RequirementsTxtParser, UvLockParser
@@ -16,17 +16,17 @@ class TestAbstractParser:
 
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.is_file")
-    def test_file_exists(self, _mock_exists, _mock_is_file):
-        _mock_exists.return_value = True
-        _mock_is_file.return_value = True
+    def test_file_exists(self, mock_exists: Mock, mock_is_file: Mock) -> None:
+        mock_exists.return_value = True
+        mock_is_file.return_value = True
         parser = self.TemporaryParser("fake_path.txt")
         assert parser.file_exists() is True
 
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.is_file")
     @pytest.mark.parametrize(
-        "file_exists, is_file, exception",
-        [[False, False, PathNotFoundError], [True, False, PathIsNotFileError]],
+        ("file_exists", "is_file", "exception"),
+        [(False, False, PathNotFoundError), (True, False, PathIsNotFileError)],
     )
     def test_raise_for_valid_file(self, mock_is_file, mock_exists, file_exists, is_file, exception):
         mock_exists.return_value = file_exists

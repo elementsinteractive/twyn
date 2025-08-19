@@ -17,7 +17,7 @@ from tests.conftest import create_tmp_file
 @pytest.mark.usefixtures("disable_track")
 class TestCheckDependencies:
     @pytest.mark.parametrize(
-        "cli_config, file_config, expected_resolved_config",
+        ("cli_config", "file_config", "expected_resolved_config"),
         [
             (
                 {
@@ -120,12 +120,16 @@ class TestCheckDependencies:
         assert resolved.allowlist == expected_resolved_config.allowlist
 
     @pytest.mark.parametrize(
-        "passed_logging_level, config, logging_level",
+        (
+            "passed_logging_level",
+            "config",
+            "logging_level",
+        ),
         [
-            [AvailableLoggingLevels.none, None, AvailableLoggingLevels.warning],
-            [AvailableLoggingLevels.info, None, AvailableLoggingLevels.info],
-            [AvailableLoggingLevels.debug, None, AvailableLoggingLevels.debug],
-            [AvailableLoggingLevels.none, "debug", AvailableLoggingLevels.debug],
+            (AvailableLoggingLevels.none, None, AvailableLoggingLevels.warning),
+            (AvailableLoggingLevels.info, None, AvailableLoggingLevels.info),
+            (AvailableLoggingLevels.debug, None, AvailableLoggingLevels.debug),
+            (AvailableLoggingLevels.none, "debug", AvailableLoggingLevels.debug),
         ],
     )
     def test_logging_level(self, passed_logging_level, config, logging_level):
@@ -137,12 +141,12 @@ class TestCheckDependencies:
 
     @pytest.mark.parametrize(
         "package_name",
-        (
+        [
             "my.package",
             "my-package",
             "my_package",
             "My.Package",
-        ),
+        ],
     )
     @patch("twyn.main.TopPyPiReference")
     @patch("twyn.main.get_parsed_dependencies_from_file")
@@ -163,12 +167,12 @@ class TestCheckDependencies:
 
     @pytest.mark.parametrize(
         "package_name",
-        (
+        [
             "my.package",
             "my-package",
             "my_package",
             "My.Package",
-        ),
+        ],
     )
     @patch("twyn.main.TopPyPiReference")
     def test_check_dependencies_with_input_from_cli_detects_typosquats(self, mock_top_pypi_reference, package_name):
@@ -215,12 +219,12 @@ class TestCheckDependencies:
 
     @pytest.mark.parametrize(
         "package_name",
-        (
+        [
             "my.package",
             "my-package",
             "my_package",
             "My.Package",
-        ),
+        ],
     )
     @patch("twyn.main.TopPyPiReference")
     @patch("twyn.main.get_parsed_dependencies_from_file")
@@ -248,7 +252,7 @@ class TestCheckDependencies:
 
         assert error is False
 
-    @pytest.mark.parametrize("package_name", ("my.package", "my-package", "my_package", "My.Package"))
+    @pytest.mark.parametrize("package_name", ["my.package", "my-package", "my_package", "My.Package"])
     @patch("twyn.main.TopPyPiReference")
     @patch("twyn.main.get_parsed_dependencies_from_file")
     def test_check_dependencies_does_not_error_on_same_package(

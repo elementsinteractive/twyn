@@ -40,7 +40,7 @@ class TopPyPiReference(AbstractPackageReference):
         except requests.exceptions.JSONDecodeError as err:
             raise InvalidJSONError from err
 
-        logger.debug(f"Successfully downloaded trusted packages list from {self.source}")
+        logger.debug("Successfully downloaded trusted packages list from %s", self.source)
 
         return packages_json
 

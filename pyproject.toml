@@ -49,13 +49,15 @@ dev = [
     "pytest<9.0.0,>=7.1.3",
     "mypy<1.17,>=0.982",
     "pytest-cov<7,>=4",
-    "ipdb<1.0.0,>=0.13.9",
-    "commitizen<5.0,>=2.38",
-    "pdbpp<1.0.0,>=0.11.6",
+
     "ruff<0.12.4,>=0.5.1",
     "types-requests<3.0.0.0,>=2.32.4.20250611",
 ]
-
+local = [
+    "ipdb<1.0.0,>=0.13.9",
+    "commitizen<5.0,>=2.38",
+    "pdbpp<1.0.0,>=0.11.6",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -66,26 +68,41 @@ target-version = "py39"
 line-length = 120
 
 src = ["twyn", "tests"]
-
 [tool.ruff.lint]
 select = [
-    "C9",  # mccabe
-    "E",   # pycodestyle error
-    "W",   # pycodestyle warning
-    "F",   # pyflakes
-    "B",   # bugbear
-    "D",   # pydocstyle
-    "I",   # isort
-    "C4",  # comprehensions
-    "SIM", # simplify
-    "N",   # pep8-naming
-    "TRY", # tryceratops
+  "B",   # flake8-bugbear
+  "C",   # mccabe
+  "E",   # pycodestyle
+  "W",   # pycodestyle warnings
+  "F",   # pyflakes
+  "I",   # isort
+  "B",   # bugbear
+  "D",   # pydocstyle
+  "I",   # isort
+  "C4",  # comprehensions
+  "SIM", # simplify
+  "N",   # pep8-naming
+  "TRY", # tryceratops
+  "UP",  # pyupgrade
+  "PT",  # pytest-style
+  "TCH", # type-checking
+  "PL",  # pylint
+  "G",   # logging format
+  "TID", # tidy-imports
 ]
-
 ignore = [
-    'D1',     # pydocstyle enforcement of docstrings everywhere
-    'TRY003', # tryceratops too noisy
-    "E501",   # line length (black handles it)
+  "E501",    # line-length (enforced by black instead)
+  'D1',      # pydocstyle enforces docstrings everywhere
+  'TRY003',  # tryceratops rule not useful
+  "PLR0913", # pylint rule not useful
+  "B008",    # checks for function calls in default function arguments.
+  'D206',    # conflicts with formatter
+  'W191',    # conflicts with formatter
+  'D203',    # conflicts with formatter
+  'D211',    # conflicts with formatter
+  'D212',    # conflicts with formatter
+  'UP031',   # allow strings formated with %s
+  'PLR2004'  # magic value
 ]
 
 [tool.ruff.lint.pydocstyle]

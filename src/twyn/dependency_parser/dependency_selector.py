@@ -16,7 +16,7 @@ class DependencySelector:
         self.dependency_file = dependency_file or ""
 
     @staticmethod
-    def _raise_for_selected_parsers(parsers) -> None:
+    def _raise_for_selected_parsers(parsers: list[type[AbstractParser]]) -> None:
         if len(parsers) > 1:
             raise MultipleParsersError
 
@@ -45,7 +45,7 @@ class DependencySelector:
         return parsers[0]
 
     def get_dependency_parser(self) -> AbstractParser:
-        logger.debug(f"Dependency file: {self.dependency_file}")
+        logger.debug("Dependency file: %s", self.dependency_file)
 
         if self.dependency_file:
             logger.debug("Dependency file provided. Assigning a parser.")
@@ -56,6 +56,6 @@ class DependencySelector:
             dependency_file_parser = self.auto_detect_dependency_file_parser()
             file_parser = dependency_file_parser()
 
-        logger.debug(f"Assigned {file_parser} parser for local dependencies file.")
+        logger.debug("Assigned %s parser for local dependencies file.", file_parser)
 
         return file_parser

@@ -1164,14 +1164,16 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "commitizen" },
-    { name = "ipdb" },
     { name = "mypy" },
-    { name = "pdbpp" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
     { name = "types-requests" },
+]
+local = [
+    { name = "commitizen" },
+    { name = "ipdb" },
+    { name = "pdbpp" },
 ]
 
 [package.metadata]
@@ -1188,14 +1190,16 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "commitizen", specifier = ">=2.38,<5.0" },
-    { name = "ipdb", specifier = ">=0.13.9,<1.0.0" },
     { name = "mypy", specifier = ">=0.982,<1.17" },
-    { name = "pdbpp", specifier = ">=0.11.6,<1.0.0" },
     { name = "pytest", specifier = ">=7.1.3,<9.0.0" },
     { name = "pytest-cov", specifier = ">=4,<7" },
     { name = "ruff", specifier = ">=0.5.1,<0.12.4" },
     { name = "types-requests", specifier = ">=2.32.4.20250611,<3.0.0.0" },
+]
+local = [
+    { name = "commitizen", specifier = ">=2.38,<5.0" },
+    { name = "ipdb", specifier = ">=0.13.9,<1.0.0" },
+    { name = "pdbpp", specifier = ">=0.11.6,<1.0.0" },
 ]
 
 [[package]]

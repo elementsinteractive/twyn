@@ -57,10 +57,10 @@ def check_dependencies(
     errors: list[TyposquatCheckResult] = []
     for dependency in track(normalized_dependencies, description="Processing..."):
         if dependency in normalized_allowlist_packages:
-            logger.info(f"Dependency {dependency} is in the allowlist")
+            logger.info("Dependency %s is in the allowlist", dependency)
             continue
 
-        logger.info(f"Analyzing {dependency}")
+        logger.info("Analyzing %s", dependency)
         if dependency not in trusted_packages and (typosquat_results := trusted_packages.get_typosquat(dependency)):
             errors.append(typosquat_results)
 
@@ -79,14 +79,13 @@ def check_dependencies(
 
 def _set_logging_level(logging_level: AvailableLoggingLevels) -> None:
     logger.setLevel(logging_level.value)
-    logger.debug(f"Logging level: {logging_level.value}")
+    logger.debug("Logging level: %s", logging_level.value)
 
 
 def get_candidate_selector(selector_method_name: str) -> AbstractSelector:
-    logger.debug(f"Selector method received {selector_method_name}")
-    selector_method_name = selector_method_name
+    logger.debug("Selector method received %s", selector_method_name)
     selector_method = SELECTOR_METHOD_MAPPING[selector_method_name]()
-    logger.debug(f"Instantiated {selector_method} selector")
+    logger.debug("Instantiated %s selector", selector_method)
     return selector_method
 
 
