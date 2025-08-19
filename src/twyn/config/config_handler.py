@@ -84,7 +84,7 @@ class ConfigHandler:
 
         config.allowlist.add(package_name)
         self._write_config(toml, config)
-        logger.info(f"Package '{package_name}' successfully added to allowlist")
+        logger.info("Package '%s' successfully added to allowlist", package_name)
 
     def remove_package_from_allowlist(self, package_name: str) -> None:
         """Remove a package from the allowlist configuration in the toml file."""
@@ -95,7 +95,7 @@ class ConfigHandler:
 
         config.allowlist.remove(package_name)
         self._write_config(toml, config)
-        logger.info(f"Package '{package_name}' successfully removed from allowlist")
+        logger.info("Package '%s' successfully removed from allowlist", package_name)
 
     def _get_read_config(self, toml: TOMLDocument) -> ReadTwynConfiguration:
         """Read the twyn configuration from a provided toml document."""

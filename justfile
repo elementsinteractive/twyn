@@ -12,11 +12,11 @@ alias t := test
 help:
     just --list --unsorted
 
-# Cleans all artifacts generated while running this project, including the virtualenv.
+# Create a new venv with all the dependencies groups
 venv: 
     @if ! {{ venv-exists }}; \
     then \
-    uv sync --frozen --group dev; \
+    uv sync --frozen --all-groups; \
     fi
 
 # Cleans all artifacts generated while running this project, including the virtualenv.

@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 from typing import TYPE_CHECKING
 
-import twyn.dependency_parser as dependency_parser
+from twyn import dependency_parser
 from twyn.trusted_packages import selectors
 
 if TYPE_CHECKING:

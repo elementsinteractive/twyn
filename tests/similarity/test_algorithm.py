@@ -17,7 +17,11 @@ class TestAbstractSimilarityAlgorithm:
             return len(first_letters.symmetric_difference(second_letters))
 
     @pytest.mark.parametrize(
-        "word1, word2, expected_distance",
+        (
+            "word1",
+            "word2",
+            "expected_distance",
+        ),
         [
             ("foo", "bar", 5),
             ("foo", "foo", 0),
@@ -32,7 +36,11 @@ class TestAbstractSimilarityAlgorithm:
 
 class TestEditDistance:
     @pytest.mark.parametrize(
-        "word1, word2, expected_distance",
+        (
+            "word1",
+            "word2",
+            "expected_distance",
+        ),
         [
             ("requests", "requests", 0),
             ("requests", "requets", 1),

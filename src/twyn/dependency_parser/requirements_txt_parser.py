@@ -1,9 +1,13 @@
 """Parser for requirements.txt dependencies."""
 
+from typing import TYPE_CHECKING
+
 from dparse import filetypes, parse
-from dparse.dependencies import Dependency, DependencyFile
 
 from twyn.dependency_parser.abstract_parser import AbstractParser
+
+if TYPE_CHECKING:
+    from dparse.dependencies import Dependency, DependencyFile
 
 
 class RequirementsTxtParser(AbstractParser):

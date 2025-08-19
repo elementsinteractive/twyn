@@ -11,8 +11,8 @@ else:
     import tomli as tomllib
 
 
-class LockParser(AbstractParser):
-    """Parser for poetry.lock and uv.lock files."""
+class TomlLockParser(AbstractParser):
+    """Parser for TOML-based lock files."""
 
     def parse(self) -> set[str]:
         """Parse dependencies names and map them to a set."""
@@ -20,14 +20,14 @@ class LockParser(AbstractParser):
         return {dependency["name"] for dependency in data["package"]}
 
 
-class PoetryLockParser(LockParser):
+class PoetryLockParser(TomlLockParser):
     """Parser for poetry.lock files."""
 
     def __init__(self, file_path: str = filetypes.poetry_lock) -> None:
         super().__init__(file_path)
 
 
-class UvLockParser(LockParser):
+class UvLockParser(TomlLockParser):
     """Parser for uv.lock files."""
 
     def __init__(self, file_path: str = UV_LOCK) -> None:

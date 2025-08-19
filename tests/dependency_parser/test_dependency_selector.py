@@ -12,7 +12,7 @@ from twyn.dependency_parser.exceptions import (
 
 class TestDependencySelector:
     @pytest.mark.parametrize(
-        "file_name, parser_class",
+        ("file_name", "parser_class"),
         [
             (
                 "requirements.txt",
@@ -30,7 +30,7 @@ class TestDependencySelector:
         assert isinstance(parser, parser_class)
         assert str(parser.file_handler.file_path).endswith(file_name)
 
-    @patch("twyn.dependency_parser.lock_parser.LockParser.file_exists")
+    @patch("twyn.dependency_parser.lock_parser.PoetryLockParser.file_exists")
     @patch("twyn.dependency_parser.lock_parser.UvLockParser.file_exists")
     @patch("twyn.dependency_parser.requirements_txt_parser.RequirementsTxtParser.file_exists")
     def test_get_dependency_parser_auto_detect_requirements_file(
@@ -70,7 +70,7 @@ class TestDependencySelector:
         assert isinstance(parser, UvLockParser)
 
     @pytest.mark.parametrize(
-        "exists, exception",
+        ("exists", "exception"),
         [(True, MultipleParsersError), (False, NoMatchingParserError)],
     )
     @patch("twyn.dependency_parser.abstract_parser.AbstractParser.file_exists")

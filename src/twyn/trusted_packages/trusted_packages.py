@@ -1,6 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Set
+from typing import Any
 
 from twyn.similarity.algorithm import (
     AbstractSimilarityAlgorithm,
@@ -31,7 +31,7 @@ class TrustedPackages:
 
     def __init__(
         self,
-        names: Set[str],
+        names: set[str],
         algorithm: AbstractSimilarityAlgorithm,
         selector: AbstractSelector,
         threshold_class: type[SimilarityThreshold],
@@ -40,9 +40,6 @@ class TrustedPackages:
         self.threshold_class = threshold_class
         self.selector = selector
         self.algorithm = algorithm
-
-    def __eq__(self, obj: Any) -> bool:
-        return isinstance(obj, self.__class__) and self.names == obj.names
 
     def __contains__(self, obj: Any) -> bool:
         if isinstance(obj, str):

@@ -17,7 +17,7 @@ from twyn.trusted_packages.trusted_packages import (
 
 class TestTrustedPackages:
     @pytest.mark.parametrize(
-        "package_name, is_a_trusted_package",
+        ("package_name", "is_a_trusted_package"),
         [("foo", True), ("FOO", False), ("asdf", False)],
     )
     def test_can_check_package_is_trusted(self, package_name: str, is_a_trusted_package: bool):
@@ -43,7 +43,7 @@ class TestTrustedPackages:
         }
 
     @pytest.mark.parametrize(
-        "package_name, trusted_packages, selector, matches",
+        ("package_name", "trusted_packages", "selector", "matches"),
         [
             # First letter exact
             (

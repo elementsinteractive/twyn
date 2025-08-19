@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
 
 from twyn.trusted_packages.constants import ADJACENCY_MATRIX
 from twyn.trusted_packages.exceptions import CharacterNotInMatrixError
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from twyn.trusted_packages.trusted_packages import _PackageNames
 
 logger = logging.getLogger("twyn")
@@ -28,8 +30,7 @@ class FirstLetterNearbyInKeyboard(AbstractSelector):
     def select_similar_names(self, names: _PackageNames, name: str) -> Iterable[str]:
         candidate_characters = self._get_candidate_characters(name[0])
         for letter in candidate_characters:
-            for candidate in names.get(letter, []):
-                yield candidate
+            yield from names.get(letter, [])
 
     @staticmethod
     def _get_candidate_characters(character: str) -> list[str]:
@@ -43,8 +44,7 @@ class FirstLetterExact(AbstractSelector):
     """Selects names that share the same first letter."""
 
     def select_similar_names(self, names: _PackageNames, name: str) -> Iterable[str]:
-        for candidate in names[name[0]]:
-            yield candidate
+        yield from names[name[0]]
 
 
 class AllSimilar(AbstractSelector):
@@ -52,5 +52,4 @@ class AllSimilar(AbstractSelector):
 
     def select_similar_names(self, names: _PackageNames, name: str) -> Iterable[str]:
         for candidates in names.values():
-            for candidate in candidates:
-                yield candidate
+            yield from candidates
