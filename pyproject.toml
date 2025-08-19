@@ -21,7 +21,7 @@ dependencies = [
     "tomli<3.0.0,>=2.2.1; python_version < \"3.13\"",
 ]
 name = "twyn"
-version = "2.8.28"
+version = "2.9.0"
 description = ""
 readme = "README.md"
 

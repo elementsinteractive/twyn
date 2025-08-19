@@ -1,3 +1,22 @@
+## v2.9.0 (2025-08-19)
+
+### Feat
+
+- replace poetry with uv (#245)
+- support uv.lock files (#244)
+
+### CI
+
+- update security jobs (#243)
+
+### Technical
+
+- bump types-requests from 2.32.4.20250611 to 2.32.4.20250809 (#241)
+- bump ruff from 0.12.7 to 0.12.8 in the patch-updates group (#240)
+- bump the patch-updates group with 2 updates (#239)
+- bump the minor-updates group across 1 directory with 2 updates (#238)
+- bump the patch-updates group with 2 updates (#236)
+
 ## v2.8.28 (2025-07-16)
 
 ### chore
