@@ -1,3 +1,9 @@
+## v2.9.2 (2025-08-19)
+
+### Fix
+
+- use VERSION for saving package version (#249)
+
 ## v2.9.1 (2025-08-19)
 
 ### Fix
