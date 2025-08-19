@@ -47,7 +47,7 @@ twyn = "twyn.cli:entry_point"
 [dependency-groups]
 dev = [
     "pytest<9.0.0,>=7.1.3",
-    "mypy<1.17,>=0.982",
+    "mypy>=0.982,<1.18",
     "pytest-cov<7,>=4",
     "ipdb<1.0.0,>=0.13.9",
     "commitizen<5.0,>=2.38",
