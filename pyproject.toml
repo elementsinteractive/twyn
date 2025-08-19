@@ -21,9 +21,25 @@ dependencies = [
     "tomli<3.0.0,>=2.2.1; python_version < \"3.13\"",
 ]
 name = "twyn"
-version = "2.9.0"
-description = ""
+description = "Security tool against dependency typosquatting attacks"
 readme = "README.md"
+dynamic = ["version"]
+
+[tool.hatch.version]
+path = "VERSION"
+pattern = "v(?P<version>[^\\s]+)"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/twyn"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/README.md",
+    "/LICENSE",
+    "/VERSION",
+    "/pyproject.toml",
+]
 
 [project.scripts]
 twyn = "twyn.cli:entry_point"
