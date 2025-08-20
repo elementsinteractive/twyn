@@ -7,7 +7,7 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
-
+  
 jobs:
   test-build-package:
     name: Test package build
@@ -53,20 +53,23 @@ jobs:
 
       - name: Check if Dockerfile changed
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
-        id: dockerfile-changes
+        id: docker-changes
         with:
           filters: |
-            dockerfile:
+            docker:
               - 'Dockerfile'
               - '.dockerignore'
+            workflow:
+              - ./.github/actions/docker-build/action.yml
     outputs:
-      docker: ${{ steps.dockerfile-changes.outputs.dockerfile }}
+      docker: ${{ steps.docker-changes.outputs.docker }}
+      workflow: ${{ steps.docker-changes.outputs.workflow }}
 
   test-docker-build:
     needs: [should-test-docker-build]
     name: Test Docker build
     runs-on: ubuntu-latest
-    if: needs.should-test-docker-build.outputs.docker == 'true' && !startsWith(github.event.head_commit.message, 'bump:')
+    if: ((needs.should-test-docker-build.outputs.workflow == 'true' && ${{ github.actor == 'dependabot[bot]' }} ) || needs.should-test-docker-build.outputs.docker == 'true') && !startsWith(github.event.head_commit.message, 'bump:')
     permissions:
       contents: read
       packages: read
@@ -81,22 +84,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
-        with:
-          images: elementsinteractive/twyn
-
-      - name: Build Docker image
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+      - name: Build image
+        uses: ./.github/actions/docker-build
         with:
           context: .
           file: ./Dockerfile
           push: false
           platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache
+       
