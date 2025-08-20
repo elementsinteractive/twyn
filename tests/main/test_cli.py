@@ -3,6 +3,7 @@ from unittest.mock import call, patch
 from click.testing import CliRunner
 from twyn import cli
 from twyn.base.constants import AvailableLoggingLevels
+from twyn.trusted_packages.trusted_packages import TyposquatCheckResult
 
 
 class TestCli:
@@ -46,7 +47,7 @@ class TestCli:
             call(
                 config_file="my-config",
                 dependency_file="requirements.txt",
-                dependencies_cli=None,
+                dependencies=None,
                 selector_method="first-letter",
                 verbosity=AvailableLoggingLevels.debug,
             )
@@ -67,7 +68,7 @@ class TestCli:
             call(
                 config_file=None,
                 dependency_file="/path/requirements.txt",
-                dependencies_cli=None,
+                dependencies=None,
                 selector_method=None,
                 verbosity=AvailableLoggingLevels.none,
             )
@@ -87,7 +88,7 @@ class TestCli:
             call(
                 config_file=None,
                 dependency_file=None,
-                dependencies_cli={"reqests"},
+                dependencies={"reqests"},
                 selector_method=None,
                 verbosity=AvailableLoggingLevels.none,
             )
@@ -103,7 +104,7 @@ class TestCli:
         assert "Only one of --dependency or --dependency-file can be set at a time." in result.output
 
     @patch("twyn.cli.check_dependencies")
-    def test_click_arguments_multiple_dependencies_cli(self, mock_check_dependencies):
+    def test_click_arguments_multiple_dependencies(self, mock_check_dependencies):
         runner = CliRunner()
         runner.invoke(
             cli.run,
@@ -119,7 +120,7 @@ class TestCli:
             call(
                 config_file=None,
                 dependency_file=None,
-                dependencies_cli={"reqests", "reqeusts"},
+                dependencies={"reqests", "reqeusts"},
                 selector_method=None,
                 verbosity=AvailableLoggingLevels.none,
             )
@@ -135,7 +136,7 @@ class TestCli:
                 config_file=None,
                 dependency_file=None,
                 selector_method=None,
-                dependencies_cli=None,
+                dependencies=None,
                 verbosity=AvailableLoggingLevels.none,
             )
         ]
@@ -143,7 +144,9 @@ class TestCli:
     @patch("twyn.cli.check_dependencies")
     def test_return_code_1(self, mock_check_dependencies):
         runner = CliRunner()
-        mock_check_dependencies.return_value = True
+        mock_check_dependencies.return_value = [
+            TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"])
+        ]
 
         result = runner.invoke(cli.run)
         assert result.exit_code == 1
@@ -151,7 +154,7 @@ class TestCli:
     @patch("twyn.cli.check_dependencies")
     def test_return_code_0(self, mock_check_dependencies):
         runner = CliRunner()
-        mock_check_dependencies.return_value = False
+        mock_check_dependencies.return_value = []
 
         result = runner.invoke(cli.run)
         assert result.exit_code == 0

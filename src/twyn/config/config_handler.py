@@ -9,11 +9,13 @@ from twyn.base.constants import (
     DEFAULT_PROJECT_TOML_FILE,
     DEFAULT_SELECTOR_METHOD,
     DEFAULT_TOP_PYPI_PACKAGES,
+    SELECTOR_METHOD_KEYS,
     AvailableLoggingLevels,
 )
 from twyn.config.exceptions import (
     AllowlistPackageAlreadyExistsError,
     AllowlistPackageDoesNotExistError,
+    InvalidSelectorMethodError,
     TOMLError,
 )
 from twyn.file_handler.exceptions import PathNotFoundError
@@ -67,9 +69,19 @@ class ConfigHandler:
         toml = self._read_toml()
         read_config = self._get_read_config(toml)
 
+        # Determine final selector method from CLI, config file, or default
+        final_selector_method = selector_method or read_config.selector_method or DEFAULT_SELECTOR_METHOD
+
+        # Validate selector_method
+        if final_selector_method not in SELECTOR_METHOD_KEYS:
+            valid_methods = ", ".join(sorted(SELECTOR_METHOD_KEYS))
+            raise InvalidSelectorMethodError(
+                f"Invalid selector_method '{final_selector_method}'. Must be one of: {valid_methods}"
+            )
+
         return TwynConfiguration(
             dependency_file=dependency_file or read_config.dependency_file,
-            selector_method=selector_method or read_config.selector_method or DEFAULT_SELECTOR_METHOD,
+            selector_method=final_selector_method,
             logging_level=_get_logging_level(verbosity, read_config.logging_level),
             allowlist=read_config.allowlist,
             pypi_reference=read_config.pypi_reference or DEFAULT_TOP_PYPI_PACKAGES,

@@ -1,5 +1,6 @@
 import dataclasses
 from copy import deepcopy
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -9,6 +10,7 @@ from twyn.config.config_handler import ConfigHandler, ReadTwynConfiguration, Twy
 from twyn.config.exceptions import (
     AllowlistPackageAlreadyExistsError,
     AllowlistPackageDoesNotExistError,
+    InvalidSelectorMethodError,
     TOMLError,
 )
 from twyn.file_handler.exceptions import PathNotFoundError
@@ -46,7 +48,7 @@ class TestConfig:
     def test_read_config_values(self, pyproject_toml_file):
         config = ConfigHandler(file_handler=FileHandler(pyproject_toml_file)).resolve_config()
         assert config.dependency_file == "my_file.txt"
-        assert config.selector_method == "my_selector"
+        assert config.selector_method == "all"
         assert config.logging_level == AvailableLoggingLevels.debug
         assert config.allowlist == {"boto4", "boto2"}
 
@@ -57,7 +59,7 @@ class TestConfig:
         twyn_data = ConfigHandler(FileHandler(pyproject_toml_file))._get_read_config(toml)
         assert twyn_data == ReadTwynConfiguration(
             dependency_file="my_file.txt",
-            selector_method="my_selector",
+            selector_method="all",
             logging_level="debug",
             allowlist={"boto4", "boto2"},
             pypi_reference=None,
@@ -95,7 +97,7 @@ class TestConfig:
                 },
                 "twyn": {
                     "dependency_file": "my_file.txt",
-                    "selector_method": "my_selector",
+                    "selector_method": "all",
                     "logging_level": "debug",
                     "allowlist": {},
                     "pypi_reference": DEFAULT_TOP_PYPI_PACKAGES,
@@ -166,3 +168,46 @@ class TestAllowlistConfigHandler:
             config.remove_package_from_allowlist("mypackage2")
 
         assert not mock_write_toml.called
+
+    @pytest.mark.parametrize("valid_selector", ["first-letter", "nearby-letter", "all"])
+    def test_valid_selector_methods_accepted(self, valid_selector: str, tmp_path: Path):
+        """Test that all valid selector methods are accepted."""
+        pyproject_toml = tmp_path / "pyproject.toml"
+        pyproject_toml.write_text("")
+        config = ConfigHandler(FileHandler(str(pyproject_toml)), enforce_file=False)
+
+        # Should not raise any exception
+        resolved_config = config.resolve_config(selector_method=valid_selector)
+        assert resolved_config.selector_method == valid_selector
+
+    def test_invalid_selector_method_rejected(self, tmp_path: Path):
+        """Test that invalid selector methods are rejected with appropriate error."""
+        pyproject_toml = tmp_path / "pyproject.toml"
+        pyproject_toml.write_text("")
+        config = ConfigHandler(FileHandler(str(pyproject_toml)), enforce_file=False)
+
+        with pytest.raises(InvalidSelectorMethodError) as exc_info:
+            config.resolve_config(selector_method="random-selector")
+
+        error_message = str(exc_info.value)
+        assert "Invalid selector_method 'random-selector'" in error_message
+        assert "Must be one of: all, first-letter, nearby-letter" in error_message
+
+    def test_invalid_selector_method_from_config_file(self, tmp_path: Path):
+        """Test that invalid selector method from config file is rejected."""
+        # Create a config file with invalid selector method
+        pyproject_toml = tmp_path / "pyproject.toml"
+        data = """
+        [tool.twyn]
+        selector_method="invalid-selector"
+        """
+        pyproject_toml.write_text(data)
+
+        config = ConfigHandler(FileHandler(str(pyproject_toml)))
+
+        with pytest.raises(InvalidSelectorMethodError) as exc_info:
+            config.resolve_config()
+
+        error_message = str(exc_info.value)
+        assert "Invalid selector_method 'invalid-selector'" in error_message
+        assert "Must be one of: all, first-letter, nearby-letter" in error_message

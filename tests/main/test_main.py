@@ -10,8 +10,9 @@ from twyn.main import (
     check_dependencies,
     get_parsed_dependencies_from_file,
 )
+from twyn.trusted_packages.trusted_packages import TyposquatCheckResult
 
-from tests.conftest import create_tmp_file
+from tests.conftest import create_tmp_file, patch_pypi_requests_get
 
 
 @pytest.mark.usefixtures("disable_track")
@@ -99,7 +100,7 @@ class TestCheckDependencies:
         """
         Checks that the configuration values are picked accordingly to the priority they have.
 
-        From more relevant to less:
+        Relevance order:
         1. command line
         2. config file
         3. default values
@@ -139,70 +140,42 @@ class TestCheckDependencies:
         )
         assert log_level == logging_level
 
-    @pytest.mark.parametrize(
-        "package_name",
-        [
-            "my.package",
-            "my-package",
-            "my_package",
-            "My.Package",
-        ],
-    )
-    @patch("twyn.main.TopPyPiReference")
     @patch("twyn.main.get_parsed_dependencies_from_file")
-    def test_check_dependencies_detects_typosquats(
-        self, mock_get_parsed_dependencies_from_file, mock_top_pypi_reference, package_name
-    ):
-        mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
-        mock_get_parsed_dependencies_from_file.return_value = {package_name}
-
-        error = check_dependencies(
-            config_file=None,
-            dependency_file=None,
-            dependencies_cli=None,
-            selector_method="first-letter",
-        )
-
-        assert error is True
-
-    @pytest.mark.parametrize(
-        "package_name",
-        [
-            "my.package",
-            "my-package",
-            "my_package",
-            "My.Package",
-        ],
-    )
-    @patch("twyn.main.TopPyPiReference")
-    def test_check_dependencies_with_input_from_cli_detects_typosquats(self, mock_top_pypi_reference, package_name):
-        mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
-
-        error = check_dependencies(
-            config_file=None,
-            dependency_file=None,
-            dependencies_cli={package_name},
-            selector_method="first-letter",
-        )
-
-        assert error is True
-
-    @patch("twyn.main.TopPyPiReference")
-    def test_check_dependencies_with_input_loads_file_from_different_location(
-        self, mock_top_pypi_reference, tmp_path, tmpdir
-    ):
-        mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
-        tmpdir.mkdir("fake-dir")
-        tmp_file = tmp_path / "fake-dir" / "requirements.txt"
-        with create_tmp_file(tmp_file, "mypackag"):
+    def test_check_dependencies_detects_typosquats(self, mock_get_parsed_dependencies_from_file):
+        mock_get_parsed_dependencies_from_file.return_value = {"my-package"}
+        with patch_pypi_requests_get({"mypackage"}):
             error = check_dependencies(
                 config_file=None,
-                dependency_file=str(tmp_file),
-                dependencies_cli=None,
+                dependency_file=None,
+                dependencies=None,
                 selector_method="first-letter",
             )
 
-        assert error is True
+        assert error == [TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"])]
+
+    def test_check_dependencies_with_input_from_cli_detects_typosquats(self):
+        with patch_pypi_requests_get({"mypackage"}):
+            error = check_dependencies(
+                config_file=None,
+                dependency_file=None,
+                dependencies={"my-package"},
+                selector_method="first-letter",
+            )
+
+        assert error == [TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"])]
+
+    def test_check_dependencies_with_input_loads_file_from_different_location(self, tmp_path, tmpdir):
+        tmpdir.mkdir("fake-dir")
+        tmp_file = tmp_path / "fake-dir" / "requirements.txt"
+        with create_tmp_file(tmp_file, "mypackag"), patch_pypi_requests_get({"mypackage"}):
+            error = check_dependencies(
+                config_file=None,
+                dependency_file=str(tmp_file),
+                dependencies=None,
+                selector_method="first-letter",
+            )
+
+        assert error == [TyposquatCheckResult(candidate_dependency="mypackag", similar_dependencies=["mypackage"])]
 
     @patch("twyn.main.TopPyPiReference")
     def test_check_dependencies_with_input_from_cli_accepts_multiple_dependencies(self, mock_top_pypi_reference):
@@ -211,11 +184,50 @@ class TestCheckDependencies:
         error = check_dependencies(
             config_file=None,
             dependency_file=None,
-            dependencies_cli={"my-package", "requests"},
+            dependencies={"my-package", "reqests"},
             selector_method="first-letter",
         )
 
-        assert error is True
+        assert len(error) == 2
+        assert TyposquatCheckResult(candidate_dependency="reqests", similar_dependencies=["requests"]) in error
+        assert TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"]) in error
+
+    @patch("twyn.main.TopPyPiReference")
+    @patch("twyn.main.get_parsed_dependencies_from_file")
+    def test_check_dependencies_ignores_package_in_allowlist(
+        self, mock_get_parsed_dependencies_from_file, mock_top_pypi_reference
+    ):
+        mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
+        mock_get_parsed_dependencies_from_file.return_value = {"my-package"}
+
+        # Verify that before the whitelist configuration the package is classified as an error.
+        error = check_dependencies(
+            config_file=None,
+            dependency_file=None,
+            dependencies=None,
+            selector_method="first-letter",
+        )
+
+        assert error == [TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"])]
+
+        m_config = TwynConfiguration(
+            allowlist={"my-package"},
+            dependency_file=None,
+            selector_method="first-letter",
+            logging_level=AvailableLoggingLevels.info,
+            pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
+        )
+
+        # Check that the package is no longer an error
+        with patch("twyn.main.ConfigHandler.resolve_config", return_value=m_config):
+            error = check_dependencies(
+                config_file=None,
+                dependency_file=None,
+                dependencies=None,
+                selector_method="first-letter",
+            )
+
+        assert error == []
 
     @pytest.mark.parametrize(
         "package_name",
@@ -226,49 +238,34 @@ class TestCheckDependencies:
             "My.Package",
         ],
     )
-    @patch("twyn.main.TopPyPiReference")
-    @patch("twyn.main.get_parsed_dependencies_from_file")
-    def test_check_dependencies_ignores_package_in_allowlist(
-        self, mock_get_parsed_dependencies_from_file, mock_top_pypi_reference, package_name
-    ):
-        mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
-        mock_get_parsed_dependencies_from_file.return_value = {package_name}
-
-        m_config = TwynConfiguration(
-            allowlist={package_name},
-            dependency_file=None,
-            selector_method="first-letter",
-            logging_level=AvailableLoggingLevels.info,
-            pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
-        )
-
-        with patch("twyn.main.ConfigHandler.resolve_config", return_value=m_config):
+    def test_normalize_package(self, package_name):
+        with patch_pypi_requests_get({"requests", "mypackage"}):
             error = check_dependencies(
                 config_file=None,
                 dependency_file=None,
-                dependencies_cli=None,
+                dependencies={package_name},
                 selector_method="first-letter",
             )
 
-        assert error is False
+        assert error == [
+            TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"]),
+        ]
 
     @pytest.mark.parametrize("package_name", ["my.package", "my-package", "my_package", "My.Package"])
-    @patch("twyn.main.TopPyPiReference")
     @patch("twyn.main.get_parsed_dependencies_from_file")
     def test_check_dependencies_does_not_error_on_same_package(
-        self, mock_get_parsed_dependencies_from_file, mock_top_pypi_reference, package_name
+        self, mock_get_parsed_dependencies_from_file, package_name
     ):
-        mock_top_pypi_reference.return_value.get_packages.return_value = {"my-package"}
         mock_get_parsed_dependencies_from_file.return_value = {package_name}
+        with patch_pypi_requests_get({"my-package"}):
+            error = check_dependencies(
+                config_file=None,
+                dependency_file=None,
+                dependencies=None,
+                selector_method="first-letter",
+            )
 
-        error = check_dependencies(
-            config_file=None,
-            dependency_file=None,
-            dependencies_cli=None,
-            selector_method="first-letter",
-        )
-
-        assert error is False
+        assert error == []
 
     @patch("twyn.dependency_parser.dependency_selector.DependencySelector.get_dependency_parser")
     @patch("twyn.dependency_parser.requirements_txt_parser.RequirementsTxtParser.parse")
