@@ -37,9 +37,6 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
-
       - name: Log in to Docker Hub
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
@@ -53,25 +50,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
-        with:
-          images: elementsinteractive/twyn
-
       - name: Build and push Docker image
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        uses: ./.github/actions/docker-build
         with:
-          context: .
-          file: ./Dockerfile
-          push: true
+          push-image: "true"
           platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: |
-            type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache
-          cache-to: |
-            type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache,mode=max,compression=zstd,force-compression=true,oci-mediatypes=true
+          dockerfile: ./Dockerfile
+          context: .
+          image-name: elementsinteractive/twyn
+          cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache
+          cache-to: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache,mode=max,compression=zstd,force-compression=true,oci-mediatypes=true
+
       - name: Delete old cache entries
         env:
           GH_TOKEN: ${{ github.token }}
