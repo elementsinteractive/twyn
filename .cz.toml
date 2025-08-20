@@ -1,7 +1,7 @@
 
 [tool.commitizen]
 version_files = ["VERSION"]
-version = "2.9.2"
+version = "2.9.3"
 tag_format = "v$version"
 name = "cz_customize"
 

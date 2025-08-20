@@ -1,3 +1,24 @@
+## v2.9.3 (2025-08-20)
+
+### Refactor
+
+- small refactoring changes (#251)
+
+### CI
+
+- Create action for docker builds (#261)
+- change package ecosystem to uv (#260)
+- allow dependabot to update GitHub actions (#250)
+
+### Technical
+
+- bump docker/build-push-action from 5.4.0 to 6.18.0 (#263)
+- bump actions/create-github-app-token from 1.12.0 to 2.1.1 (#259)
+- bump actions/checkout from 4.2.2 to 5.0.0 (#253)
+- bump actions/cache from 4.2.3 to 4.2.4 in the patch-updates group (#257)
+- bump the minor-updates group with 3 updates (#258)
+- run ensurepip before copying lock dependency files (#247)
+
 ## v2.9.2 (2025-08-19)
 
 ### Fix
