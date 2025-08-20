@@ -1,3 +1,17 @@
+## v3.0.0 (2025-08-20)
+
+### BREAKING CHANGE
+
+- check_dependencies now returns the list of dependencies
+
+### Feat
+
+- check_dependencies returns the list of dependencies (#252)
+
+### CI
+
+- fix test-docker-build-condition (#264)
+
 ## v2.9.3 (2025-08-20)
 
 ### Refactor
