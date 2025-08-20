@@ -69,7 +69,7 @@ jobs:
     needs: [should-test-docker-build]
     name: Test Docker build
     runs-on: ubuntu-latest
-    if: ((needs.should-test-docker-build.outputs.workflow == 'true' && ${{ github.actor == 'dependabot[bot]' }} ) || needs.should-test-docker-build.outputs.docker == 'true') && !startsWith(github.event.head_commit.message, 'bump:')
+    if: ((needs.should-test-docker-build.outputs.workflow == 'true' && github.actor == 'dependabot[bot]') || needs.should-test-docker-build.outputs.docker == 'true') && !startsWith(github.event.head_commit.message, 'bump:')
     permissions:
       contents: read
       packages: read
