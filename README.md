@@ -2,12 +2,27 @@
 
 ![Build Status](https://github.com/elementsinteractive/twyn/actions/workflows/test.yml/badge.svg)
 [![PyPI version](https://img.shields.io/pypi/v/twyn)](https://pypi.org/project/twyn/)
-[![Python Version](https://img.shields.io/pypi/pyversions/twyn?logo=python&logoColor=yellow)](https://pypi.org/project/twyn/)
-![Code style](https://img.shields.io/badge/code%20style-black-000000.svg)
+[![Python Version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=yellow)](https://pypi.org/project/twyn/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License](https://img.shields.io/github/license/elementsinteractive/twyn)](LICENSE)
 
 ![](https://github.com/elementsinteractive/twyn/blob/main/assets/twyn.gif)
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Quickstart](#quickstart)
+  - [Installation](#installation)
+  - [Docker](#docker)
+  - [Run](#run)
+- [Configuration](#configuration)
+  - [Allowlist](#allowlist)
+  - [Dependency files](#dependency-files)
+  - [Check dependencies introduced through the CLI](#check-dependencies-introduced-through-the-cli)
+  - [Selector method](#selector-method)
+  - [Configuration file](#configuration-file)
+
+## Overview
 Twyn is a security tool that compares the name of your dependencies against a set of the most popular ones,
 in order to determine if there is any similarity between them, preventing you from using a potentially illegitimate one.
 In short, Twyn protects you against [typosquatting attacks](https://en.wikipedia.org/wiki/Typosquatting).
