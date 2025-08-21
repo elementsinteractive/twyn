@@ -8,7 +8,7 @@ from twyn.file_handler.file_handler import FileHandler
 class TestFileHandler:
     def test_file_exists(self, pyproject_toml_file: str):
         parser = FileHandler(pyproject_toml_file)
-        assert parser.file_exists() is True
+        assert parser.exists() is True
 
     def test_read_file_success(self, pyproject_toml_file: str):
         parser = FileHandler(pyproject_toml_file)
@@ -34,4 +34,4 @@ class TestFileHandler:
         mock_is_file.return_value = is_file
 
         parser = FileHandler("fake.txt")
-        assert parser.file_exists() is False
+        assert parser.exists() is False

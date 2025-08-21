@@ -1,7 +1,8 @@
-import os
+import json
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any, Union
 from unittest import mock
 
 import pytest
@@ -17,21 +18,33 @@ def disable_click_echo():
 def create_tmp_file(path: Path, data: str) -> Iterator[str]:
     path.write_text(data)
     yield str(path)
-    os.remove(path)
 
 
 @contextmanager
-def patch_pypi_requests_get(packages: Iterable[str]) -> Iterator[mock.Mock]:
+def patch_pypi_packages_download(packages: Iterable[str]) -> Iterator[mock.Mock]:
     """Patcher of `requests.get` for Top PyPi list.
 
     Replaces call with the output you would get from downloading the top PyPi packages list.
     """
     json_response = {"rows": [{"project": name} for name in packages]}
 
-    with mock.patch("requests.get") as mock_get:
-        mock_get.return_value.json.return_value = json_response
+    with mock.patch("twyn.trusted_packages.references.TopPyPiReference._download") as mock_download:
+        mock_download.return_value = json_response
 
-        yield mock_get
+        yield mock_download
+
+
+@pytest.fixture(autouse=True)
+def tmp_cache_file(tmp_path: Path, data: Union[dict[str, Any], None] = None) -> Iterator[Path]:
+    """Create a temporary cache file and patch the TRUSTED_PACKAGES_FILE_PATH."""
+    cache_file = tmp_path / "trusted_packages.json"
+    if data:
+        cache_file.write_text(json.dumps(str(data)))
+
+    with (
+        mock.patch("twyn.trusted_packages.references.TRUSTED_PACKAGES_FILE_PATH", str(cache_file)),
+    ):
+        yield cache_file
 
 
 @pytest.fixture

@@ -13,4 +13,8 @@ class EmptyPackagesListError(TwynError):
     message = "Downloaded packages list is empty"
 
 
-class CharacterNotInMatrixError(TwynError, KeyError): ...
+class CharacterNotInMatrixError(TwynError, KeyError): ...  # TODO add comments
+
+
+class InvalidCacheError(TwynError):
+    """Error for when the cache content is not valid."""

@@ -1,5 +1,4 @@
 import logging
-import re
 from typing import Optional
 
 from rich.logging import RichHandler
@@ -11,6 +10,7 @@ from twyn.base.constants import (
     AvailableLoggingLevels,
     SelectorMethod,
 )
+from twyn.base.utils import _normalize_packages
 from twyn.config.config_handler import ConfigHandler
 from twyn.dependency_parser.dependency_selector import DependencySelector
 from twyn.file_handler.file_handler import FileHandler
@@ -36,6 +36,7 @@ def check_dependencies(
     dependency_file: Optional[str] = None,
     dependencies: Optional[set[str]] = None,
     verbosity: AvailableLoggingLevels = AvailableLoggingLevels.none,
+    use_cache: bool = True,
 ) -> list[TyposquatCheckResult]:
     """Check if dependencies could be typosquats."""
     config_file_handler = FileHandler(config_file or DEFAULT_PROJECT_TOML_FILE)
@@ -45,7 +46,7 @@ def check_dependencies(
     _set_logging_level(config.logging_level)
 
     trusted_packages = TrustedPackages(
-        names=TopPyPiReference(source=config.pypi_reference).get_packages(),
+        names=TopPyPiReference(source=config.pypi_reference).get_packages(use_cache),
         algorithm=EditDistance(),
         selector=get_candidate_selector(config.selector_method),
         threshold_class=SimilarityThreshold,
@@ -84,8 +85,3 @@ def get_parsed_dependencies_from_file(dependency_file: Optional[str] = None) -> 
     dependencies = dependency_parser.parse()
     logger.debug("Successfully parsed local dependencies file.")
     return dependencies
-
-
-def _normalize_packages(packages: set[str]) -> set[str]:
-    """Normalize dependency names according to PyPi https://packaging.python.org/en/latest/specifications/name-normalization/."""
-    return {re.sub(r"[-_.]+", "-", name).lower() for name in packages}
