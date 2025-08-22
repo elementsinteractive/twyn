@@ -26,7 +26,7 @@ class AbstractParser(ABC):
         return self.file_handler.read()
 
     def file_exists(self) -> bool:
-        return self.file_handler.file_exists()
+        return self.file_handler.exists()
 
     @abstractmethod
     def parse(self) -> set[str]:

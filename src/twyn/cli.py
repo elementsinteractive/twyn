@@ -58,6 +58,12 @@ def entry_point() -> None:
     default=False,
     is_flag=True,
 )
+@click.option(
+    "--no-cache",
+    is_flag=True,
+    default=False,
+    help="Disable use of the trusted packages cache. Always fetch from the source.",
+)
 def run(
     config: str,
     dependency_file: Optional[str],
@@ -65,6 +71,7 @@ def run(
     selector_method: str,
     v: bool,
     vv: bool,
+    no_cache: bool,
 ) -> int:
     if v and vv:
         raise click.UsageError(
@@ -92,6 +99,7 @@ def run(
         dependency_file=dependency_file,
         selector_method=selector_method,
         verbosity=verbosity,
+        use_cache=not no_cache,
     )
 
     if errors:

@@ -1,3 +1,8 @@
+# Cache configuration constants
+TRUSTED_PACKAGES_FILE_PATH = ".twyn/trusted_packages.json"
+TRUSTED_PACKAGES_MAX_RETENTION_DAYS = 30
+
+
 ADJACENCY_MATRIX = {
     "1": ["2", "q", "w"],
     "2": ["1", "3", "q", "w"],

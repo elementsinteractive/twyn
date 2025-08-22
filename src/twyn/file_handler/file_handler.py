@@ -11,7 +11,7 @@ logger = logging.getLogger("twyn")
 
 class BaseFileHandler(Protocol):
     def read(self) -> str: ...
-    def file_exists(self) -> bool: ...
+    def exists(self) -> bool: ...
     def write(self, data: str) -> None: ...
 
 
@@ -33,7 +33,7 @@ class FileHandler(BaseFileHandler):
 
         return content
 
-    def file_exists(self) -> bool:
+    def exists(self) -> bool:
         try:
             self._raise_for_file_exists()
         except TwynError:
@@ -48,5 +48,4 @@ class FileHandler(BaseFileHandler):
             raise PathIsNotFileError
 
     def write(self, data: str) -> None:
-        self._raise_for_file_exists()
         self.file_path.write_text(data)

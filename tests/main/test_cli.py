@@ -7,6 +7,16 @@ from twyn.trusted_packages.trusted_packages import TyposquatCheckResult
 
 
 class TestCli:
+    @patch("twyn.cli.check_dependencies")
+    def test_no_cache_option_disables_cache(self, mock_check_dependencies):
+        runner = CliRunner()
+        runner.invoke(
+            cli.run,
+            ["--no-cache", "--dependency", "requests"],
+        )
+        assert mock_check_dependencies.call_args[1]["use_cache"] is False
+        assert mock_check_dependencies.call_args[1]["dependencies"] == {"requests"}
+
     @patch("twyn.config.config_handler.ConfigHandler.add_package_to_allowlist")
     def test_allowlist_add_package_to_allowlist(self, mock_allowlist_add):
         runner = CliRunner()
@@ -50,6 +60,7 @@ class TestCli:
                 dependencies=None,
                 selector_method="first-letter",
                 verbosity=AvailableLoggingLevels.debug,
+                use_cache=True,
             )
         ]
 
@@ -71,6 +82,7 @@ class TestCli:
                 dependencies=None,
                 selector_method=None,
                 verbosity=AvailableLoggingLevels.none,
+                use_cache=True,
             )
         ]
 
@@ -91,6 +103,7 @@ class TestCli:
                 dependencies={"reqests"},
                 selector_method=None,
                 verbosity=AvailableLoggingLevels.none,
+                use_cache=True,
             )
         ]
 
@@ -123,6 +136,7 @@ class TestCli:
                 dependencies={"reqests", "reqeusts"},
                 selector_method=None,
                 verbosity=AvailableLoggingLevels.none,
+                use_cache=True,
             )
         ]
 
@@ -138,6 +152,7 @@ class TestCli:
                 selector_method=None,
                 dependencies=None,
                 verbosity=AvailableLoggingLevels.none,
+                use_cache=True,
             )
         ]
 

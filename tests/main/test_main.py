@@ -12,7 +12,7 @@ from twyn.main import (
 )
 from twyn.trusted_packages.trusted_packages import TyposquatCheckResult
 
-from tests.conftest import create_tmp_file, patch_pypi_requests_get
+from tests.conftest import create_tmp_file
 
 
 @pytest.mark.usefixtures("disable_track")
@@ -141,33 +141,41 @@ class TestCheckDependencies:
         assert log_level == logging_level
 
     @patch("twyn.main.get_parsed_dependencies_from_file")
-    def test_check_dependencies_detects_typosquats(self, mock_get_parsed_dependencies_from_file):
+    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
+    def test_check_dependencies_detects_typosquats(
+        self, mock_get_packages_from_cache, mock_get_parsed_dependencies_from_file
+    ):
         mock_get_parsed_dependencies_from_file.return_value = {"my-package"}
-        with patch_pypi_requests_get({"mypackage"}):
-            error = check_dependencies(
-                config_file=None,
-                dependency_file=None,
-                dependencies=None,
-                selector_method="first-letter",
-            )
+        mock_get_packages_from_cache.return_value = {"mypackage"}
+        error = check_dependencies(
+            config_file=None,
+            dependency_file=None,
+            dependencies=None,
+            selector_method="first-letter",
+        )
 
         assert error == [TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"])]
 
-    def test_check_dependencies_with_input_from_cli_detects_typosquats(self):
-        with patch_pypi_requests_get({"mypackage"}):
-            error = check_dependencies(
-                config_file=None,
-                dependency_file=None,
-                dependencies={"my-package"},
-                selector_method="first-letter",
-            )
+    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
+    def test_check_dependencies_with_input_from_cli_detects_typosquats(self, mock_get_packages_from_cache):
+        mock_get_packages_from_cache.return_value = {"mypackage"}
+        error = check_dependencies(
+            config_file=None,
+            dependency_file=None,
+            dependencies={"my-package"},
+            selector_method="first-letter",
+        )
 
         assert error == [TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"])]
 
-    def test_check_dependencies_with_input_loads_file_from_different_location(self, tmp_path, tmpdir):
+    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
+    def test_check_dependencies_with_input_loads_file_from_different_location(
+        self, mock_get_packages_from_cache, tmp_path, tmpdir
+    ):
+        mock_get_packages_from_cache.return_value = {"mypackage"}
         tmpdir.mkdir("fake-dir")
         tmp_file = tmp_path / "fake-dir" / "requirements.txt"
-        with create_tmp_file(tmp_file, "mypackag"), patch_pypi_requests_get({"mypackage"}):
+        with create_tmp_file(tmp_file, "mypackag"):
             error = check_dependencies(
                 config_file=None,
                 dependency_file=str(tmp_file),
@@ -177,9 +185,9 @@ class TestCheckDependencies:
 
         assert error == [TyposquatCheckResult(candidate_dependency="mypackag", similar_dependencies=["mypackage"])]
 
-    @patch("twyn.main.TopPyPiReference")
-    def test_check_dependencies_with_input_from_cli_accepts_multiple_dependencies(self, mock_top_pypi_reference):
-        mock_top_pypi_reference.return_value.get_packages.return_value = {"requests", "mypackage"}
+    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
+    def test_check_dependencies_with_input_from_cli_accepts_multiple_dependencies(self, mock_get_packages_from_cache):
+        mock_get_packages_from_cache.return_value = {"requests", "mypackage"}
 
         error = check_dependencies(
             config_file=None,
@@ -238,14 +246,15 @@ class TestCheckDependencies:
             "My.Package",
         ],
     )
-    def test_normalize_package(self, package_name):
-        with patch_pypi_requests_get({"requests", "mypackage"}):
-            error = check_dependencies(
-                config_file=None,
-                dependency_file=None,
-                dependencies={package_name},
-                selector_method="first-letter",
-            )
+    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
+    def test_normalize_package(self, mock_get_packages_from_cache, package_name):
+        mock_get_packages_from_cache.return_value = {"requests", "mypackage"}
+        error = check_dependencies(
+            config_file=None,
+            dependency_file=None,
+            dependencies={package_name},
+            selector_method="first-letter",
+        )
 
         assert error == [
             TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"]),
@@ -253,17 +262,18 @@ class TestCheckDependencies:
 
     @pytest.mark.parametrize("package_name", ["my.package", "my-package", "my_package", "My.Package"])
     @patch("twyn.main.get_parsed_dependencies_from_file")
+    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
     def test_check_dependencies_does_not_error_on_same_package(
-        self, mock_get_parsed_dependencies_from_file, package_name
+        self, mock_get_packages_from_cache, mock_get_parsed_dependencies_from_file, package_name
     ):
         mock_get_parsed_dependencies_from_file.return_value = {package_name}
-        with patch_pypi_requests_get({"my-package"}):
-            error = check_dependencies(
-                config_file=None,
-                dependency_file=None,
-                dependencies=None,
-                selector_method="first-letter",
-            )
+        mock_get_packages_from_cache.return_value = {"my-package"}
+        error = check_dependencies(
+            config_file=None,
+            dependency_file=None,
+            dependencies=None,
+            selector_method="first-letter",
+        )
 
         assert error == []
 
