@@ -1,7 +1,6 @@
 import logging
 from typing import Optional
 
-from rich.logging import RichHandler
 from rich.progress import track
 
 from twyn.base.constants import (
@@ -22,11 +21,6 @@ from twyn.trusted_packages.trusted_packages import (
     TyposquatCheckResult,
 )
 
-logging.basicConfig(
-    format="%(message)s",
-    datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True, show_path=False)],
-)
 logger = logging.getLogger("twyn")
 
 

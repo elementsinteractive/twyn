@@ -7,6 +7,17 @@ from twyn.trusted_packages.trusted_packages import TyposquatCheckResult
 
 
 class TestCli:
+    def test_cache_rm_erases_cache(self, tmp_cache_file):
+        runner = CliRunner()
+
+        tmp_cache_file.write_text("{}")
+        assert tmp_cache_file.exists()
+
+        result = runner.invoke(cli.cache.commands["clear"])
+
+        assert result.exit_code == 0
+        assert not tmp_cache_file.exists()
+
     @patch("twyn.cli.check_dependencies")
     def test_no_cache_option_disables_cache(self, mock_check_dependencies):
         runner = CliRunner()

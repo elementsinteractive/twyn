@@ -169,3 +169,20 @@ The file format for each reference is as follows:
     rows: {project: string}[]
 }
 ```
+
+### Cache
+By default, Twyn will cache the list of trusted packages to a cache file (.twyn/trusted_packages.json). 
+
+You can disable the cache by adding the following flag:
+
+```python
+  twyn run --no-cache
+```
+In which case it will download again the list of trusted packages, withou saving them to the cache file.
+
+Cache file is valid for 30 days, after that period it will download again the trusted packages list.
+
+To clear the cache, run:
+```python
+  twyn run cache clear
+```
