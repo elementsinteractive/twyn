@@ -43,6 +43,7 @@ def tmp_cache_file(tmp_path: Path, data: Union[dict[str, Any], None] = None) -> 
 
     with (
         mock.patch("twyn.trusted_packages.references.TRUSTED_PACKAGES_FILE_PATH", str(cache_file)),
+        mock.patch("twyn.cli.TRUSTED_PACKAGES_FILE_PATH", str(cache_file)),
     ):
         yield cache_file
 

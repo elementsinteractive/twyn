@@ -1,7 +1,9 @@
+import logging
 import sys
 from typing import Optional
 
 import click
+from rich.logging import RichHandler
 
 from twyn.__version__ import __version__
 from twyn.base.constants import (
@@ -13,6 +15,14 @@ from twyn.base.constants import (
 from twyn.config.config_handler import ConfigHandler
 from twyn.file_handler.file_handler import FileHandler
 from twyn.main import check_dependencies
+from twyn.trusted_packages.constants import TRUSTED_PACKAGES_FILE_PATH
+
+logging.basicConfig(
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True, show_path=False)],
+)
+logger = logging.getLogger("twyn")
 
 
 @click.group()
@@ -135,6 +145,22 @@ def add(package_name: str, config: str) -> None:
 def remove(package_name: str, config: str) -> None:
     fh = FileHandler(config or DEFAULT_PROJECT_TOML_FILE)
     ConfigHandler(fh).remove_package_from_allowlist(package_name)
+
+
+@entry_point.group()
+def cache() -> None:
+    pass
+
+
+@cache.command()
+def clear() -> None:
+    fp = FileHandler(TRUSTED_PACKAGES_FILE_PATH).file_path
+    if fp.exists():
+        fp.unlink()
+        fp.parent.rmdir()
+        logger.warning("Cache has been cleared")
+    else:
+        logger.warning("Could not clear cache. Cache file not found.")
 
 
 if __name__ == "__main__":
