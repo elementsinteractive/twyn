@@ -19,6 +19,7 @@ dependencies = [
     "pyparsing<4.0.0,>=3.2.3",
     "tomlkit<0.14.0,>=0.11.6",
     "tomli<3.0.0,>=2.2.1; python_version < \"3.13\"",
+    "pydantic>=2.11.7,<3.0.0",
 ]
 name = "twyn"
 description = "Security tool against dependency typosquatting attacks"

@@ -15,7 +15,8 @@ from twyn.base.constants import (
 from twyn.config.config_handler import ConfigHandler
 from twyn.file_handler.file_handler import FileHandler
 from twyn.main import check_dependencies
-from twyn.trusted_packages.constants import TRUSTED_PACKAGES_FILE_PATH
+from twyn.trusted_packages.cache_handler import CacheHandler
+from twyn.trusted_packages.constants import CACHE_DIR
 
 logging.basicConfig(
     format="%(message)s",
@@ -154,13 +155,11 @@ def cache() -> None:
 
 @cache.command()
 def clear() -> None:
-    fp = FileHandler(TRUSTED_PACKAGES_FILE_PATH).file_path
-    if fp.exists():
-        fp.unlink()
-        fp.parent.rmdir()
-        logger.warning("Cache has been cleared")
-    else:
-        logger.warning("Could not clear cache. Cache file not found.")
+    """Clear cached trusted packages data."""
+    cache_handler = CacheHandler(CACHE_DIR)
+
+    cache_handler.clear_all()
+    click.echo(click.style("All cache cleared", fg="green"))
 
 
 if __name__ == "__main__":

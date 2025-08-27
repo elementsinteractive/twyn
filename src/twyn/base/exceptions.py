@@ -15,3 +15,7 @@ class TwynError(click.ClickException):
     def show(self, file: Optional[IO[Any]] = None) -> None:
         logger.debug(self.format_message(), exc_info=True)
         logger.error(self.format_message(), exc_info=False)
+
+
+class PackageNormalizingError(TwynError):
+    """Exception for when it is not possible to normalize a package name."""

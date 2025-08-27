@@ -1,5 +1,5 @@
 # Cache configuration constants
-TRUSTED_PACKAGES_FILE_PATH = ".twyn/trusted_packages.json"
+CACHE_DIR = ".twyn"
 TRUSTED_PACKAGES_MAX_RETENTION_DAYS = 30
 
 
