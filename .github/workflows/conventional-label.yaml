@@ -1,6 +1,9 @@
 on:
-  pull_request_target:
-    types: [opened, edited]
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
 name: conventional-release-labels
 jobs:
   label:
