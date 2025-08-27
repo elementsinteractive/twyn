@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 from typing import Protocol
 
-from twyn.base.exceptions import TwynError
 from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
 
 logger = logging.getLogger("twyn")
@@ -13,6 +12,7 @@ class BaseFileHandler(Protocol):
     def read(self) -> str: ...
     def exists(self) -> bool: ...
     def write(self, data: str) -> None: ...
+    def delete(self, remove_parent_dir: bool) -> None: ...
 
 
 class FileHandler(BaseFileHandler):
@@ -36,7 +36,7 @@ class FileHandler(BaseFileHandler):
     def exists(self) -> bool:
         try:
             self._raise_for_file_exists()
-        except TwynError:
+        except (PathNotFoundError, PathIsNotFileError):
             return False
         return True
 
@@ -49,3 +49,20 @@ class FileHandler(BaseFileHandler):
 
     def write(self, data: str) -> None:
         self.file_path.write_text(data)
+
+    def delete(self, delete_parent_dir: bool = False) -> None:
+        if not self.exists():
+            logger.info("File does not exist, nothing to delete")
+            return
+
+        self.file_path.unlink()
+        logger.info("Deleted file: %s", self.file_path)
+
+        if delete_parent_dir:
+            try:
+                self.file_path.parent.rmdir()
+                logger.info("Removed empty directory: %s", self.file_path.parent)
+            except OSError:
+                logger.exception(
+                    "Directory not empty or not enough permissions. Cannot be removed: %s", self.file_path.parent
+                )

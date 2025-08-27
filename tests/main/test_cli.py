@@ -1,22 +1,38 @@
+from pathlib import Path
 from unittest.mock import call, patch
 
 from click.testing import CliRunner
 from twyn import cli
 from twyn.base.constants import AvailableLoggingLevels
+from twyn.trusted_packages.cache_handler import CacheEntry, CacheHandler
 from twyn.trusted_packages.trusted_packages import TyposquatCheckResult
 
 
 class TestCli:
-    def test_cache_rm_erases_cache(self, tmp_cache_file):
+    def test_cache_clear_removes_all_cache_files(self, tmp_path: Path) -> None:
+        """Test that cache clear without source removes all cache files."""
+        # Create some cache files for different sources
+        cache_handler = CacheHandler(tmp_path)
+        sources = ["https://pypi.org/simple/", "https://registry.npmjs.org/", "https://example.com/packages/"]
+
+        for source in sources:
+            entry = CacheEntry(saved_date="2025-01-01", packages={"package1", "package2"})
+            cache_handler.write_entry(source, entry)
+
+        # Verify cache files exist
+        cache_files = list(tmp_path.glob("*.json"))
+
+        assert len(cache_files) == 3
+
         runner = CliRunner()
-
-        tmp_cache_file.write_text("{}")
-        assert tmp_cache_file.exists()
-
-        result = runner.invoke(cli.cache.commands["clear"])
+        with patch("twyn.cli.CACHE_DIR", tmp_path):
+            result = runner.invoke(cli.cache.commands["clear"])
 
         assert result.exit_code == 0
-        assert not tmp_cache_file.exists()
+
+        # Verify all cache files are removed
+        cache_files = list(tmp_path.glob("*.json"))
+        assert len(cache_files) == 0
 
     @patch("twyn.cli.check_dependencies")
     def test_no_cache_option_disables_cache(self, mock_check_dependencies):

@@ -9,12 +9,13 @@ from twyn.base.constants import (
     AvailableLoggingLevels,
     SelectorMethod,
 )
-from twyn.base.utils import _normalize_packages
+from twyn.base.utils import normalize_packages
 from twyn.config.config_handler import ConfigHandler
 from twyn.dependency_parser.dependency_selector import DependencySelector
 from twyn.file_handler.file_handler import FileHandler
 from twyn.similarity.algorithm import EditDistance, SimilarityThreshold
 from twyn.trusted_packages import TopPyPiReference
+from twyn.trusted_packages.cache_handler import CacheHandler
 from twyn.trusted_packages.selectors import AbstractSelector
 from twyn.trusted_packages.trusted_packages import (
     TrustedPackages,
@@ -39,15 +40,16 @@ def check_dependencies(
     )
     _set_logging_level(config.logging_level)
 
+    cache_handler = CacheHandler()
     trusted_packages = TrustedPackages(
-        names=TopPyPiReference(source=config.pypi_reference).get_packages(use_cache),
+        names=TopPyPiReference(source=config.pypi_reference, cache_handler=cache_handler).get_packages(use_cache),
         algorithm=EditDistance(),
         selector=get_candidate_selector(config.selector_method),
         threshold_class=SimilarityThreshold,
     )
-    normalized_allowlist_packages = _normalize_packages(config.allowlist)
+    normalized_allowlist_packages = normalize_packages(config.allowlist)
     dependencies = dependencies if dependencies else get_parsed_dependencies_from_file(config.dependency_file)
-    normalized_dependencies = _normalize_packages(dependencies)
+    normalized_dependencies = normalize_packages(dependencies)
 
     errors: list[TyposquatCheckResult] = []
     for dependency in track(normalized_dependencies, description="Processing..."):

@@ -1,8 +1,6 @@
-import json
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Union
 from unittest import mock
 
 import pytest
@@ -32,20 +30,6 @@ def patch_pypi_packages_download(packages: Iterable[str]) -> Iterator[mock.Mock]
         mock_download.return_value = json_response
 
         yield mock_download
-
-
-@pytest.fixture(autouse=True)
-def tmp_cache_file(tmp_path: Path, data: Union[dict[str, Any], None] = None) -> Iterator[Path]:
-    """Create a temporary cache file and patch the TRUSTED_PACKAGES_FILE_PATH."""
-    cache_file = tmp_path / "trusted_packages.json"
-    if data:
-        cache_file.write_text(json.dumps(str(data)))
-
-    with (
-        mock.patch("twyn.trusted_packages.references.TRUSTED_PACKAGES_FILE_PATH", str(cache_file)),
-        mock.patch("twyn.cli.TRUSTED_PACKAGES_FILE_PATH", str(cache_file)),
-    ):
-        yield cache_file
 
 
 @pytest.fixture
