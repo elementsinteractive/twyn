@@ -1,3 +1,32 @@
+## v3.1.0 (2025-08-28)
+
+### Feat
+
+- support multiple sources and create CacheHandler (#274)
+- clear cache through the cli (#271)
+- save downloaded packages to cache (#270)
+
+### Fix
+
+- run conventional-label only on main (#276)
+
+### Refactor
+
+- Change exception handling in cli (#277)
+
+### CI
+
+- run build test action when there's a change in the action file (#268)
+
+### Docs
+
+- udpate docs (#269)
+
+### Technical
+
+- bump dependabot/fetch-metadata from 1.1.1 to 2.4.0 (#273)
+- bump astral-sh/setup-uv from 6.5.0 to 6.6.0 in the minor-updates group (#272)
+
 ## v3.0.0 (2025-08-20)
 
 ### BREAKING CHANGE
