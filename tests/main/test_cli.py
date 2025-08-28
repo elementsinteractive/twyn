@@ -4,6 +4,7 @@ from unittest.mock import call, patch
 from click.testing import CliRunner
 from twyn import cli
 from twyn.base.constants import AvailableLoggingLevels
+from twyn.base.exceptions import TwynError
 from twyn.trusted_packages.cache_handler import CacheEntry, CacheHandler
 from twyn.trusted_packages.trusted_packages import TyposquatCheckResult
 
@@ -216,3 +217,35 @@ class TestCli:
         assert isinstance(result.exception, SystemExit)
         assert result.exit_code == 2
         assert "Dependency file name not supported." in result.output
+
+    @patch("twyn.cli.check_dependencies")
+    def test_base_twyn_error_is_caught_and_wrapped_in_cli_error(self, mock_check_dependencies, caplog):
+        """Test that BaseTwynError is caught and wrapped in CliError."""
+        runner = CliRunner()
+
+        # Mock check_dependencies to raise a BaseTwynError
+        test_error = TwynError("Test base error")
+        test_error.message = "Test base error message"
+        mock_check_dependencies.side_effect = test_error
+
+        result = runner.invoke(cli.run, ["--dependency", "requests"])
+
+        assert result.exit_code == 1
+        assert isinstance(result.exception, SystemExit)
+        # Check that the error message was logged
+        assert "Test base error message" in caplog.text
+
+    @patch("twyn.cli.check_dependencies")
+    def test_unhandled_exception_is_caught_and_wrapped_in_cli_error(self, mock_check_dependencies, caplog):
+        """Test that unhandled exceptions are caught and wrapped in CliError."""
+        runner = CliRunner()
+
+        # Mock check_dependencies to raise a generic exception
+        mock_check_dependencies.side_effect = ValueError("Unexpected error")
+
+        result = runner.invoke(cli.run, ["--dependency", "requests"])
+
+        assert result.exit_code == 1
+        assert isinstance(result.exception, SystemExit)
+        # Check that the generic error message was logged
+        assert "Unhandled exception occured." in caplog.text

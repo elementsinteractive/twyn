@@ -12,6 +12,7 @@ from twyn.base.constants import (
     SELECTOR_METHOD_MAPPING,
     AvailableLoggingLevels,
 )
+from twyn.base.exceptions import CliError, TwynError
 from twyn.config.config_handler import ConfigHandler
 from twyn.file_handler.file_handler import FileHandler
 from twyn.main import check_dependencies
@@ -104,14 +105,19 @@ def run(
     if dependency_file and not any(dependency_file.endswith(key) for key in DEPENDENCY_FILE_MAPPING):
         raise click.UsageError("Dependency file name not supported.", ctx=click.get_current_context())
 
-    errors = check_dependencies(
-        dependencies=set(dependency) or None,
-        config_file=config,
-        dependency_file=dependency_file,
-        selector_method=selector_method,
-        verbosity=verbosity,
-        use_cache=not no_cache,
-    )
+    try:
+        errors = check_dependencies(
+            dependencies=set(dependency) or None,
+            config_file=config,
+            dependency_file=dependency_file,
+            selector_method=selector_method,
+            verbosity=verbosity,
+            use_cache=not no_cache,
+        )
+    except TwynError as e:
+        raise CliError(e.message) from e
+    except Exception as e:
+        raise CliError("Unhandled exception occured.") from e
 
     if errors:
         for possible_typosquats in errors:
