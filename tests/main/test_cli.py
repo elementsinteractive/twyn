@@ -1,12 +1,13 @@
 from pathlib import Path
-from unittest.mock import call, patch
+from unittest.mock import Mock, call, patch
 
+import pytest
 from click.testing import CliRunner
 from twyn import cli
 from twyn.base.constants import AvailableLoggingLevels
 from twyn.base.exceptions import TwynError
 from twyn.trusted_packages.cache_handler import CacheEntry, CacheHandler
-from twyn.trusted_packages.trusted_packages import TyposquatCheckResult
+from twyn.trusted_packages.trusted_packages import TyposquatCheckResult, TyposquatCheckResultList
 
 
 class TestCli:
@@ -36,7 +37,7 @@ class TestCli:
         assert len(cache_files) == 0
 
     @patch("twyn.cli.check_dependencies")
-    def test_no_cache_option_disables_cache(self, mock_check_dependencies):
+    def test_no_cache_option_disables_cache(self, mock_check_dependencies: Mock) -> None:
         runner = CliRunner()
         runner.invoke(
             cli.run,
@@ -46,7 +47,7 @@ class TestCli:
         assert mock_check_dependencies.call_args[1]["dependencies"] == {"requests"}
 
     @patch("twyn.config.config_handler.ConfigHandler.add_package_to_allowlist")
-    def test_allowlist_add_package_to_allowlist(self, mock_allowlist_add):
+    def test_allowlist_add_package_to_allowlist(self, mock_allowlist_add: Mock) -> None:
         runner = CliRunner()
         runner.invoke(
             cli.add,
@@ -56,7 +57,7 @@ class TestCli:
         assert mock_allowlist_add.call_args == call("requests")
 
     @patch("twyn.config.config_handler.ConfigHandler.remove_package_from_allowlist")
-    def test_allowlist_remove(self, mock_allowlist_add):
+    def test_allowlist_remove(self, mock_allowlist_add: Mock) -> None:
         runner = CliRunner()
         runner.invoke(
             cli.remove,
@@ -66,7 +67,7 @@ class TestCli:
         assert mock_allowlist_add.call_args == call("requests")
 
     @patch("twyn.cli.check_dependencies")
-    def test_click_arguments_dependency_file(self, mock_check_dependencies):
+    def test_click_arguments_dependency_file(self, mock_check_dependencies: Mock) -> None:
         runner = CliRunner()
         runner.invoke(
             cli.run,
@@ -94,7 +95,7 @@ class TestCli:
         ]
 
     @patch("twyn.cli.check_dependencies")
-    def test_click_arguments_dependency_file_in_different_path(self, mock_check_dependencies):
+    def test_click_arguments_dependency_file_in_different_path(self, mock_check_dependencies: Mock) -> None:
         runner = CliRunner()
         runner.invoke(
             cli.run,
@@ -117,7 +118,7 @@ class TestCli:
         ]
 
     @patch("twyn.cli.check_dependencies")
-    def test_click_arguments_single_dependency_cli(self, mock_check_dependencies):
+    def test_click_arguments_single_dependency_cli(self, mock_check_dependencies: Mock) -> None:
         runner = CliRunner()
         runner.invoke(
             cli.run,
@@ -148,7 +149,7 @@ class TestCli:
         assert "Only one of --dependency or --dependency-file can be set at a time." in result.output
 
     @patch("twyn.cli.check_dependencies")
-    def test_click_arguments_multiple_dependencies(self, mock_check_dependencies):
+    def test_click_arguments_multiple_dependencies(self, mock_check_dependencies: Mock) -> None:
         runner = CliRunner()
         runner.invoke(
             cli.run,
@@ -173,7 +174,7 @@ class TestCli:
         ]
 
     @patch("twyn.cli.check_dependencies")
-    def test_click_arguments_default(self, mock_check_dependencies):
+    def test_click_arguments_default(self, mock_check_dependencies: Mock) -> None:
         runner = CliRunner()
         runner.invoke(cli.run)
 
@@ -190,32 +191,57 @@ class TestCli:
         ]
 
     @patch("twyn.cli.check_dependencies")
-    def test_return_code_1(self, mock_check_dependencies):
+    def test_return_code_1(self, mock_check_dependencies: Mock) -> None:
         runner = CliRunner()
-        mock_check_dependencies.return_value = [
-            TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"])
-        ]
+        mock_check_dependencies.return_value = TyposquatCheckResultList(
+            errors=[TyposquatCheckResult(dependency="my-package", similars=["mypackage"])]
+        )
 
         result = runner.invoke(cli.run)
         assert result.exit_code == 1
+        assert "did you mean any of [mypackage]" in result.output
 
     @patch("twyn.cli.check_dependencies")
-    def test_return_code_0(self, mock_check_dependencies):
+    def test_json_typo_detected(self, mock_check_dependencies: Mock) -> None:
+        mock_check_dependencies.return_value = TyposquatCheckResultList(
+            errors=[TyposquatCheckResult(dependency="my-package", similars=["mypackage"])]
+        )
         runner = CliRunner()
-        mock_check_dependencies.return_value = []
+        result = runner.invoke(
+            cli.run,
+            [
+                "--json",
+            ],
+        )
+
+        assert result.exit_code == 1
+        assert result.output == '{"errors":[{"dependency":"my-package","similars":["mypackage"]}]}\n'
+
+    @patch("twyn.cli.check_dependencies")
+    def test_json_no_typo(self, mock_check_dependencies: Mock) -> None:
+        mock_check_dependencies.return_value = TyposquatCheckResultList(errors=[])
+        runner = CliRunner()
+        result = runner.invoke(
+            cli.run,
+            [
+                "--json",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert result.output == '{"errors":[]}\n'
+
+    @patch("twyn.cli.check_dependencies")
+    def test_return_code_0(self, mock_check_dependencies: Mock) -> None:
+        runner = CliRunner()
+        mock_check_dependencies.return_value = TyposquatCheckResultList()
 
         result = runner.invoke(cli.run)
+
         assert result.exit_code == 0
+        assert "No typosquats detected" in result.output
 
-    def test_only_one_verbosity_level_is_allowed(self):
-        runner = CliRunner()
-        result = runner.invoke(cli.run, ["-v", "-vv"], catch_exceptions=False)
-
-        assert isinstance(result.exception, SystemExit)
-        assert result.exit_code == 2
-        assert "Only one verbosity level is allowed. Choose either -v or -vv." in result.output
-
-    def test_dependency_file_name_has_to_be_recognized(self):
+    def test_dependency_file_name_has_to_be_recognized(self) -> None:
         runner = CliRunner()
         result = runner.invoke(cli.run, ["--dependency-file", "requirements-dev.txt"], catch_exceptions=False)
 
@@ -241,7 +267,9 @@ class TestCli:
         assert "Test base error message" in caplog.text
 
     @patch("twyn.cli.check_dependencies")
-    def test_unhandled_exception_is_caught_and_wrapped_in_cli_error(self, mock_check_dependencies, caplog):
+    def test_unhandled_exception_is_caught_and_wrapped_in_cli_error(
+        self, mock_check_dependencies: Mock, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Test that unhandled exceptions are caught and wrapped in CliError."""
         runner = CliRunner()
 

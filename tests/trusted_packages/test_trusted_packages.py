@@ -118,5 +118,5 @@ class TestTrustedPackages:
         )
 
         assert trusted_packages.get_typosquat(package_name=package_name) == TyposquatCheckResult(
-            candidate_dependency=package_name, similar_dependencies=matches
+            dependency=package_name, similars=matches
         )
