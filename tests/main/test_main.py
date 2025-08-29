@@ -283,3 +283,23 @@ class TestCheckDependencies:
         mock_get_dependency_parser.return_value = RequirementsTxtParser()
         mock_parse.return_value = {"boto3"}
         assert get_parsed_dependencies_from_file() == {"boto3"}
+
+    @patch("twyn.main.TopPyPiReference")
+    @patch("twyn.main.get_parsed_dependencies_from_file")
+    def test_track_is_disabled_by_default_when_used_as_package(
+        self, mock_get_parsed_dependencies_from_file, mock_top_pypi_reference
+    ) -> None:
+        mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
+        mock_get_parsed_dependencies_from_file.return_value = {"my-package"}
+        with patch("twyn.main.track") as m_track:
+            check_dependencies("all")
+        assert m_track.call_count == 0
+
+    @patch("twyn.main.TopPyPiReference")
+    @patch("twyn.main.get_parsed_dependencies_from_file")
+    def test_track_is_shown_when_enabled(self, mock_get_parsed_dependencies_from_file, mock_top_pypi_reference) -> None:
+        mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
+        mock_get_parsed_dependencies_from_file.return_value = {"my-package"}
+        with patch("twyn.main.track") as m_track:
+            check_dependencies("all", use_track=True)
+        assert m_track.call_count == 1

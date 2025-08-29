@@ -76,6 +76,12 @@ def entry_point() -> None:
     default=False,
     help="Disable use of the trusted packages cache. Always fetch from the source.",
 )
+@click.option(
+    "--no-track",
+    is_flag=True,
+    default=False,
+    help="Do not show the progress bar while processing packages.",
+)
 def run(
     config: str,
     dependency_file: Optional[str],
@@ -84,6 +90,7 @@ def run(
     v: bool,
     vv: bool,
     no_cache: bool,
+    no_track: bool,
 ) -> int:
     if v and vv:
         raise click.UsageError(
@@ -113,6 +120,7 @@ def run(
             selector_method=selector_method,
             verbosity=verbosity,
             use_cache=not no_cache,
+            use_track=not no_track,
         )
     except TwynError as e:
         raise CliError(e.message) from e

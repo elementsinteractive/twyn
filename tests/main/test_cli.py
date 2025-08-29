@@ -89,6 +89,7 @@ class TestCli:
                 selector_method="first-letter",
                 verbosity=AvailableLoggingLevels.debug,
                 use_cache=True,
+                use_track=True,
             )
         ]
 
@@ -111,6 +112,7 @@ class TestCli:
                 selector_method=None,
                 verbosity=AvailableLoggingLevels.none,
                 use_cache=True,
+                use_track=True,
             )
         ]
 
@@ -132,6 +134,7 @@ class TestCli:
                 selector_method=None,
                 verbosity=AvailableLoggingLevels.none,
                 use_cache=True,
+                use_track=True,
             )
         ]
 
@@ -165,6 +168,7 @@ class TestCli:
                 selector_method=None,
                 verbosity=AvailableLoggingLevels.none,
                 use_cache=True,
+                use_track=True,
             )
         ]
 
@@ -181,6 +185,7 @@ class TestCli:
                 dependencies=None,
                 verbosity=AvailableLoggingLevels.none,
                 use_cache=True,
+                use_track=True,
             )
         ]
 
