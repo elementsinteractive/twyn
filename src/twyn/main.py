@@ -32,6 +32,7 @@ def check_dependencies(
     dependencies: Optional[set[str]] = None,
     verbosity: AvailableLoggingLevels = AvailableLoggingLevels.none,
     use_cache: bool = True,
+    use_track: bool = False,
 ) -> list[TyposquatCheckResult]:
     """Check if dependencies could be typosquats."""
     config_file_handler = FileHandler(config_file or DEFAULT_PROJECT_TOML_FILE)
@@ -52,7 +53,10 @@ def check_dependencies(
     normalized_dependencies = normalize_packages(dependencies)
 
     errors: list[TyposquatCheckResult] = []
-    for dependency in track(normalized_dependencies, description="Processing..."):
+    dependencies_list = (
+        track(normalized_dependencies, description="Processing...") if use_track else normalized_dependencies
+    )
+    for dependency in dependencies_list:
         if dependency in normalized_allowlist_packages:
             logger.info("Dependency %s is in the allowlist", dependency)
             continue
