@@ -6,12 +6,6 @@ from unittest import mock
 import pytest
 
 
-@pytest.fixture(autouse=True)
-def disable_click_echo():
-    with mock.patch("click.echo"):
-        yield
-
-
 @contextmanager
 def create_tmp_file(path: Path, data: str) -> Iterator[str]:
     path.write_text(data)

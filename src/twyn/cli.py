@@ -3,6 +3,7 @@ import sys
 from typing import Optional
 
 import click
+from rich.console import Console
 from rich.logging import RichHandler
 
 from twyn.__version__ import __version__
@@ -22,7 +23,7 @@ from twyn.trusted_packages.constants import CACHE_DIR
 logging.basicConfig(
     format="%(message)s",
     datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True, show_path=False)],
+    handlers=[RichHandler(rich_tracebacks=True, show_path=False, console=Console(stderr=True))],
 )
 logger = logging.getLogger("twyn")
 
@@ -82,6 +83,12 @@ def entry_point() -> None:
     default=False,
     help="Do not show the progress bar while processing packages.",
 )
+@click.option(
+    "--json",
+    is_flag=True,
+    default=False,
+    help="Display the results in json format. It implies --no-track.",
+)
 def run(
     config: str,
     dependency_file: Optional[str],
@@ -91,16 +98,12 @@ def run(
     vv: bool,
     no_cache: bool,
     no_track: bool,
+    json: bool,
 ) -> int:
-    if v and vv:
-        raise click.UsageError(
-            "Only one verbosity level is allowed. Choose either -v or -vv.", ctx=click.get_current_context()
-        )
-
-    if v:
-        verbosity = AvailableLoggingLevels.info
-    elif vv:
+    if vv:
         verbosity = AvailableLoggingLevels.debug
+    elif v:
+        verbosity = AvailableLoggingLevels.info
     else:
         verbosity = AvailableLoggingLevels.none
 
@@ -113,26 +116,28 @@ def run(
         raise click.UsageError("Dependency file name not supported.", ctx=click.get_current_context())
 
     try:
-        errors = check_dependencies(
+        possible_typos = check_dependencies(
             dependencies=set(dependency) or None,
             config_file=config,
             dependency_file=dependency_file,
             selector_method=selector_method,
             verbosity=verbosity,
             use_cache=not no_cache,
-            use_track=not no_track,
+            use_track=False if json else not no_track,
         )
     except TwynError as e:
         raise CliError(e.message) from e
     except Exception as e:
         raise CliError("Unhandled exception occured.") from e
 
-    if errors:
-        for possible_typosquats in errors:
+    if json:
+        click.echo(possible_typos.model_dump_json())
+        sys.exit(int(bool(possible_typos.errors)))
+    elif possible_typos.errors:
+        for possible_typosquats in possible_typos.errors:
             click.echo(
-                click.style("Possible typosquat detected: ", fg="red")
-                + f"`{possible_typosquats.candidate_dependency}`, "
-                f"did you mean any of [{', '.join(possible_typosquats.similar_dependencies)}]?",
+                click.style("Possible typosquat detected: ", fg="red") + f"`{possible_typosquats.dependency}`, "
+                f"did you mean any of [{', '.join(possible_typosquats.similars)}]?",
                 color=True,
             )
         sys.exit(1)

@@ -19,7 +19,7 @@ from twyn.trusted_packages.cache_handler import CacheHandler
 from twyn.trusted_packages.selectors import AbstractSelector
 from twyn.trusted_packages.trusted_packages import (
     TrustedPackages,
-    TyposquatCheckResult,
+    TyposquatCheckResultList,
 )
 
 logger = logging.getLogger("twyn")
@@ -33,7 +33,7 @@ def check_dependencies(
     verbosity: AvailableLoggingLevels = AvailableLoggingLevels.none,
     use_cache: bool = True,
     use_track: bool = False,
-) -> list[TyposquatCheckResult]:
+) -> TyposquatCheckResultList:
     """Check if dependencies could be typosquats."""
     config_file_handler = FileHandler(config_file or DEFAULT_PROJECT_TOML_FILE)
     config = ConfigHandler(config_file_handler, enforce_file=False).resolve_config(
@@ -52,7 +52,7 @@ def check_dependencies(
     dependencies = dependencies if dependencies else get_parsed_dependencies_from_file(config.dependency_file)
     normalized_dependencies = normalize_packages(dependencies)
 
-    errors: list[TyposquatCheckResult] = []
+    typos_list = TyposquatCheckResultList()
     dependencies_list = (
         track(normalized_dependencies, description="Processing...") if use_track else normalized_dependencies
     )
@@ -63,9 +63,9 @@ def check_dependencies(
 
         logger.info("Analyzing %s", dependency)
         if dependency not in trusted_packages and (typosquat_results := trusted_packages.get_typosquat(dependency)):
-            errors.append(typosquat_results)
+            typos_list.errors.append(typosquat_results)
 
-    return errors
+    return typos_list
 
 
 def _set_logging_level(logging_level: AvailableLoggingLevels) -> None:

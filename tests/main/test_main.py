@@ -10,7 +10,7 @@ from twyn.main import (
     check_dependencies,
     get_parsed_dependencies_from_file,
 )
-from twyn.trusted_packages.trusted_packages import TyposquatCheckResult
+from twyn.trusted_packages.trusted_packages import TyposquatCheckResult, TyposquatCheckResultList
 
 from tests.conftest import create_tmp_file
 
@@ -154,7 +154,9 @@ class TestCheckDependencies:
             selector_method="first-letter",
         )
 
-        assert error == [TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"])]
+        assert error == TyposquatCheckResultList(
+            errors=[TyposquatCheckResult(dependency="my-package", similars=["mypackage"])]
+        )
 
     @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
     def test_check_dependencies_with_input_from_cli_detects_typosquats(self, mock_get_packages_from_cache):
@@ -166,12 +168,14 @@ class TestCheckDependencies:
             selector_method="first-letter",
         )
 
-        assert error == [TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"])]
+        assert error == TyposquatCheckResultList(
+            errors=[TyposquatCheckResult(dependency="my-package", similars=["mypackage"])]
+        )
 
     @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
     def test_check_dependencies_with_input_loads_file_from_different_location(
         self, mock_get_packages_from_cache, tmp_path, tmpdir
-    ):
+    ) -> None:
         mock_get_packages_from_cache.return_value = {"mypackage"}
         tmpdir.mkdir("fake-dir")
         tmp_file = tmp_path / "fake-dir" / "requirements.txt"
@@ -183,7 +187,9 @@ class TestCheckDependencies:
                 selector_method="first-letter",
             )
 
-        assert error == [TyposquatCheckResult(candidate_dependency="mypackag", similar_dependencies=["mypackage"])]
+        assert error == TyposquatCheckResultList(
+            errors=[TyposquatCheckResult(dependency="mypackag", similars=["mypackage"])]
+        )
 
     @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
     def test_check_dependencies_with_input_from_cli_accepts_multiple_dependencies(self, mock_get_packages_from_cache):
@@ -196,9 +202,9 @@ class TestCheckDependencies:
             selector_method="first-letter",
         )
 
-        assert len(error) == 2
-        assert TyposquatCheckResult(candidate_dependency="reqests", similar_dependencies=["requests"]) in error
-        assert TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"]) in error
+        assert len(error.errors) == 2
+        assert TyposquatCheckResult(dependency="reqests", similars=["requests"]) in error.errors
+        assert TyposquatCheckResult(dependency="my-package", similars=["mypackage"]) in error.errors
 
     @patch("twyn.main.TopPyPiReference")
     @patch("twyn.main.get_parsed_dependencies_from_file")
@@ -216,7 +222,9 @@ class TestCheckDependencies:
             selector_method="first-letter",
         )
 
-        assert error == [TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"])]
+        assert error == TyposquatCheckResultList(
+            errors=[TyposquatCheckResult(dependency="my-package", similars=["mypackage"])]
+        )
 
         m_config = TwynConfiguration(
             allowlist={"my-package"},
@@ -235,7 +243,7 @@ class TestCheckDependencies:
                 selector_method="first-letter",
             )
 
-        assert error == []
+        assert error == TyposquatCheckResultList(errors=[])
 
     @pytest.mark.parametrize(
         "package_name",
@@ -256,9 +264,11 @@ class TestCheckDependencies:
             selector_method="first-letter",
         )
 
-        assert error == [
-            TyposquatCheckResult(candidate_dependency="my-package", similar_dependencies=["mypackage"]),
-        ]
+        assert error == TyposquatCheckResultList(
+            errors=[
+                TyposquatCheckResult(dependency="my-package", similars=["mypackage"]),
+            ]
+        )
 
     @pytest.mark.parametrize("package_name", ["my.package", "my-package", "my_package", "My.Package"])
     @patch("twyn.main.get_parsed_dependencies_from_file")
@@ -275,7 +285,7 @@ class TestCheckDependencies:
             selector_method="first-letter",
         )
 
-        assert error == []
+        assert error == TyposquatCheckResultList(errors=[])
 
     @patch("twyn.dependency_parser.dependency_selector.DependencySelector.get_dependency_parser")
     @patch("twyn.dependency_parser.requirements_txt_parser.RequirementsTxtParser.parse")
