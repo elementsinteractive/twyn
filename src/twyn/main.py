@@ -30,19 +30,20 @@ def check_dependencies(
     dependency_file: Optional[str] = None,
     dependencies: Optional[set[str]] = None,
     verbosity: AvailableLoggingLevels = AvailableLoggingLevels.none,
-    use_cache: bool = True,
+    use_cache: Optional[bool] = True,
     use_track: bool = False,
 ) -> TyposquatCheckResultList:
     """Check if dependencies could be typosquats."""
     config_file_handler = FileHandler(config_file or ConfigHandler.get_default_config_file_path())
     config = ConfigHandler(config_file_handler, enforce_file=False).resolve_config(
-        verbosity=verbosity, selector_method=selector_method, dependency_file=dependency_file
+        verbosity=verbosity, selector_method=selector_method, dependency_file=dependency_file, use_cache=use_cache
     )
     _set_logging_level(config.logging_level)
 
-    cache_handler = CacheHandler()
+    cache_handler = CacheHandler() if config.use_cache else None
+
     trusted_packages = TrustedPackages(
-        names=TopPyPiReference(source=config.pypi_reference, cache_handler=cache_handler).get_packages(use_cache),
+        names=TopPyPiReference(source=config.pypi_reference, cache_handler=cache_handler).get_packages(),
         algorithm=EditDistance(),
         selector=get_candidate_selector(config.selector_method),
         threshold_class=SimilarityThreshold,

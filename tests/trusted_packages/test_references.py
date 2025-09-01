@@ -42,7 +42,7 @@ class TestTopPyPiReference:
         with patch_pypi_packages_download(cached_packages) as m_pypi:
             pypi_ref = TopPyPiReference(source="pypi", cache_handler=cache_handler)
 
-            retrieved_packages = pypi_ref.get_packages(use_cache=True)
+            retrieved_packages = pypi_ref.get_packages()
 
         # The packages were downloaded and match the expected result
         assert m_pypi.call_count == 1
@@ -115,23 +115,23 @@ class TestTopPyPiReference:
         assert retrieved_cache_entry.packages == packages
 
         with patch_pypi_packages_download(packages) as m_pypi:
-            result = TopPyPiReference("pypi", cache_handler=cache_handler).get_packages(use_cache=True)
+            result = TopPyPiReference("pypi", cache_handler=cache_handler).get_packages()
 
         assert m_pypi.call_count == 0
         assert result == {"flask", "fastapi", "requests", "django"}
 
-    def test_get_packages_no_cache(self, tmp_path: Path) -> None:
+    def test_get_packages_no_cache(self) -> None:
         """Test that when use_cache is False, cache is not read or written, and packages are retrieved."""
         test_packages = ["numpy", "requests", "django"]
         source_url = "https://test.pypi.org/simple"
 
         with (
-            patch.object(TopPyPiReference, "_get_packages_from_cache") as mock_get_cache,
-            patch.object(TopPyPiReference, "_save_trusted_packages_to_cache") as mock_save_cache,
+            patch("twyn.trusted_packages.cache_handler.CacheHandler.get_cache_entry") as mock_get_cache,
+            patch("twyn.trusted_packages.cache_handler.CacheHandler.write_entry") as mock_save_cache,
             patch_pypi_packages_download(test_packages) as mock_pypi,
         ):
-            ref = TopPyPiReference(source=source_url, cache_handler=CacheHandler(str(tmp_path / "cache")))
-            result = ref.get_packages(use_cache=False)
+            ref = TopPyPiReference(source=source_url)
+            result = ref.get_packages()
 
         assert mock_get_cache.call_count == 0
         assert mock_save_cache.call_count == 0
@@ -149,7 +149,7 @@ class TestTopPyPiReference:
 
         with freeze_time(now), patch_pypi_packages_download(["should_not_be_used"]) as mock_download:
             ref = TopPyPiReference(source="pypi", cache_handler=cache_handler)
-            loaded = ref.get_packages(use_cache=True)
+            loaded = ref.get_packages()
         assert set(loaded) == set(packages)
         assert mock_download.call_count == 0
 
@@ -169,7 +169,7 @@ class TestTopPyPiReference:
 
         with patch_pypi_packages_download(valid_packages) as mock_pypi:
             ref = TopPyPiReference(source="pypi", cache_handler=cache_handler)
-            result = ref.get_packages(use_cache=True)
+            result = ref.get_packages()
 
         # Should download from source due to invalid package names in cache
         assert mock_pypi.call_count == 1

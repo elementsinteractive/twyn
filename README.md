@@ -149,7 +149,7 @@ twyn run --selector-method <method>
 
 You can save your configurations in a `.toml` file, so you don't need to specify them everytime you run `Twyn` in your terminal.
 
-By default, it will try to find a `twyn.roml` file in your working directory when it's trying to load your configurations. If it does not find it, it will fallback to `pyproject.toml`.
+By default, it will try to find a `twyn.toml` file in your working directory when it's trying to load your configurations. If it does not find it, it will fallback to `pyproject.toml`.
 However, you can specify a config file as follows:
 
 ```sh

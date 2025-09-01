@@ -74,7 +74,7 @@ def entry_point() -> None:
 @click.option(
     "--no-cache",
     is_flag=True,
-    default=False,
+    default=None,
     help="Disable use of the trusted packages cache. Always fetch from the source.",
 )
 @click.option(
@@ -96,7 +96,7 @@ def run(
     selector_method: str,
     v: bool,
     vv: bool,
-    no_cache: bool,
+    no_cache: Optional[bool],
     no_track: bool,
     json: bool,
 ) -> int:
@@ -122,7 +122,7 @@ def run(
             config_file=config,
             dependency_file=dependency_file,
             verbosity=verbosity,
-            use_cache=not no_cache,
+            use_cache=not no_cache if no_cache is not None else no_cache,
             use_track=False if json else not no_track,
         )
     except TwynError as e:

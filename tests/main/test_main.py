@@ -40,6 +40,7 @@ class TestCheckDependencies:
                     logging_level=AvailableLoggingLevels.info,
                     allowlist={"boto4", "boto2"},
                     pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
+                    use_cache=True,
                 ),
             ),
             (
@@ -58,6 +59,7 @@ class TestCheckDependencies:
                     logging_level=AvailableLoggingLevels.debug,
                     allowlist={"boto4", "boto2"},
                     pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
+                    use_cache=True,
                 ),
             ),
             (
@@ -71,17 +73,20 @@ class TestCheckDependencies:
                     logging_level=AvailableLoggingLevels.warning,
                     allowlist=set(),
                     pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
+                    use_cache=True,
                 ),
             ),
             (
                 {
                     "verbosity": AvailableLoggingLevels.debug,
                     "dependency_file": "requirements.txt",
+                    "use_cache": False,
                 },
                 {
                     "logging_level": "INFO",
                     "dependency_file": "poetry.lock",
                     "allowlist": [],
+                    "use_cache": False,
                 },
                 TwynConfiguration(
                     dependency_file="requirements.txt",
@@ -89,6 +94,7 @@ class TestCheckDependencies:
                     logging_level=AvailableLoggingLevels.debug,
                     allowlist=set(),
                     pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
+                    use_cache=False,
                 ),
             ),
         ],
@@ -115,12 +121,14 @@ class TestCheckDependencies:
                 selector_method=cli_config.get("selector_method"),
                 dependency_file=cli_config.get("dependency_file"),
                 verbosity=cli_config.get("verbosity"),
+                use_cache=cli_config.get("use_cache"),
             )
 
         assert resolved.dependency_file == expected_resolved_config.dependency_file
         assert resolved.selector_method == expected_resolved_config.selector_method
         assert resolved.logging_level == expected_resolved_config.logging_level
         assert resolved.allowlist == expected_resolved_config.allowlist
+        assert resolved.use_cache == expected_resolved_config.use_cache
 
     @pytest.mark.parametrize(
         (
@@ -148,7 +156,7 @@ class TestCheckDependencies:
         assert log_level == logging_level
 
     @patch("twyn.main.get_parsed_dependencies_from_file")
-    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
+    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_check_dependencies_detects_typosquats(
         self, mock_get_packages_from_cache: Mock, mock_get_parsed_dependencies_from_file: Mock
     ) -> None:
@@ -165,7 +173,7 @@ class TestCheckDependencies:
             errors=[TyposquatCheckResult(dependency="my-package", similars=["mypackage"])]
         )
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
+    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_check_dependencies_with_input_from_cli_detects_typosquats(
         self, mock_get_packages_from_cache: Mock
     ) -> None:
@@ -181,7 +189,7 @@ class TestCheckDependencies:
             errors=[TyposquatCheckResult(dependency="my-package", similars=["mypackage"])]
         )
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
+    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_check_dependencies_with_input_loads_file_from_different_location(
         self, mock_get_packages_from_cache: Mock, tmp_path: Path
     ) -> None:
@@ -199,7 +207,7 @@ class TestCheckDependencies:
             errors=[TyposquatCheckResult(dependency="mypackag", similars=["mypackage"])]
         )
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
+    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_check_dependencies_with_input_from_cli_accepts_multiple_dependencies(
         self, mock_get_packages_from_cache: Mock
     ) -> None:
@@ -242,6 +250,7 @@ class TestCheckDependencies:
             selector_method="first-letter",
             logging_level=AvailableLoggingLevels.info,
             pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
+            use_cache=True,
         )
 
         # Check that the package is no longer an error
@@ -251,6 +260,7 @@ class TestCheckDependencies:
                 dependency_file=None,
                 dependencies=None,
                 selector_method="first-letter",
+                use_cache=True,
             )
 
         assert error == TyposquatCheckResultList(errors=[])
@@ -264,7 +274,7 @@ class TestCheckDependencies:
             "My.Package",
         ],
     )
-    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
+    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_normalize_package(self, mock_get_packages_from_cache: Mock, package_name: Mock) -> None:
         mock_get_packages_from_cache.return_value = {"requests", "mypackage"}
         error = check_dependencies(
@@ -282,7 +292,7 @@ class TestCheckDependencies:
 
     @pytest.mark.parametrize("package_name", ["my.package", "my-package", "my_package", "My.Package"])
     @patch("twyn.main.get_parsed_dependencies_from_file")
-    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache")
+    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_check_dependencies_does_not_error_on_same_package(
         self, mock_get_packages_from_cache: Mock, mock_get_parsed_dependencies_from_file: Mock, package_name: Mock
     ) -> None:
