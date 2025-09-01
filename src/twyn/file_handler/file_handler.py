@@ -65,4 +65,4 @@ class FileHandler(BaseFileHandler):
                 )
 
     def _get_file_path(self, file_path: str) -> Path:
-        return (Path(os.getcwd()) / Path(file_path)).resolve()
+        return Path(os.path.abspath(os.path.join(os.getcwd(), file_path)))
