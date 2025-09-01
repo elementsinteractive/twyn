@@ -183,7 +183,7 @@ The file format for each reference is as follows:
 ```
 
 ### Cache
-By default, `Twyn` will cache the list of trusted packages to a cache file (.twyn/trusted_packages.json). 
+By default, `Twyn` will cache the list of trusted packages to a cache file, within the `.twyn` directory that will be automatically created. 
 
 You can disable the cache by adding the following flag:
 
