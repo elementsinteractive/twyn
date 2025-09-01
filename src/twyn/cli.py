@@ -117,10 +117,10 @@ def run(
 
     try:
         possible_typos = check_dependencies(
+            selector_method=selector_method,
             dependencies=set(dependency) or None,
             config_file=config,
             dependency_file=dependency_file,
-            selector_method=selector_method,
             verbosity=verbosity,
             use_cache=not no_cache,
             use_track=False if json else not no_track,

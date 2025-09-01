@@ -8,6 +8,7 @@ import pytest
 
 @contextmanager
 def create_tmp_file(path: Path, data: str) -> Iterator[str]:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(data)
     yield str(path)
 
