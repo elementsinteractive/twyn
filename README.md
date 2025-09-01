@@ -19,8 +19,8 @@
   - [Check dependencies introduced through the CLI](#check-dependencies-introduced-through-the-cli)
   - [Selector method](#selector-method)
   - [Configuration file](#configuration-file)
-  - [Cache] (#cache)
-- [Using `Twyn` as a library] (#using-twyn-as-a-library)
+  - [Cache](#cache)
+- [Using `Twyn` as a library](#using-twyn-as-a-library)
 
 ## Overview
 `Twyn` is a security tool that compares the name of your dependencies against a set of the most popular ones,
