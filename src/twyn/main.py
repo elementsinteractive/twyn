@@ -4,7 +4,6 @@ from typing import Optional, Union
 from rich.progress import track
 
 from twyn.base.constants import (
-    DEFAULT_PROJECT_TOML_FILE,
     SELECTOR_METHOD_MAPPING,
     AvailableLoggingLevels,
     SelectorMethod,
@@ -35,7 +34,7 @@ def check_dependencies(
     use_track: bool = False,
 ) -> TyposquatCheckResultList:
     """Check if dependencies could be typosquats."""
-    config_file_handler = FileHandler(config_file or DEFAULT_PROJECT_TOML_FILE)
+    config_file_handler = FileHandler(config_file or ConfigHandler.get_default_config_file_path())
     config = ConfigHandler(config_file_handler, enforce_file=False).resolve_config(
         verbosity=verbosity, selector_method=selector_method, dependency_file=dependency_file
     )

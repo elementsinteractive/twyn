@@ -19,9 +19,6 @@ class FileHandler(BaseFileHandler):
     def __init__(self, file_path: str) -> None:
         self.file_path = self._get_file_path(file_path)
 
-    def _get_file_path(self, file_path: str) -> Path:
-        return Path(os.path.abspath(os.path.join(os.getcwd(), file_path)))
-
     def is_handler_of_file(self, name: str) -> bool:
         return self._get_file_path(name) == self.file_path
 
@@ -66,3 +63,6 @@ class FileHandler(BaseFileHandler):
                 logger.exception(
                     "Directory not empty or not enough permissions. Cannot be removed: %s", self.file_path.parent
                 )
+
+    def _get_file_path(self, file_path: str) -> Path:
+        return (Path(os.getcwd()) / Path(file_path)).resolve()
