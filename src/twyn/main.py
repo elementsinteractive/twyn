@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, Union
 
 from rich.progress import track
 
@@ -26,7 +26,7 @@ logger = logging.getLogger("twyn")
 
 
 def check_dependencies(
-    selector_method: SelectorMethod,
+    selector_method: Union[SelectorMethod, None] = None,
     config_file: Optional[str] = None,
     dependency_file: Optional[str] = None,
     dependencies: Optional[set[str]] = None,

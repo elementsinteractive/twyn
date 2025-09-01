@@ -207,7 +207,7 @@ To clear the cache, run:
 ```python
 from twyn import check_dependencies
 
-typos = check_dependencies("all")
+typos = check_dependencies()
 
 for typo in typos.errors:
   print(f"Dependency:{typo.dependency}")
