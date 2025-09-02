@@ -197,7 +197,7 @@ def pyproject_toml_file(tmp_path: Path) -> Iterator[Path]:
     selector_method="all"
     logging_level="debug"
     allowlist=["boto4", "boto2"]
-
+    use_cache=false
     """
     with create_tmp_file(pyproject_toml, data) as tmp_file:
         yield tmp_file

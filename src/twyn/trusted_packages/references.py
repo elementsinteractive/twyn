@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any
+from typing import Any, Union
 
 import requests
 
@@ -19,43 +19,47 @@ logger = logging.getLogger("twyn")
 class AbstractPackageReference(ABC):
     """Represents a reference from where to retrieve trusted packages."""
 
-    def __init__(self, source: str, cache_handler: CacheHandler) -> None:
+    def __init__(self, source: str, cache_handler: Union[CacheHandler, None] = None) -> None:
         self.source = source
         self.cache_handler = cache_handler
 
     @abstractmethod
-    def get_packages(self, use_cache: bool = True) -> set[str]:
+    def get_packages(self) -> set[str]:
         """Return the names of the trusted packages available in the reference."""
 
 
 class TopPyPiReference(AbstractPackageReference):
     """Top PyPi packages retrieved from an online source."""
 
-    def get_packages(self, use_cache: bool = True) -> set[str]:
+    def get_packages(self) -> set[str]:
         """Download and parse online source of top Python Package Index packages."""
         packages_to_use = set()
-        if use_cache:
-            packages_to_use = self._get_packages_from_cache()
-            # we don't save the cache here, we keep it as it is so the date remains the original one.
+        packages_to_use = self._get_packages_from_cache_if_enabled()
+        # we don't save the cache here, we keep it as it is so the date remains the original one.
 
         if not packages_to_use:
             # no cache usage, no cache hit (non-existent or outdated) or cache was empty.
             logger.info("Fetching trusted packages from PyPI reference...")
             packages_to_use = self._parse(self._download())
-            if use_cache:
-                self._save_trusted_packages_to_cache(packages_to_use)
+
+            # New packages were downloaded, we create a new entry updating all values.
+            self._save_trusted_packages_to_cache_if_enabled(packages_to_use)
 
         normalized_packages = normalize_packages(packages_to_use)
         return normalized_packages
 
-    def _save_trusted_packages_to_cache(self, packages: set[str]) -> None:
+    def _save_trusted_packages_to_cache_if_enabled(self, packages: set[str]) -> None:
         """Save trusted packages using CacheHandler."""
+        if not self.cache_handler:
+            return
         cache_entry = CacheEntry(saved_date=datetime.now().date().isoformat(), packages=packages)
         self.cache_handler.write_entry(self.source, cache_entry)
         logger.debug("Saved %d trusted packages for source %s", len(packages), self.source)
 
-    def _get_packages_from_cache(self) -> set[str]:
+    def _get_packages_from_cache_if_enabled(self) -> set[str]:
         """Get packages from cache if it's present and up to date."""
+        if not self.cache_handler:
+            return set()
         cache_entry = self.cache_handler.get_cache_entry(self.source)
         if not cache_entry:
             logger.debug("No cache entry found for source: %s", self.source)

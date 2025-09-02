@@ -29,6 +29,7 @@ DEFAULT_SELECTOR_METHOD = "all"
 DEFAULT_PROJECT_TOML_FILE = "pyproject.toml"
 DEFAULT_TWYN_TOML_FILE = "twyn.toml"
 DEFAULT_TOP_PYPI_PACKAGES = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages.min.json"
+DEFAULT_USE_CACHE = True
 
 
 class AvailableLoggingLevels(Enum):

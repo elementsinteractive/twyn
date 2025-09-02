@@ -47,6 +47,7 @@ class TestConfigHandler:
             logging_level=AvailableLoggingLevels.warning,
             allowlist=set(),
             pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
+            use_cache=True,
         )
 
     def test_config_raises_for_unknown_file(self) -> None:
@@ -59,6 +60,7 @@ class TestConfigHandler:
         assert config.selector_method == "all"
         assert config.logging_level == AvailableLoggingLevels.debug
         assert config.allowlist == {"boto4", "boto2"}
+        assert config.use_cache is False
 
     def test_get_twyn_data_from_file(self, pyproject_toml_file: Path) -> None:
         handler = ConfigHandler(FileHandler(str(pyproject_toml_file)))
@@ -71,6 +73,7 @@ class TestConfigHandler:
             logging_level="debug",
             allowlist={"boto4", "boto2"},
             pypi_reference=None,
+            use_cache=False,
         )
 
     def test_write_toml(self, pyproject_toml_file: Path) -> None:
@@ -109,6 +112,7 @@ class TestConfigHandler:
                     "logging_level": "debug",
                     "allowlist": {},
                     "pypi_reference": DEFAULT_TOP_PYPI_PACKAGES,
+                    "use_cache": False,
                 },
             }
         }

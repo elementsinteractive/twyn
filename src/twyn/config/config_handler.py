@@ -11,6 +11,7 @@ from twyn.base.constants import (
     DEFAULT_SELECTOR_METHOD,
     DEFAULT_TOP_PYPI_PACKAGES,
     DEFAULT_TWYN_TOML_FILE,
+    DEFAULT_USE_CACHE,
     SELECTOR_METHOD_KEYS,
     AvailableLoggingLevels,
 )
@@ -35,6 +36,7 @@ class TwynConfiguration:
     logging_level: AvailableLoggingLevels
     allowlist: set[str]
     pypi_reference: str
+    use_cache: bool
 
 
 @dataclass
@@ -46,6 +48,7 @@ class ReadTwynConfiguration:
     logging_level: Optional[AvailableLoggingLevels]
     allowlist: set[str]
     pypi_reference: Optional[str]
+    use_cache: Optional[bool]
 
 
 class ConfigHandler:
@@ -60,6 +63,7 @@ class ConfigHandler:
         selector_method: Optional[str] = None,
         dependency_file: Optional[str] = None,
         verbosity: AvailableLoggingLevels = AvailableLoggingLevels.none,
+        use_cache: Optional[bool] = None,
     ) -> TwynConfiguration:
         """Resolve the configuration for Twyn.
 
@@ -81,12 +85,20 @@ class ConfigHandler:
                 f"Invalid selector_method '{final_selector_method}'. Must be one of: {valid_methods}"
             )
 
+        if use_cache is not None:
+            final_use_cache = use_cache
+        elif read_config.use_cache is not None:
+            final_use_cache = read_config.use_cache
+        else:
+            final_use_cache = DEFAULT_USE_CACHE
+
         return TwynConfiguration(
             dependency_file=dependency_file or read_config.dependency_file,
             selector_method=final_selector_method,
             logging_level=_get_logging_level(verbosity, read_config.logging_level),
             allowlist=read_config.allowlist,
             pypi_reference=read_config.pypi_reference or DEFAULT_TOP_PYPI_PACKAGES,
+            use_cache=final_use_cache,
         )
 
     def add_package_to_allowlist(self, package_name: str) -> None:
@@ -120,6 +132,7 @@ class ConfigHandler:
             logging_level=twyn_config_data.get("logging_level"),
             allowlist=set(twyn_config_data.get("allowlist", set())),
             pypi_reference=twyn_config_data.get("pypi_reference"),
+            use_cache=twyn_config_data.get("use_cache"),
         )
 
     def _write_config(self, toml: TOMLDocument, config: ReadTwynConfiguration) -> None:
