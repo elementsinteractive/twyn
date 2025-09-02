@@ -7,7 +7,6 @@ from twyn.base.constants import (
     SELECTOR_METHOD_MAPPING,
     SelectorMethod,
 )
-from twyn.base.utils import normalize_packages
 from twyn.config.config_handler import ConfigHandler
 from twyn.dependency_parser.dependency_selector import DependencySelector
 from twyn.file_handler.file_handler import FileHandler
@@ -68,9 +67,9 @@ def check_dependencies(
         selector=_get_candidate_selector(config.selector_method),
         threshold_class=SimilarityThreshold,
     )
-    normalized_allowlist_packages = normalize_packages(config.allowlist)
+    normalized_allowlist_packages = TopPyPiReference.normalize_packages(config.allowlist)
     dependencies = dependencies if dependencies else _get_parsed_dependencies_from_file(config.dependency_file)
-    normalized_dependencies = normalize_packages(dependencies)
+    normalized_dependencies = TopPyPiReference.normalize_packages(dependencies)
 
     typos_list = TyposquatCheckResultList()
     dependencies_list = (

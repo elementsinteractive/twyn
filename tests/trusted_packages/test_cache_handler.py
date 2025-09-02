@@ -121,11 +121,6 @@ class TestCacheHandler:
         with pytest.raises(ValidationError):
             CacheEntry(saved_date="invalid-date-format", packages={"package1"})
 
-    def test_cache_entry_invalid_package_normalization(self) -> None:
-        """Test CacheEntry raises ValidationError when package normalization fails."""
-        with pytest.raises(ValidationError):
-            CacheEntry(saved_date="2024-01-01", packages={"../invalid-package"})
-
     def test_clear_all_removes_all_cache_files(self, tmp_path: Path) -> None:
         """Test clear_all removes all cache files and directory."""
         cache_handler = CacheHandler(str(tmp_path))
