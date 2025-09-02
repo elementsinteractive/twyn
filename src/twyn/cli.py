@@ -124,6 +124,7 @@ def run(
             verbosity=verbosity,
             use_cache=not no_cache if no_cache is not None else no_cache,
             use_track=False if json else not no_track,
+            load_config_from_file=True,
         )
     except TwynError as e:
         raise CliError(e.message) from e

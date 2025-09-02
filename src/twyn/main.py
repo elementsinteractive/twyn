@@ -32,12 +32,18 @@ def check_dependencies(
     verbosity: AvailableLoggingLevels = AvailableLoggingLevels.none,
     use_cache: Optional[bool] = True,
     use_track: bool = False,
+    load_config_from_file: bool = False,
 ) -> TyposquatCheckResultList:
     """Check if dependencies could be typosquats."""
-    config_file_handler = FileHandler(config_file or ConfigHandler.get_default_config_file_path())
-    config = ConfigHandler(config_file_handler, enforce_file=False).resolve_config(
-        verbosity=verbosity, selector_method=selector_method, dependency_file=dependency_file, use_cache=use_cache
+    config = get_config(
+        load_config_from_file=load_config_from_file,
+        config_file=config_file,
+        verbosity=verbosity,
+        selector_method=selector_method,
+        dependency_file=dependency_file,
+        use_cache=use_cache,
     )
+
     _set_logging_level(config.logging_level)
 
     cache_handler = CacheHandler() if config.use_cache else None
@@ -66,6 +72,26 @@ def check_dependencies(
             typos_list.errors.append(typosquat_results)
 
     return typos_list
+
+
+def get_config(
+    load_config_from_file: bool,
+    config_file: Optional[str],
+    verbosity: AvailableLoggingLevels,
+    selector_method: Union[SelectorMethod, None],
+    dependency_file: Optional[str],
+    use_cache: Optional[bool],
+) -> ConfigHandler:
+    if load_config_from_file:
+        config_file_handler = FileHandler(config_file or ConfigHandler.get_default_config_file_path())
+    else:
+        config_file_handler = None
+    return ConfigHandler(config_file_handler).resolve_config(
+        verbosity=verbosity,
+        selector_method=selector_method,
+        dependency_file=dependency_file,
+        use_cache=use_cache,
+    )
 
 
 def _set_logging_level(logging_level: AvailableLoggingLevels) -> None:

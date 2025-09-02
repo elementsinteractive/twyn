@@ -36,3 +36,9 @@ class InvalidSelectorMethodError(TwynError):
     """Exception for when an invalid selector method has been specified."""
 
     message = "Invalid `Selector` was provided."
+
+
+class ConfigFileNotConfiguredError(TwynError):
+    """Exception for when a read/write operation has been attempted but no config file was configured."""
+
+    message = "Config file not configured."

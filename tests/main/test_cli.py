@@ -91,6 +91,7 @@ class TestCli:
                 verbosity=AvailableLoggingLevels.debug,
                 use_cache=None,
                 use_track=True,
+                load_config_from_file=True,
             )
         ]
 
@@ -114,6 +115,7 @@ class TestCli:
                 verbosity=AvailableLoggingLevels.none,
                 use_cache=None,
                 use_track=True,
+                load_config_from_file=True,
             )
         ]
 
@@ -136,6 +138,7 @@ class TestCli:
                 verbosity=AvailableLoggingLevels.none,
                 use_cache=None,
                 use_track=True,
+                load_config_from_file=True,
             )
         ]
 
@@ -170,6 +173,7 @@ class TestCli:
                 verbosity=AvailableLoggingLevels.none,
                 use_cache=None,
                 use_track=True,
+                load_config_from_file=True,
             )
         ]
 
@@ -187,6 +191,7 @@ class TestCli:
                 verbosity=AvailableLoggingLevels.none,
                 use_cache=None,
                 use_track=True,
+                load_config_from_file=True,
             )
         ]
 
