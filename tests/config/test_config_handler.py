@@ -1,11 +1,17 @@
 import dataclasses
 from copy import deepcopy
 from pathlib import Path
-from unittest.mock import patch
+from typing import NoReturn
+from unittest.mock import Mock, patch
 
 import pytest
 from tomlkit import TOMLDocument, dumps, parse
-from twyn.base.constants import DEFAULT_PROJECT_TOML_FILE, DEFAULT_TOP_PYPI_PACKAGES, AvailableLoggingLevels
+from twyn.base.constants import (
+    DEFAULT_PROJECT_TOML_FILE,
+    DEFAULT_TOP_PYPI_PACKAGES,
+    DEFAULT_TWYN_TOML_FILE,
+    AvailableLoggingLevels,
+)
 from twyn.config.config_handler import ConfigHandler, ReadTwynConfiguration, TwynConfiguration
 from twyn.config.exceptions import (
     AllowlistPackageAlreadyExistsError,
@@ -16,19 +22,21 @@ from twyn.config.exceptions import (
 from twyn.file_handler.exceptions import PathNotFoundError
 from twyn.file_handler.file_handler import FileHandler
 
+from tests.conftest import create_tmp_file
 
-class TestConfig:
-    def throw_exception(self):
+
+class TestConfigHandler:
+    def throw_exception(self) -> NoReturn:
         raise PathNotFoundError
 
     @patch("twyn.file_handler.file_handler.FileHandler.read")
-    def test_enforce_file_error(self, mock_is_file):
+    def test_enforce_file_error(self, mock_is_file: Mock) -> None:
         mock_is_file.side_effect = self.throw_exception
         with pytest.raises(TOMLError):
             ConfigHandler(FileHandler(DEFAULT_PROJECT_TOML_FILE), enforce_file=True).resolve_config()
 
     @patch("twyn.file_handler.file_handler.FileHandler.read")
-    def test_no_enforce_file_on_non_existent_file(self, mock_is_file):
+    def test_no_enforce_file_on_non_existent_file(self, mock_is_file: Mock) -> None:
         """Resolving the config without enforcing the file to be present gives you defaults."""
         mock_is_file.side_effect = self.throw_exception
         config = ConfigHandler(FileHandler(DEFAULT_PROJECT_TOML_FILE), enforce_file=False).resolve_config()
@@ -41,18 +49,18 @@ class TestConfig:
             pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
         )
 
-    def test_config_raises_for_unknown_file(self):
+    def test_config_raises_for_unknown_file(self) -> None:
         with pytest.raises(TOMLError):
             ConfigHandler(FileHandler("non-existent-file.toml")).resolve_config()
 
-    def test_read_config_values(self, pyproject_toml_file):
+    def test_read_config_values(self, pyproject_toml_file: Path) -> None:
         config = ConfigHandler(file_handler=FileHandler(pyproject_toml_file)).resolve_config()
         assert config.dependency_file == "my_file.txt"
         assert config.selector_method == "all"
         assert config.logging_level == AvailableLoggingLevels.debug
         assert config.allowlist == {"boto4", "boto2"}
 
-    def test_get_twyn_data_from_file(self, pyproject_toml_file):
+    def test_get_twyn_data_from_file(self, pyproject_toml_file: Path) -> None:
         handler = ConfigHandler(FileHandler(str(pyproject_toml_file)))
 
         toml = handler._read_toml()
@@ -65,7 +73,7 @@ class TestConfig:
             pypi_reference=None,
         )
 
-    def test_write_toml(self, pyproject_toml_file):
+    def test_write_toml(self, pyproject_toml_file: Path) -> None:
         handler = ConfigHandler(FileHandler(pyproject_toml_file))
         toml = handler._read_toml()
 
@@ -105,11 +113,35 @@ class TestConfig:
             }
         }
 
+    def test_get_default_config_file_path_twyn_file_exists(self, tmp_path: Path, pyproject_toml_file: Path) -> None:
+        assert pyproject_toml_file.exists()
+        twyn_path = tmp_path / DEFAULT_TWYN_TOML_FILE
+        with (
+            create_tmp_file(twyn_path, ""),
+            patch("twyn.config.config_handler.DEFAULT_TWYN_TOML_FILE", new=str(twyn_path)),
+            patch("twyn.config.config_handler.DEFAULT_PROJECT_TOML_FILE", new=str(pyproject_toml_file)),
+        ):
+            assert twyn_path.exists()
+
+            assert ConfigHandler.get_default_config_file_path() == str(twyn_path)
+
+    def test_get_default_config_file_path_twyn_file_does_not_exist(
+        self, tmp_path: Path, pyproject_toml_file: Path
+    ) -> None:
+        assert pyproject_toml_file.exists()
+        twyn_path = tmp_path / DEFAULT_TWYN_TOML_FILE
+        with (
+            patch("twyn.config.config_handler.DEFAULT_TWYN_TOML_FILE", new=str(twyn_path)),
+            patch("twyn.config.config_handler.DEFAULT_PROJECT_TOML_FILE", new=str(pyproject_toml_file)),
+        ):
+            assert not twyn_path.exists()
+            assert ConfigHandler.get_default_config_file_path() == str(pyproject_toml_file)
+
 
 class TestAllowlistConfigHandler:
     @patch("twyn.file_handler.file_handler.FileHandler.write")
     @patch("twyn.config.config_handler.ConfigHandler._read_toml")
-    def test_allowlist_add(self, mock_toml, mock_write_toml):
+    def test_allowlist_add(self, mock_toml: Mock, mock_write_toml: Mock) -> None:
         mock_toml.return_value = TOMLDocument()
 
         config = ConfigHandler(FileHandler("some-file"))
@@ -123,7 +155,7 @@ class TestAllowlistConfigHandler:
 
     @patch("twyn.config.config_handler.ConfigHandler._write_toml")
     @patch("twyn.config.config_handler.ConfigHandler._read_toml")
-    def test_allowlist_add_duplicate_error(self, mock_toml, mock_write_toml):
+    def test_allowlist_add_duplicate_error(self, mock_toml: Mock, mock_write_toml: Mock) -> None:
         mock_toml.return_value = parse(dumps({"tool": {"twyn": {"allowlist": ["mypackage"]}}}))
 
         config = ConfigHandler(FileHandler("some-file"))
@@ -137,7 +169,7 @@ class TestAllowlistConfigHandler:
 
     @patch("twyn.config.config_handler.ConfigHandler._write_toml")
     @patch("twyn.config.config_handler.ConfigHandler._read_toml")
-    def test_allowlist_remove_completely(self, mock_toml, mock_write_toml):
+    def test_allowlist_remove_completely(self, mock_toml: Mock, mock_write_toml: Mock) -> None:
         mock_toml.return_value = parse(dumps({"tool": {"twyn": {"allowlist": ["mypackage"]}}}))
 
         config = ConfigHandler(FileHandler("some-file"))
@@ -147,7 +179,7 @@ class TestAllowlistConfigHandler:
 
     @patch("twyn.config.config_handler.ConfigHandler._write_toml")
     @patch("twyn.config.config_handler.ConfigHandler._read_toml")
-    def test_allowlist_remove(self, mock_toml, mock_write_toml):
+    def test_allowlist_remove(self, mock_toml: Mock, mock_write_toml: Mock) -> None:
         mock_toml.return_value = parse(dumps({"tool": {"twyn": {"allowlist": ["mypackage", "another-package"]}}}))
 
         config = ConfigHandler(FileHandler("some-file"))
@@ -157,7 +189,7 @@ class TestAllowlistConfigHandler:
 
     @patch("twyn.config.config_handler.ConfigHandler._write_toml")
     @patch("twyn.config.config_handler.ConfigHandler._read_toml")
-    def test_allowlist_remove_non_existent_package_error(self, mock_toml, mock_write_toml):
+    def test_allowlist_remove_non_existent_package_error(self, mock_toml: Mock, mock_write_toml: Mock) -> None:
         mock_toml.return_value = parse(dumps({"tool": {"twyn": {"allowlist": ["mypackage"]}}}))
 
         config = ConfigHandler(FileHandler("some-file"))
@@ -170,7 +202,7 @@ class TestAllowlistConfigHandler:
         assert not mock_write_toml.called
 
     @pytest.mark.parametrize("valid_selector", ["first-letter", "nearby-letter", "all"])
-    def test_valid_selector_methods_accepted(self, valid_selector: str, tmp_path: Path):
+    def test_valid_selector_methods_accepted(self, valid_selector: str, tmp_path: Path) -> None:
         """Test that all valid selector methods are accepted."""
         pyproject_toml = tmp_path / "pyproject.toml"
         pyproject_toml.write_text("")
@@ -180,7 +212,7 @@ class TestAllowlistConfigHandler:
         resolved_config = config.resolve_config(selector_method=valid_selector)
         assert resolved_config.selector_method == valid_selector
 
-    def test_invalid_selector_method_rejected(self, tmp_path: Path):
+    def test_invalid_selector_method_rejected(self, tmp_path: Path) -> None:
         """Test that invalid selector methods are rejected with appropriate error."""
         pyproject_toml = tmp_path / "pyproject.toml"
         pyproject_toml.write_text("")
@@ -193,7 +225,7 @@ class TestAllowlistConfigHandler:
         assert "Invalid selector_method 'random-selector'" in error_message
         assert "Must be one of: all, first-letter, nearby-letter" in error_message
 
-    def test_invalid_selector_method_from_config_file(self, tmp_path: Path):
+    def test_invalid_selector_method_from_config_file(self, tmp_path: Path) -> None:
         """Test that invalid selector method from config file is rejected."""
         # Create a config file with invalid selector method
         pyproject_toml = tmp_path / "pyproject.toml"

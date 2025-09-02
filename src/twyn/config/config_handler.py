@@ -1,7 +1,8 @@
 import logging
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Optional
+from pathlib import Path
+from typing import Any, Optional, Union
 
 from tomlkit import TOMLDocument, dumps, parse, table
 
@@ -9,6 +10,7 @@ from twyn.base.constants import (
     DEFAULT_PROJECT_TOML_FILE,
     DEFAULT_SELECTOR_METHOD,
     DEFAULT_TOP_PYPI_PACKAGES,
+    DEFAULT_TWYN_TOML_FILE,
     SELECTOR_METHOD_KEYS,
     AvailableLoggingLevels,
 )
@@ -145,6 +147,16 @@ class ConfigHandler:
                 return TOMLDocument()
             raise TOMLError(f"Error reading toml from {self.file_handler.file_path}") from None
 
+    @staticmethod
+    def get_default_config_file_path() -> str:
+        """Return `twyn.toml` if it exists. If not, it returns the default `pyproject.toml` file.
+
+        It does not fail if the latter does not exist, as it is not mandatory to have a config file to run twyn.
+        """
+        if Path(DEFAULT_TWYN_TOML_FILE).exists():
+            return DEFAULT_TWYN_TOML_FILE
+        return DEFAULT_PROJECT_TOML_FILE
+
 
 def _get_logging_level(
     cli_verbosity: AvailableLoggingLevels,
@@ -160,8 +172,8 @@ def _get_logging_level(
     return cli_verbosity
 
 
-def _serialize_config(x):
-    def _value_to_for_config(v):
+def _serialize_config(x: Any) -> Union[Any, str, list[Any]]:
+    def _value_to_for_config(v: Any) -> Union[str, list[Any], Any]:
         if isinstance(v, Enum):
             return v.name
         elif isinstance(v, set):

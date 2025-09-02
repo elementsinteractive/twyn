@@ -7,10 +7,10 @@ import pytest
 
 
 @contextmanager
-def create_tmp_file(path: Path, data: str) -> Iterator[str]:
+def create_tmp_file(path: Path, data: str) -> Iterator[Path]:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(data)
-    yield str(path)
+    yield path
 
 
 @contextmanager
@@ -28,7 +28,7 @@ def patch_pypi_packages_download(packages: Iterable[str]) -> Iterator[mock.Mock]
 
 
 @pytest.fixture
-def requirements_txt_file(tmp_path: Path) -> Iterator[str]:
+def requirements_txt_file(tmp_path: Path) -> Iterator[Path]:
     requirements_txt_file = tmp_path / "requirements.txt"
 
     data = """
@@ -41,7 +41,7 @@ def requirements_txt_file(tmp_path: Path) -> Iterator[str]:
 
 
 @pytest.fixture
-def poetry_lock_file_lt_1_5(tmp_path: Path) -> Iterator[str]:
+def poetry_lock_file_lt_1_5(tmp_path: Path) -> Iterator[Path]:
     """Poetry lock version < 1.5."""
     poetry_lock_file = tmp_path / "poetry.lock"
     data = """
@@ -88,7 +88,7 @@ def poetry_lock_file_lt_1_5(tmp_path: Path) -> Iterator[str]:
 
 
 @pytest.fixture
-def poetry_lock_file_ge_1_5(tmp_path: Path) -> Iterator[str]:
+def poetry_lock_file_ge_1_5(tmp_path: Path) -> Iterator[Path]:
     """Poetry lock version >= 1.5."""
     poetry_lock_file = tmp_path / "poetry.lock"
     data = """
@@ -132,7 +132,7 @@ def poetry_lock_file_ge_1_5(tmp_path: Path) -> Iterator[str]:
 
 
 @pytest.fixture
-def uv_lock_file(tmp_path: Path) -> Iterator[str]:
+def uv_lock_file(tmp_path: Path) -> Iterator[Path]:
     """Uv lock file."""
     uv_lock_file = tmp_path / "uv.lock"
     data = """
@@ -177,7 +177,7 @@ def uv_lock_file(tmp_path: Path) -> Iterator[str]:
 
 
 @pytest.fixture
-def pyproject_toml_file(tmp_path: Path) -> Iterator[str]:
+def pyproject_toml_file(tmp_path: Path) -> Iterator[Path]:
     pyproject_toml = tmp_path / "pyproject.toml"
     data = """
     [tool.poetry.dependencies]

@@ -155,7 +155,7 @@ def allowlist() -> None:
 @click.option("--config", type=click.STRING)
 @click.argument("package_name")
 def add(package_name: str, config: str) -> None:
-    fh = FileHandler(config or DEFAULT_PROJECT_TOML_FILE)
+    fh = FileHandler(config or ConfigHandler.get_default_config_file_path())
     ConfigHandler(fh).add_package_to_allowlist(package_name)
 
 
