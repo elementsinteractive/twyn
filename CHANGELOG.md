@@ -1,21 +1,3 @@
-## v3.2.0 (2025-09-01)
-
-### Feat
-
-- allow to get results as json (#284)
-- allow to disable track while evaluating dependencies (#282)
-- expose `check_dependencies` to the main interface (#278)
-
-### Fix
-
-- Properly annotate `check_dependencies`'s `selector_method` arg (#287)
-
-### Docs
-
-- remove old cache file path from docs (#288)
-- fix docs (#286)
-- update docs with json and "twyn as a package" examples (#285)
-
 ## v3.1.0 (2025-08-28)
 
 ### Feat
