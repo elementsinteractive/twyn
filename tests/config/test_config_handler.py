@@ -8,6 +8,7 @@ import pytest
 from tomlkit import TOMLDocument, dumps, parse
 from twyn.base.constants import (
     DEFAULT_PROJECT_TOML_FILE,
+    DEFAULT_SELECTOR_METHOD,
     DEFAULT_TOP_PYPI_PACKAGES,
     DEFAULT_TWYN_TOML_FILE,
     AvailableLoggingLevels,
@@ -16,6 +17,7 @@ from twyn.config.config_handler import ConfigHandler, ReadTwynConfiguration, Twy
 from twyn.config.exceptions import (
     AllowlistPackageAlreadyExistsError,
     AllowlistPackageDoesNotExistError,
+    ConfigFileNotConfiguredError,
     InvalidSelectorMethodError,
     TOMLError,
 )
@@ -30,16 +32,10 @@ class TestConfigHandler:
         raise PathNotFoundError
 
     @patch("twyn.file_handler.file_handler.FileHandler.read")
-    def test_enforce_file_error(self, mock_is_file: Mock) -> None:
-        mock_is_file.side_effect = self.throw_exception
-        with pytest.raises(TOMLError):
-            ConfigHandler(FileHandler(DEFAULT_PROJECT_TOML_FILE), enforce_file=True).resolve_config()
-
-    @patch("twyn.file_handler.file_handler.FileHandler.read")
     def test_no_enforce_file_on_non_existent_file(self, mock_is_file: Mock) -> None:
         """Resolving the config without enforcing the file to be present gives you defaults."""
         mock_is_file.side_effect = self.throw_exception
-        config = ConfigHandler(FileHandler(DEFAULT_PROJECT_TOML_FILE), enforce_file=False).resolve_config()
+        config = ConfigHandler(FileHandler(DEFAULT_PROJECT_TOML_FILE)).resolve_config()
 
         assert config == TwynConfiguration(
             dependency_file=None,
@@ -141,6 +137,28 @@ class TestConfigHandler:
             assert not twyn_path.exists()
             assert ConfigHandler.get_default_config_file_path() == str(pyproject_toml_file)
 
+    def test_no_load_config_from_cache(self, pyproject_toml_file: Path) -> None:
+        """Check that in case of not loading the config from a file we use the default values."""
+        # Config file exists
+        assert pyproject_toml_file.exists()
+
+        config = ConfigHandler().resolve_config()
+
+        assert config.allowlist == set()
+        assert config.dependency_file is None
+        assert config.logging_level == AvailableLoggingLevels.warning
+        assert config.use_cache is True
+        assert config.selector_method == DEFAULT_SELECTOR_METHOD
+        assert config.pypi_reference == DEFAULT_TOP_PYPI_PACKAGES
+
+    def test_cannot_write_if_file_not_configured(self) -> None:
+        with pytest.raises(ConfigFileNotConfiguredError, match="write operation"):
+            ConfigHandler()._write_toml(Mock())
+
+    def test_cannot_read_if_file_not_configured(self) -> None:
+        with pytest.raises(ConfigFileNotConfiguredError, match="read operation"):
+            ConfigHandler()._read_toml()
+
 
 class TestAllowlistConfigHandler:
     @patch("twyn.file_handler.file_handler.FileHandler.write")
@@ -210,7 +228,7 @@ class TestAllowlistConfigHandler:
         """Test that all valid selector methods are accepted."""
         pyproject_toml = tmp_path / "pyproject.toml"
         pyproject_toml.write_text("")
-        config = ConfigHandler(FileHandler(str(pyproject_toml)), enforce_file=False)
+        config = ConfigHandler(FileHandler(str(pyproject_toml)))
 
         # Should not raise any exception
         resolved_config = config.resolve_config(selector_method=valid_selector)
@@ -220,7 +238,7 @@ class TestAllowlistConfigHandler:
         """Test that invalid selector methods are rejected with appropriate error."""
         pyproject_toml = tmp_path / "pyproject.toml"
         pyproject_toml.write_text("")
-        config = ConfigHandler(FileHandler(str(pyproject_toml)), enforce_file=False)
+        config = ConfigHandler(FileHandler(str(pyproject_toml)))
 
         with pytest.raises(InvalidSelectorMethodError) as exc_info:
             config.resolve_config(selector_method="random-selector")

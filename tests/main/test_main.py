@@ -114,7 +114,7 @@ class TestCheckDependencies:
         3. default values
 
         """
-        handler = ConfigHandler(FileHandler(""), enforce_file=False)
+        handler = ConfigHandler(FileHandler(""))
 
         with patch.object(handler, "_read_toml", return_value=parse(dumps({"tool": {"twyn": file_config}}))):
             resolved = handler.resolve_config(

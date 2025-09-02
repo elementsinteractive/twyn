@@ -1,5 +1,5 @@
 import logging
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union
@@ -18,6 +18,7 @@ from twyn.base.constants import (
 from twyn.config.exceptions import (
     AllowlistPackageAlreadyExistsError,
     AllowlistPackageDoesNotExistError,
+    ConfigFileNotConfiguredError,
     InvalidSelectorMethodError,
     TOMLError,
 )
@@ -43,20 +44,19 @@ class TwynConfiguration:
 class ReadTwynConfiguration:
     """Configuration for twyn as set by the user. It may have None values."""
 
-    dependency_file: Optional[str]
-    selector_method: Optional[str]
-    logging_level: Optional[AvailableLoggingLevels]
-    allowlist: set[str]
-    pypi_reference: Optional[str]
-    use_cache: Optional[bool]
+    dependency_file: Optional[str] = None
+    selector_method: Optional[str] = None
+    logging_level: Optional[AvailableLoggingLevels] = None
+    allowlist: set[str] = field(default_factory=set)
+    pypi_reference: Optional[str] = None
+    use_cache: Optional[bool] = None
 
 
 class ConfigHandler:
     """Manage reading and writing configurations for Twyn."""
 
-    def __init__(self, file_handler: BaseFileHandler, enforce_file: bool = True) -> None:
+    def __init__(self, file_handler: Optional[BaseFileHandler] = None) -> None:
         self.file_handler = file_handler
-        self._enforce_file = enforce_file
 
     def resolve_config(
         self,
@@ -72,8 +72,12 @@ class ConfigHandler:
 
         It will also handle default values, when appropriate.
         """
-        toml = self._read_toml()
-        read_config = self._get_read_config(toml)
+        if self.file_handler:
+            toml = self._read_toml()
+            read_config = self._get_read_config(toml)
+        else:
+            # When we're running twyn as a package we may not be interested on loading the config from the config file.
+            read_config = ReadTwynConfiguration()
 
         # Determine final selector method from CLI, config file, or default
         final_selector_method = selector_method or read_config.selector_method or DEFAULT_SELECTOR_METHOD
@@ -150,13 +154,17 @@ class ConfigHandler:
         self._write_toml(toml)
 
     def _write_toml(self, toml: TOMLDocument) -> None:
+        if not self.file_handler:
+            raise ConfigFileNotConfiguredError("Config file not configured. Cannot perform write operation.")
         self.file_handler.write(dumps(toml))
 
     def _read_toml(self) -> TOMLDocument:
+        if not self.file_handler:
+            raise ConfigFileNotConfiguredError("Config file not configured. Cannot perform read operation.")
         try:
             return parse(self.file_handler.read())
         except PathNotFoundError:
-            if not self._enforce_file and self.file_handler.is_handler_of_file(DEFAULT_PROJECT_TOML_FILE):
+            if self.file_handler.is_handler_of_file(DEFAULT_PROJECT_TOML_FILE):
                 return TOMLDocument()
             raise TOMLError(f"Error reading toml from {self.file_handler.file_path}") from None
 
