@@ -10,7 +10,7 @@ jobs:
     container:
       image: commitizen/commitizen:4.8.3@sha256:08a078c52b368f85f34257a66e10645ee74d8cbe9b471930b80b2b4e95a9bd4a
 
-    name: "Bump version and create changelog with commitizen"
+    name: "Preview next version"
     steps:
       - uses: actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b # v2.1.1
         id: app-token
@@ -22,6 +22,10 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
           ref: ${{ github.head_ref }}
+      - name: Configure git 
+        run: |
+          git config --global --add safe.directory "*" # otherwise cz does not find .git/ directory
+
       - id: cz
         name: Preview next version
         run: |
