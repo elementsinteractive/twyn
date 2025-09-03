@@ -1,13 +1,13 @@
 [project]
 authors = [
-    {name = "Daniel Sanz", email = "imsdn4z@gmail.com"},
-    {name = "Sergio Castillo", email = "s.cast.lara@gmail.com"},
-    {name = "Ludo van Orden"},
-    {name = "Dmitrii Fedotov"},
+    { name = "Daniel Sanz", email = "imsdn4z@gmail.com" },
+    { name = "Sergio Castillo", email = "s.cast.lara@gmail.com" },
+    { name = "Ludo van Orden" },
+    { name = "Dmitrii Fedotov" },
 ]
 maintainers = [
-    {name = "Daniel Sanz", email = "imsdn4z@gmail.com"},
-    {name = "Sergio Castillo", email = "s.cast.lara@gmail.com"},
+    { name = "Daniel Sanz", email = "imsdn4z@gmail.com" },
+    { name = "Sergio Castillo", email = "s.cast.lara@gmail.com" },
 ]
 requires-python = "<4,>=3.9"
 dependencies = [
@@ -34,13 +34,7 @@ pattern = "v(?P<version>[^\\s]+)"
 packages = ["src/twyn"]
 
 [tool.hatch.build.targets.sdist]
-include = [
-    "/src",
-    "/README.md",
-    "/LICENSE",
-    "/VERSION",
-    "/pyproject.toml",
-]
+include = ["/src", "/README.md", "/LICENSE", "/VERSION", "/pyproject.toml"]
 
 [project.scripts]
 twyn = "twyn.cli:entry_point"
@@ -53,13 +47,9 @@ dev = [
     "ruff<0.12.4,>=0.5.1",
     "types-requests<3.0.0.0,>=2.32.4.20250611",
     "types-python-dateutil>=2.9.0.20250809",
-     "freezegun>=1.5.5",
+    "freezegun>=1.5.5",
 ]
-local = [
-    "ipdb<1.0.0,>=0.13.9",
-    "commitizen<5.0,>=2.38",
-    "pdbpp<1.0.0,>=0.11.6",
-]
+local = ["ipdb<1.0.0,>=0.13.9", "commitizen<5.0,>=2.38", "pdbpp<1.0.0,>=0.11.6"]
 
 
 [build-system]
@@ -73,39 +63,39 @@ line-length = 120
 src = ["twyn", "tests"]
 [tool.ruff.lint]
 select = [
-  "B",   # flake8-bugbear
-  "C",   # mccabe
-  "E",   # pycodestyle
-  "W",   # pycodestyle warnings
-  "F",   # pyflakes
-  "I",   # isort
-  "B",   # bugbear
-  "D",   # pydocstyle
-  "I",   # isort
-  "C4",  # comprehensions
-  "SIM", # simplify
-  "N",   # pep8-naming
-  "TRY", # tryceratops
-  "UP",  # pyupgrade
-  "PT",  # pytest-style
-  "TCH", # type-checking
-  "PL",  # pylint
-  "G",   # logging format
-  "TID", # tidy-imports
+    "B",   # flake8-bugbear
+    "C",   # mccabe
+    "E",   # pycodestyle
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # bugbear
+    "D",   # pydocstyle
+    "I",   # isort
+    "C4",  # comprehensions
+    "SIM", # simplify
+    "N",   # pep8-naming
+    "TRY", # tryceratops
+    "UP",  # pyupgrade
+    "PT",  # pytest-style
+    "TCH", # type-checking
+    "PL",  # pylint
+    "G",   # logging format
+    "TID", # tidy-imports
 ]
 ignore = [
-  "E501",    # line-length (enforced by black instead)
-  'D1',      # pydocstyle enforces docstrings everywhere
-  'TRY003',  # tryceratops rule not useful
-  "PLR0913", # pylint rule not useful
-  "B008",    # checks for function calls in default function arguments.
-  'D206',    # conflicts with formatter
-  'W191',    # conflicts with formatter
-  'D203',    # conflicts with formatter
-  'D211',    # conflicts with formatter
-  'D212',    # conflicts with formatter
-  'UP031',   # allow strings formated with %s
-  'PLR2004'  # magic value
+    "E501",    # line-length (enforced by black instead)
+    'D1',      # pydocstyle enforces docstrings everywhere
+    'TRY003',  # tryceratops rule not useful
+    "PLR0913", # pylint rule not useful
+    "B008",    # checks for function calls in default function arguments.
+    'D206',    # conflicts with formatter
+    'W191',    # conflicts with formatter
+    'D203',    # conflicts with formatter
+    'D211',    # conflicts with formatter
+    'D212',    # conflicts with formatter
+    'UP031',   # allow strings formated with %s
+    'PLR2004', # magic value
 ]
 
 [tool.ruff.lint.pydocstyle]
@@ -137,4 +127,21 @@ omit = ["tests/*"]
 fail_under = 95
 exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover"]
 
-
+[tool.lgtm]
+categories = ["Correctness", "Quality", "Testing", "Security"]
+model = "gemini-2.5-pro"
+silent = false
+publish = true
+ai_retries = 2
+exclude = [
+    "*.md",
+    "poetry.lock",
+    "uv.lock",
+    "gradle.lockfile",
+    "Podfile.lock",
+    "Package.resolved",
+    "Cartfile.resolved",
+    "yarn.lock",
+    "package-lock.json",
+    "pnpm-lock.yaml",
+]

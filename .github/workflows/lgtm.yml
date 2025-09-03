@@ -41,7 +41,10 @@ jobs:
 
       - name: Run LGTM Review
         run: |
-          docker run --rm elementsinteractive/lgtm-ai \
+          docker run --rm \
+          -v "${{ github.workspace }}:/workspace" \
+          -w /workspace \
+          elementsinteractive/lgtm-ai \
           review \
           --pr-url "https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}" \
           --git-api-key "${{ secrets.GITHUB_TOKEN }}" \
