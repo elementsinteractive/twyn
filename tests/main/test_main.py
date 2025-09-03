@@ -172,12 +172,12 @@ class TestCheckDependencies:
         assert TyposquatCheckResult(dependency="reqests", similars=["requests"]) in error.errors
         assert TyposquatCheckResult(dependency="my-package", similars=["mypackage"]) in error.errors
 
-    @patch("twyn.main.TopPyPiReference")
+    @patch("twyn.main.TopPyPiReference.get_packages")
     @patch("twyn.main._get_parsed_dependencies_from_file")
     def test_check_dependencies_ignores_package_in_allowlist(
-        self, mock_get_parsed_dependencies_from_file: Mock, mock_top_pypi_reference: Mock
+        self, mock_get_parsed_dependencies_from_file: Mock, mock_get_packages: Mock
     ) -> None:
-        mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
+        mock_get_packages.return_value = {"mypackage"}
         mock_get_parsed_dependencies_from_file.return_value = {"my-package"}
 
         # Verify that before the whitelist configuration the package is classified as an error.

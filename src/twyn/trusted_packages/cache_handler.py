@@ -8,8 +8,6 @@ from typing import Optional
 
 from pydantic import BaseModel, ValidationError, field_validator
 
-from twyn.base.exceptions import PackageNormalizingError
-from twyn.base.utils import normalize_packages
 from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
 from twyn.file_handler.file_handler import FileHandler
 from twyn.trusted_packages.constants import CACHE_DIR, TRUSTED_PACKAGES_MAX_RETENTION_DAYS
@@ -30,14 +28,6 @@ class CacheEntry(BaseModel):
             raise ValueError(f"Invalid saved_date format: {e}") from e
         else:
             return v
-
-    @field_validator("packages")
-    @classmethod
-    def validate_packages(cls, v: set[str]) -> set[str]:
-        try:
-            return normalize_packages(v)
-        except PackageNormalizingError as e:
-            raise ValueError(f"Failed to normalize packages: {e}") from e
 
 
 class CacheHandler:

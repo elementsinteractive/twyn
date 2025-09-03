@@ -29,3 +29,9 @@ class InvalidCacheError(TwynError):
     """Error for when the cache content is not valid."""
 
     message = "Invalid cache content"
+
+
+class PackageNormalizingError(TwynError):
+    """Exception for when it is not possible to normalize a package name."""
+
+    message = "Failed to normalize pacakges."
