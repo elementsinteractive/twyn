@@ -3,7 +3,7 @@ from typing import IO, Any, Optional
 
 import click
 
-logger = logging.getLogger("twyn.errors")
+logger = logging.getLogger("twyn")
 
 
 class TwynError(Exception):

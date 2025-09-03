@@ -1,16 +1,16 @@
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
 from tomlkit import dumps, parse
-from twyn.base.constants import DEFAULT_TOP_PYPI_PACKAGES, AvailableLoggingLevels
-from twyn.config.config_handler import ConfigHandler, TwynConfiguration, _get_logging_level
+from twyn.base.constants import DEFAULT_TOP_PYPI_PACKAGES
+from twyn.config.config_handler import ConfigHandler, TwynConfiguration
 from twyn.dependency_parser import RequirementsTxtParser
 from twyn.file_handler.file_handler import FileHandler
 from twyn.main import (
+    _get_parsed_dependencies_from_file,
     check_dependencies,
-    get_parsed_dependencies_from_file,
 )
 from twyn.trusted_packages.trusted_packages import TyposquatCheckResult, TyposquatCheckResultList
 
@@ -26,77 +26,52 @@ class TestCheckDependencies:
                 {
                     "selector_method": "first-letter",
                     "dependency_file": "requirements.txt",
-                    "verbosity": AvailableLoggingLevels.info,
+                    "use_cache": True,
+                    "pypi_reference": "https://myurl.com",
                 },
                 {
-                    "logging_level": "WARNING",
                     "selector_method": "nearby-letter",
                     "dependency_file": "poetry.lock",
-                    "allowlist": ["boto4", "boto2"],
+                    "allowlist": ["boto4", "boto2"],  # There is no allowlist option in the cli
+                    "use_cache": False,
+                    "pypi_reference": "https://mysecondurl.com",
                 },
                 TwynConfiguration(
                     dependency_file="requirements.txt",
                     selector_method="first-letter",
-                    logging_level=AvailableLoggingLevels.info,
                     allowlist={"boto4", "boto2"},
-                    pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
+                    pypi_reference="https://myurl.com",
                     use_cache=True,
                 ),
-            ),
+            ),  # CLI args take precedence over config from file
             (
+                {},
                 {
-                    "verbosity": AvailableLoggingLevels.none,
-                },
-                {
-                    "logging_level": "debug",
                     "selector_method": "nearby-letter",
                     "dependency_file": "poetry.lock",
                     "allowlist": ["boto4", "boto2"],
+                    "use_cache": False,
+                    "pypi_reference": "https://mysecondurl.com",
                 },
                 TwynConfiguration(
                     dependency_file="poetry.lock",
                     selector_method="nearby-letter",
-                    logging_level=AvailableLoggingLevels.debug,
                     allowlist={"boto4", "boto2"},
-                    pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
-                    use_cache=True,
+                    pypi_reference="https://mysecondurl.com",
+                    use_cache=False,
                 ),
-            ),
+            ),  # Config from file takes precendence over fallback values
             (
-                {
-                    "verbosity": AvailableLoggingLevels.none,
-                },
+                {},
                 {},
                 TwynConfiguration(
                     dependency_file=None,
                     selector_method="all",
-                    logging_level=AvailableLoggingLevels.warning,
                     allowlist=set(),
                     pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
                     use_cache=True,
                 ),
-            ),
-            (
-                {
-                    "verbosity": AvailableLoggingLevels.debug,
-                    "dependency_file": "requirements.txt",
-                    "use_cache": False,
-                },
-                {
-                    "logging_level": "INFO",
-                    "dependency_file": "poetry.lock",
-                    "allowlist": [],
-                    "use_cache": False,
-                },
-                TwynConfiguration(
-                    dependency_file="requirements.txt",
-                    selector_method="all",
-                    logging_level=AvailableLoggingLevels.debug,
-                    allowlist=set(),
-                    pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
-                    use_cache=False,
-                ),
-            ),
+            ),  # Fallback values
         ],
     )
     def test_options_priorities_assignation(
@@ -120,42 +95,15 @@ class TestCheckDependencies:
             resolved = handler.resolve_config(
                 selector_method=cli_config.get("selector_method"),
                 dependency_file=cli_config.get("dependency_file"),
-                verbosity=cli_config.get("verbosity"),
                 use_cache=cli_config.get("use_cache"),
             )
 
         assert resolved.dependency_file == expected_resolved_config.dependency_file
         assert resolved.selector_method == expected_resolved_config.selector_method
-        assert resolved.logging_level == expected_resolved_config.logging_level
         assert resolved.allowlist == expected_resolved_config.allowlist
         assert resolved.use_cache == expected_resolved_config.use_cache
 
-    @pytest.mark.parametrize(
-        (
-            "passed_logging_level",
-            "config",
-            "logging_level",
-        ),
-        [
-            (AvailableLoggingLevels.none, None, AvailableLoggingLevels.warning),
-            (AvailableLoggingLevels.info, None, AvailableLoggingLevels.info),
-            (AvailableLoggingLevels.debug, None, AvailableLoggingLevels.debug),
-            (AvailableLoggingLevels.none, "debug", AvailableLoggingLevels.debug),
-        ],
-    )
-    def test_logging_level(
-        self,
-        passed_logging_level: AvailableLoggingLevels,
-        config: Union[str, None],
-        logging_level: AvailableLoggingLevels,
-    ) -> None:
-        log_level = _get_logging_level(
-            cli_verbosity=passed_logging_level,
-            config_logging_level=config,
-        )
-        assert log_level == logging_level
-
-    @patch("twyn.main.get_parsed_dependencies_from_file")
+    @patch("twyn.main._get_parsed_dependencies_from_file")
     @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_check_dependencies_detects_typosquats(
         self, mock_get_packages_from_cache: Mock, mock_get_parsed_dependencies_from_file: Mock
@@ -225,7 +173,7 @@ class TestCheckDependencies:
         assert TyposquatCheckResult(dependency="my-package", similars=["mypackage"]) in error.errors
 
     @patch("twyn.main.TopPyPiReference")
-    @patch("twyn.main.get_parsed_dependencies_from_file")
+    @patch("twyn.main._get_parsed_dependencies_from_file")
     def test_check_dependencies_ignores_package_in_allowlist(
         self, mock_get_parsed_dependencies_from_file: Mock, mock_top_pypi_reference: Mock
     ) -> None:
@@ -248,7 +196,6 @@ class TestCheckDependencies:
             allowlist={"my-package"},
             dependency_file=None,
             selector_method="first-letter",
-            logging_level=AvailableLoggingLevels.info,
             pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
             use_cache=True,
         )
@@ -291,7 +238,7 @@ class TestCheckDependencies:
         )
 
     @pytest.mark.parametrize("package_name", ["my.package", "my-package", "my_package", "My.Package"])
-    @patch("twyn.main.get_parsed_dependencies_from_file")
+    @patch("twyn.main._get_parsed_dependencies_from_file")
     @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_check_dependencies_does_not_error_on_same_package(
         self, mock_get_packages_from_cache: Mock, mock_get_parsed_dependencies_from_file: Mock, package_name: Mock
@@ -312,10 +259,10 @@ class TestCheckDependencies:
     def test_get_parsed_dependencies_from_file(self, mock_parse: Mock, mock_get_dependency_parser: Mock) -> None:
         mock_get_dependency_parser.return_value = RequirementsTxtParser()
         mock_parse.return_value = {"boto3"}
-        assert get_parsed_dependencies_from_file() == {"boto3"}
+        assert _get_parsed_dependencies_from_file() == {"boto3"}
 
     @patch("twyn.main.TopPyPiReference")
-    @patch("twyn.main.get_parsed_dependencies_from_file")
+    @patch("twyn.main._get_parsed_dependencies_from_file")
     def test_track_is_disabled_by_default_when_used_as_package(
         self, mock_get_parsed_dependencies_from_file, mock_top_pypi_reference
     ) -> None:
@@ -326,12 +273,12 @@ class TestCheckDependencies:
         assert m_track.call_count == 0
 
     @patch("twyn.main.TopPyPiReference")
-    @patch("twyn.main.get_parsed_dependencies_from_file")
+    @patch("twyn.main._get_parsed_dependencies_from_file")
     def test_track_is_shown_when_enabled(
         self, mock_get_parsed_dependencies_from_file: Mock, mock_top_pypi_reference: Mock
     ) -> None:
         mock_top_pypi_reference.return_value.get_packages.return_value = {"mypackage"}
         mock_get_parsed_dependencies_from_file.return_value = {"my-package"}
         with patch("twyn.main.track") as m_track:
-            check_dependencies(use_track=True)
+            check_dependencies(show_progress_bar=True)
         assert m_track.call_count == 1

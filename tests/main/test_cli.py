@@ -4,7 +4,6 @@ from unittest.mock import Mock, call, patch
 import pytest
 from click.testing import CliRunner
 from twyn import cli
-from twyn.base.constants import AvailableLoggingLevels
 from twyn.base.exceptions import TwynError
 from twyn.trusted_packages.cache_handler import CacheEntry, CacheHandler
 from twyn.trusted_packages.trusted_packages import TyposquatCheckResult, TyposquatCheckResultList
@@ -88,9 +87,8 @@ class TestCli:
                 dependency_file="requirements.txt",
                 dependencies=None,
                 selector_method="first-letter",
-                verbosity=AvailableLoggingLevels.debug,
                 use_cache=None,
-                use_track=True,
+                show_progress_bar=True,
                 load_config_from_file=True,
             )
         ]
@@ -112,9 +110,8 @@ class TestCli:
                 dependency_file="/path/requirements.txt",
                 dependencies=None,
                 selector_method=None,
-                verbosity=AvailableLoggingLevels.none,
                 use_cache=None,
-                use_track=True,
+                show_progress_bar=True,
                 load_config_from_file=True,
             )
         ]
@@ -135,9 +132,8 @@ class TestCli:
                 dependency_file=None,
                 dependencies={"reqests"},
                 selector_method=None,
-                verbosity=AvailableLoggingLevels.none,
                 use_cache=None,
-                use_track=True,
+                show_progress_bar=True,
                 load_config_from_file=True,
             )
         ]
@@ -170,9 +166,8 @@ class TestCli:
                 dependency_file=None,
                 dependencies={"reqests", "reqeusts"},
                 selector_method=None,
-                verbosity=AvailableLoggingLevels.none,
                 use_cache=None,
-                use_track=True,
+                show_progress_bar=True,
                 load_config_from_file=True,
             )
         ]
@@ -188,9 +183,8 @@ class TestCli:
                 dependency_file=None,
                 selector_method=None,
                 dependencies=None,
-                verbosity=AvailableLoggingLevels.none,
                 use_cache=None,
-                use_track=True,
+                show_progress_bar=True,
                 load_config_from_file=True,
             )
         ]
