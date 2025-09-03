@@ -5,7 +5,6 @@ from rich.progress import track
 
 from twyn.base.constants import (
     SELECTOR_METHOD_MAPPING,
-    AvailableLoggingLevels,
     SelectorMethod,
 )
 from twyn.base.utils import normalize_packages
@@ -22,6 +21,7 @@ from twyn.trusted_packages.trusted_packages import (
 )
 
 logger = logging.getLogger("twyn")
+logger.addHandler(logging.NullHandler())
 
 
 def check_dependencies(
@@ -29,38 +29,52 @@ def check_dependencies(
     config_file: Optional[str] = None,
     dependency_file: Optional[str] = None,
     dependencies: Optional[set[str]] = None,
-    verbosity: AvailableLoggingLevels = AvailableLoggingLevels.none,
     use_cache: Optional[bool] = True,
-    use_track: bool = False,
+    show_progress_bar: bool = False,
     load_config_from_file: bool = False,
 ) -> TyposquatCheckResultList:
-    """Check if dependencies could be typosquats."""
-    config = get_config(
+    """
+    Check if the provided dependencies are potential typosquats of trusted packages.
+
+    This function analyzes a set of dependencies and determines if any of them are likely typosquats
+    (i.e., malicious or mistaken variants) of popular or trusted packages, using configurable methods
+    and references.
+
+    Args:
+        selector_method (Union[SelectorMethod, None], optional): The method used to select candidate typosquat matches.
+        config_file (Optional[str], optional): Path to a configuration file to load settings from.
+        dependency_file (Optional[str], optional): Path to a file containing the list of dependencies to check.
+        dependencies (Optional[set[str]], optional): A set of dependency names to check. If not provided, dependencies are loaded from the dependency_file.
+        use_cache (Optional[bool], optional): Whether to use cached data for package references and results. Defaults to True.
+        show_progress_bar (bool, optional): Whether to display a progress bar during processing. Defaults to False.
+        load_config_from_file (bool, optional): Whether to load configuration from the specified config_file. Defaults to False.
+
+    Returns:
+        TyposquatCheckResultList: A list of results indicating which dependencies, if any, are suspected typosquats.
+    """
+    config = _get_config(
         load_config_from_file=load_config_from_file,
         config_file=config_file,
-        verbosity=verbosity,
         selector_method=selector_method,
         dependency_file=dependency_file,
         use_cache=use_cache,
     )
-
-    _set_logging_level(config.logging_level)
 
     cache_handler = CacheHandler() if config.use_cache else None
 
     trusted_packages = TrustedPackages(
         names=TopPyPiReference(source=config.pypi_reference, cache_handler=cache_handler).get_packages(),
         algorithm=EditDistance(),
-        selector=get_candidate_selector(config.selector_method),
+        selector=_get_candidate_selector(config.selector_method),
         threshold_class=SimilarityThreshold,
     )
     normalized_allowlist_packages = normalize_packages(config.allowlist)
-    dependencies = dependencies if dependencies else get_parsed_dependencies_from_file(config.dependency_file)
+    dependencies = dependencies if dependencies else _get_parsed_dependencies_from_file(config.dependency_file)
     normalized_dependencies = normalize_packages(dependencies)
 
     typos_list = TyposquatCheckResultList()
     dependencies_list = (
-        track(normalized_dependencies, description="Processing...") if use_track else normalized_dependencies
+        track(normalized_dependencies, description="Processing...") if show_progress_bar else normalized_dependencies
     )
     for dependency in dependencies_list:
         if dependency in normalized_allowlist_packages:
@@ -74,10 +88,9 @@ def check_dependencies(
     return typos_list
 
 
-def get_config(
+def _get_config(
     load_config_from_file: bool,
     config_file: Optional[str],
-    verbosity: AvailableLoggingLevels,
     selector_method: Union[SelectorMethod, None],
     dependency_file: Optional[str],
     use_cache: Optional[bool],
@@ -87,26 +100,20 @@ def get_config(
     else:
         config_file_handler = None
     return ConfigHandler(config_file_handler).resolve_config(
-        verbosity=verbosity,
         selector_method=selector_method,
         dependency_file=dependency_file,
         use_cache=use_cache,
     )
 
 
-def _set_logging_level(logging_level: AvailableLoggingLevels) -> None:
-    logger.setLevel(logging_level.value)
-    logger.debug("Logging level: %s", logging_level.value)
-
-
-def get_candidate_selector(selector_method_name: str) -> AbstractSelector:
+def _get_candidate_selector(selector_method_name: str) -> AbstractSelector:
     logger.debug("Selector method received %s", selector_method_name)
     selector_method = SELECTOR_METHOD_MAPPING[selector_method_name]()
     logger.debug("Instantiated %s selector", selector_method)
     return selector_method
 
 
-def get_parsed_dependencies_from_file(dependency_file: Optional[str] = None) -> set[str]:
+def _get_parsed_dependencies_from_file(dependency_file: Optional[str] = None) -> set[str]:
     dependency_parser = DependencySelector(dependency_file).get_dependency_parser()
     dependencies = dependency_parser.parse()
     logger.debug("Successfully parsed local dependencies file.")

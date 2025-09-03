@@ -11,7 +11,6 @@ from twyn.base.constants import (
     DEFAULT_SELECTOR_METHOD,
     DEFAULT_TOP_PYPI_PACKAGES,
     DEFAULT_TWYN_TOML_FILE,
-    AvailableLoggingLevels,
 )
 from twyn.config.config_handler import ConfigHandler, ReadTwynConfiguration, TwynConfiguration
 from twyn.config.exceptions import (
@@ -40,7 +39,6 @@ class TestConfigHandler:
         assert config == TwynConfiguration(
             dependency_file=None,
             selector_method="all",
-            logging_level=AvailableLoggingLevels.warning,
             allowlist=set(),
             pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
             use_cache=True,
@@ -54,7 +52,6 @@ class TestConfigHandler:
         config = ConfigHandler(file_handler=FileHandler(pyproject_toml_file)).resolve_config()
         assert config.dependency_file == "my_file.txt"
         assert config.selector_method == "all"
-        assert config.logging_level == AvailableLoggingLevels.debug
         assert config.allowlist == {"boto4", "boto2"}
         assert config.use_cache is False
 
@@ -66,7 +63,6 @@ class TestConfigHandler:
         assert twyn_data == ReadTwynConfiguration(
             dependency_file="my_file.txt",
             selector_method="all",
-            logging_level="debug",
             allowlist={"boto4", "boto2"},
             pypi_reference=None,
             use_cache=False,
@@ -105,7 +101,6 @@ class TestConfigHandler:
                 "twyn": {
                     "dependency_file": "my_file.txt",
                     "selector_method": "all",
-                    "logging_level": "debug",
                     "allowlist": {},
                     "pypi_reference": DEFAULT_TOP_PYPI_PACKAGES,
                     "use_cache": False,
@@ -146,7 +141,6 @@ class TestConfigHandler:
 
         assert config.allowlist == set()
         assert config.dependency_file is None
-        assert config.logging_level == AvailableLoggingLevels.warning
         assert config.use_cache is True
         assert config.selector_method == DEFAULT_SELECTOR_METHOD
         assert config.pypi_reference == DEFAULT_TOP_PYPI_PACKAGES

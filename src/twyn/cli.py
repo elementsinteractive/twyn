@@ -11,7 +11,6 @@ from twyn.base.constants import (
     DEFAULT_PROJECT_TOML_FILE,
     DEPENDENCY_FILE_MAPPING,
     SELECTOR_METHOD_MAPPING,
-    AvailableLoggingLevels,
 )
 from twyn.base.exceptions import CliError, TwynError
 from twyn.config.config_handler import ConfigHandler
@@ -101,11 +100,9 @@ def run(
     json: bool,
 ) -> int:
     if vv:
-        verbosity = AvailableLoggingLevels.debug
+        logger.setLevel(logging.DEBUG)
     elif v:
-        verbosity = AvailableLoggingLevels.info
-    else:
-        verbosity = AvailableLoggingLevels.none
+        logger.setLevel(logging.INFO)
 
     if dependency and dependency_file:
         raise click.UsageError(
@@ -121,9 +118,8 @@ def run(
             dependencies=set(dependency) or None,
             config_file=config,
             dependency_file=dependency_file,
-            verbosity=verbosity,
             use_cache=not no_cache if no_cache is not None else no_cache,
-            use_track=False if json else not no_track,
+            show_progress_bar=False if json else not no_track,
             load_config_from_file=True,
         )
     except TwynError as e:

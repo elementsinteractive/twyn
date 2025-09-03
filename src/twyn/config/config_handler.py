@@ -13,7 +13,6 @@ from twyn.base.constants import (
     DEFAULT_TWYN_TOML_FILE,
     DEFAULT_USE_CACHE,
     SELECTOR_METHOD_KEYS,
-    AvailableLoggingLevels,
 )
 from twyn.config.exceptions import (
     AllowlistPackageAlreadyExistsError,
@@ -34,7 +33,6 @@ class TwynConfiguration:
 
     dependency_file: Optional[str]
     selector_method: str
-    logging_level: AvailableLoggingLevels
     allowlist: set[str]
     pypi_reference: str
     use_cache: bool
@@ -46,7 +44,6 @@ class ReadTwynConfiguration:
 
     dependency_file: Optional[str] = None
     selector_method: Optional[str] = None
-    logging_level: Optional[AvailableLoggingLevels] = None
     allowlist: set[str] = field(default_factory=set)
     pypi_reference: Optional[str] = None
     use_cache: Optional[bool] = None
@@ -62,7 +59,6 @@ class ConfigHandler:
         self,
         selector_method: Optional[str] = None,
         dependency_file: Optional[str] = None,
-        verbosity: AvailableLoggingLevels = AvailableLoggingLevels.none,
         use_cache: Optional[bool] = None,
     ) -> TwynConfiguration:
         """Resolve the configuration for Twyn.
@@ -99,7 +95,6 @@ class ConfigHandler:
         return TwynConfiguration(
             dependency_file=dependency_file or read_config.dependency_file,
             selector_method=final_selector_method,
-            logging_level=_get_logging_level(verbosity, read_config.logging_level),
             allowlist=read_config.allowlist,
             pypi_reference=read_config.pypi_reference or DEFAULT_TOP_PYPI_PACKAGES,
             use_cache=final_use_cache,
@@ -133,7 +128,6 @@ class ConfigHandler:
         return ReadTwynConfiguration(
             dependency_file=twyn_config_data.get("dependency_file"),
             selector_method=twyn_config_data.get("selector_method"),
-            logging_level=twyn_config_data.get("logging_level"),
             allowlist=set(twyn_config_data.get("allowlist", set())),
             pypi_reference=twyn_config_data.get("pypi_reference"),
             use_cache=twyn_config_data.get("use_cache"),
@@ -177,20 +171,6 @@ class ConfigHandler:
         if Path(DEFAULT_TWYN_TOML_FILE).exists():
             return DEFAULT_TWYN_TOML_FILE
         return DEFAULT_PROJECT_TOML_FILE
-
-
-def _get_logging_level(
-    cli_verbosity: AvailableLoggingLevels,
-    config_logging_level: Optional[str],
-) -> AvailableLoggingLevels:
-    """Return the appropriate logging level, considering that the one in config has less priority than the one passed directly."""
-    if cli_verbosity is AvailableLoggingLevels.none:
-        if config_logging_level:
-            return AvailableLoggingLevels[config_logging_level.lower()]
-        else:
-            # default logging level
-            return AvailableLoggingLevels.warning
-    return cli_verbosity
 
 
 def _serialize_config(x: Any) -> Union[Any, str, list[Any]]:

@@ -21,6 +21,7 @@
   - [Configuration file](#configuration-file)
   - [Cache](#cache)
 - [Using `Twyn` as a library](#using-twyn-as-a-library)
+  - [Logging level](#logging-level)
 
 ## Overview
 `Twyn` is a security tool that compares the name of your dependencies against a set of the most popular ones,
@@ -213,4 +214,11 @@ for typo in typos.errors:
   print(f"Dependency:{typo.dependency}")
   print(f"Did you mean any of [{','.join(typo.similars)}]")
   
+```
+### Logging level
+To override the logging level when using `Twyn` as a 3rd party library, simply override it like:
+
+```python
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("twyn").setLevel(logging.DEBUG)
 ```

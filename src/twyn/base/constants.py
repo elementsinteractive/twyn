@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from enum import Enum
 from typing import TYPE_CHECKING, Literal
 
 from twyn import dependency_parser
@@ -30,10 +29,3 @@ DEFAULT_PROJECT_TOML_FILE = "pyproject.toml"
 DEFAULT_TWYN_TOML_FILE = "twyn.toml"
 DEFAULT_TOP_PYPI_PACKAGES = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages.min.json"
 DEFAULT_USE_CACHE = True
-
-
-class AvailableLoggingLevels(Enum):
-    none = "NONE"
-    debug = "DEBUG"
-    info = "INFO"
-    warning = "WARNING"
