@@ -61,6 +61,12 @@ def entry_point() -> None:
     ),
 )
 @click.option(
+    "--package-ecosystem",
+    type=click.Choice(["pypi", "npm"]),
+    default=None,
+    help="Package ecosystem for dependency analysis (pypi or npm).",
+)
+@click.option(
     "-v",
     default=False,
     is_flag=True,
@@ -98,6 +104,7 @@ def run(
     no_cache: Optional[bool],
     no_track: bool,
     json: bool,
+    package_ecosystem: Optional[str],
 ) -> int:
     if vv:
         logger.setLevel(logging.DEBUG)
@@ -121,6 +128,7 @@ def run(
             use_cache=not no_cache if no_cache is not None else no_cache,
             show_progress_bar=False if json else not no_track,
             load_config_from_file=True,
+            package_ecosystem=package_ecosystem,
         )
     except TwynError as e:
         raise CliError(str(e)) from e

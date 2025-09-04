@@ -2,7 +2,7 @@ import logging
 import re
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 import requests
 from typing_extensions import override
@@ -11,7 +11,7 @@ from twyn.trusted_packages.cache_handler import CacheEntry, CacheHandler
 from twyn.trusted_packages.exceptions import (
     EmptyPackagesListError,
     InvalidJSONError,
-    InvalidPyPiFormatError,
+    InvalidReferenceFormatError,
     PackageNormalizingError,
 )
 
@@ -27,8 +27,10 @@ class AbstractPackageReference:
     It defines the `normalize_package` abstract method, so each subclass validates that the packages names are correct.
     """
 
-    def __init__(self, source: str, cache_handler: Union[CacheHandler, None] = None) -> None:
-        self.source = source
+    DEFAULT_SOURCE: str
+
+    def __init__(self, source: Optional[str] = None, cache_handler: Union[CacheHandler, None] = None) -> None:
+        self.source = source or self.DEFAULT_SOURCE
         self.cache_handler = cache_handler
 
     @staticmethod
@@ -79,7 +81,7 @@ class AbstractPackageReference:
 
         if not packages_to_use:
             # no cache usage, no cache hit (non-existent or outdated) or cache was empty.
-            logger.info("Fetching trusted packages from PyPI reference...")
+            logger.info("Fetching trusted packages from trusted packages reference...")
             packages_to_use = self._parse(self._download())
 
             # New packages were downloaded, we create a new entry updating all values.
@@ -92,13 +94,15 @@ class AbstractPackageReference:
 class TopPyPiReference(AbstractPackageReference):
     """Top PyPi packages retrieved from an online source."""
 
+    DEFAULT_SOURCE: str = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages.min.json"
+
     @override
     @staticmethod
     def _parse(packages_info: dict[str, Any]) -> set[str]:
         try:
             names = {row["project"] for row in packages_info["rows"]}
         except KeyError as err:
-            raise InvalidPyPiFormatError from err
+            raise InvalidReferenceFormatError from err
 
         if not names:
             raise EmptyPackagesListError
@@ -110,6 +114,9 @@ class TopPyPiReference(AbstractPackageReference):
     @staticmethod
     def normalize_packages(packages: set[str]) -> set[str]:
         """Normalize dependency names according to PyPi https://packaging.python.org/en/latest/specifications/name-normalization/."""
+        if not packages:
+            logger.debug("Tried to normalize packages, but none were provided")
+            return set()
         renamed_packages = {re.sub(r"[-_.]+", "-", name).lower() for name in packages}
 
         pattern = re.compile(r"^([a-z0-9]|[a-z0-9][a-z0-9._-]*[a-z0-9])\Z")  # noqa: F821
@@ -118,3 +125,39 @@ class TopPyPiReference(AbstractPackageReference):
                 raise PackageNormalizingError(f"Package name '{package}' does not match required pattern")
 
         return renamed_packages
+
+
+class TopNpmReference(AbstractPackageReference):
+    """Top npm packages retrieved from an online source."""
+
+    DEFAULT_SOURCE: str = "https://www.npmleaderboard.org/api/packages"
+
+    @override
+    @staticmethod
+    def _parse(packages_info: dict[str, Any]) -> set[str]:
+        try:
+            names = {pkg["name"] for pkg in packages_info["packages"]}
+
+        except KeyError as err:
+            raise InvalidReferenceFormatError from err
+
+        if not names:
+            raise EmptyPackagesListError
+
+        logger.debug("Successfully parsed trusted packages list")
+        return names
+
+    @override
+    @staticmethod
+    def normalize_packages(packages: set[str]) -> set[str]:
+        """Normalize dependency names according to npm."""
+        if not packages:
+            logger.debug("Tried to normalize packages, but none were provided")
+            return set()
+
+        pattern = re.compile(r"^(?:@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$")  # noqa: F821
+        for package in packages:
+            if not pattern.match(package.lower()):
+                raise PackageNormalizingError(f"Package name '{package}' does not match required pattern")
+
+        return packages

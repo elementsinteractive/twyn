@@ -9,10 +9,10 @@ from tomlkit import TOMLDocument, dumps, parse, table
 from twyn.base.constants import (
     DEFAULT_PROJECT_TOML_FILE,
     DEFAULT_SELECTOR_METHOD,
-    DEFAULT_TOP_PYPI_PACKAGES,
     DEFAULT_TWYN_TOML_FILE,
     DEFAULT_USE_CACHE,
     SELECTOR_METHOD_KEYS,
+    PackageEcosystems,
 )
 from twyn.config.exceptions import (
     AllowlistPackageAlreadyExistsError,
@@ -34,8 +34,9 @@ class TwynConfiguration:
     dependency_file: Optional[str]
     selector_method: str
     allowlist: set[str]
-    pypi_reference: str
+    source: Optional[str]
     use_cache: bool
+    package_ecosystem: Optional[PackageEcosystems]
 
 
 @dataclass
@@ -45,8 +46,9 @@ class ReadTwynConfiguration:
     dependency_file: Optional[str] = None
     selector_method: Optional[str] = None
     allowlist: set[str] = field(default_factory=set)
-    pypi_reference: Optional[str] = None
+    source: Optional[str] = None
     use_cache: Optional[bool] = None
+    package_ecosystem: Optional[PackageEcosystems] = None
 
 
 class ConfigHandler:
@@ -60,6 +62,7 @@ class ConfigHandler:
         selector_method: Optional[str] = None,
         dependency_file: Optional[str] = None,
         use_cache: Optional[bool] = None,
+        package_ecosystem: Optional[PackageEcosystems] = None,
     ) -> TwynConfiguration:
         """Resolve the configuration for Twyn.
 
@@ -96,8 +99,9 @@ class ConfigHandler:
             dependency_file=dependency_file or read_config.dependency_file,
             selector_method=final_selector_method,
             allowlist=read_config.allowlist,
-            pypi_reference=read_config.pypi_reference or DEFAULT_TOP_PYPI_PACKAGES,
+            source=read_config.source,
             use_cache=final_use_cache,
+            package_ecosystem=package_ecosystem or read_config.package_ecosystem,
         )
 
     def add_package_to_allowlist(self, package_name: str) -> None:
@@ -129,7 +133,7 @@ class ConfigHandler:
             dependency_file=twyn_config_data.get("dependency_file"),
             selector_method=twyn_config_data.get("selector_method"),
             allowlist=set(twyn_config_data.get("allowlist", set())),
-            pypi_reference=twyn_config_data.get("pypi_reference"),
+            source=twyn_config_data.get("source"),
             use_cache=twyn_config_data.get("use_cache"),
         )
 

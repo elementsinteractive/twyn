@@ -2,8 +2,8 @@ import sys
 
 from dparse import filetypes
 
-from twyn.dependency_parser.abstract_parser import AbstractParser
-from twyn.dependency_parser.constants import UV_LOCK
+from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
+from twyn.dependency_parser.parsers.constants import UV_LOCK
 
 if sys.version_info >= (3, 11):
     import tomllib

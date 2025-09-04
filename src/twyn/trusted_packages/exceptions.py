@@ -7,7 +7,7 @@ class InvalidJSONError(TwynError):
     message = "Could not json decode the downloaded packages list"
 
 
-class InvalidPyPiFormatError(TwynError):
+class InvalidReferenceFormatError(TwynError):
     """Exception raised when PyPI JSON format is invalid."""
 
     message = "Invalid JSON format."
@@ -35,3 +35,15 @@ class PackageNormalizingError(TwynError):
     """Exception for when it is not possible to normalize a package name."""
 
     message = "Failed to normalize pacakges."
+
+
+class InvalidSelectorMethodError(TwynError):
+    """Exception raised when an invalid selector method is provided."""
+
+    message = "Invalid selector method specified."
+
+
+class InvalidArgumentsError(TwynError):
+    """Exception raised when invalid arguments are passed to a function or method."""
+
+    message = "Invalid arguments provided."

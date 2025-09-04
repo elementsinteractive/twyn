@@ -29,7 +29,8 @@ class SimilarityThreshold:
         if name_length <= cls.LENGTH_CUTOFF:
             logger.debug("max length of %s selected for %s", cls.MAX_FOR_SHORT_WORDS, name)
             return cls(max=cls.MAX_FOR_SHORT_WORDS)
-        logger.debug("max length of {cls.MAX_FOR_LONG_WORDS} selected for %s", name)
+
+        logger.debug("max length of %d selected for %s", cls.MAX_FOR_LONG_WORDS, name)
         return cls(max=cls.MAX_FOR_LONG_WORDS)  # we allow more typos if the name is longer
 
     def is_inside_threshold(self, value: float) -> bool:

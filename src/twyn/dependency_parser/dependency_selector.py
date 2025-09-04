@@ -2,11 +2,11 @@ import logging
 from typing import Optional
 
 from twyn.base.constants import DEPENDENCY_FILE_MAPPING
-from twyn.dependency_parser.abstract_parser import AbstractParser
 from twyn.dependency_parser.exceptions import (
     MultipleParsersError,
     NoMatchingParserError,
 )
+from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
 
 logger = logging.getLogger("twyn")
 
@@ -24,12 +24,13 @@ class DependencySelector:
             raise NoMatchingParserError
 
     def auto_detect_dependency_file_parser(self) -> type[AbstractParser]:
-        parsers = [
+        parsers: list[AbstractParser] = [
             dependency_parser
             for dependency_parser in DEPENDENCY_FILE_MAPPING.values()
             if dependency_parser().file_exists()
         ]
         self._raise_for_selected_parsers(parsers)
+        self.dependency_file = parsers[0]().file_path
         logger.debug("Dependencies file found")
         return parsers[0]
 
@@ -45,8 +46,6 @@ class DependencySelector:
         return parsers[0]
 
     def get_dependency_parser(self) -> AbstractParser:
-        logger.debug("Dependency file: %s", self.dependency_file)
-
         if self.dependency_file:
             logger.debug("Dependency file provided. Assigning a parser.")
             dependency_file_parser = self.get_dependency_file_parser_from_file_name()

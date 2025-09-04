@@ -6,17 +6,16 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 from freezegun import freeze_time
-from twyn.base.constants import DEFAULT_TOP_PYPI_PACKAGES
 from twyn.trusted_packages import TopPyPiReference
 from twyn.trusted_packages.cache_handler import CacheEntry, CacheHandler
 from twyn.trusted_packages.exceptions import (
     EmptyPackagesListError,
     InvalidJSONError,
-    InvalidPyPiFormatError,
+    InvalidReferenceFormatError,
 )
-from twyn.trusted_packages.references import AbstractPackageReference
+from twyn.trusted_packages.references import AbstractPackageReference, TopNpmReference
 
-from tests.conftest import patch_pypi_packages_download
+from tests.conftest import patch_npm_packages_download, patch_pypi_packages_download
 
 
 class TestAbstractPackageReference:
@@ -31,73 +30,6 @@ class TestAbstractPackageReference:
             "foo",
             "bar",
         }
-
-
-class TestTopPyPiReference:
-    @freeze_time("2025-8-21", tz_offset=0)
-    def test_cache_is_saved_when_not_existing(self, tmp_path: Path) -> None:
-        """Test that cache starts empty and gets filled after downloading packages."""
-        cached_packages = {"numpy", "requests", "django"}
-        cache_handler = CacheHandler(str(tmp_path / "cache"))
-        with patch_pypi_packages_download(cached_packages) as m_pypi:
-            pypi_ref = TopPyPiReference(source="pypi", cache_handler=cache_handler)
-
-            retrieved_packages = pypi_ref.get_packages()
-
-        # The packages were downloaded and match the expected result
-        assert m_pypi.call_count == 1
-        assert retrieved_packages == cached_packages
-
-        # The packages were saved to the cache file, with its associated metadata
-        cache_content = cache_handler.get_cache_entry("pypi")
-
-        assert set(cache_content.packages) == cached_packages
-        assert cache_content.saved_date == "2025-08-21"
-
-    def test_get_trusted_packages(self, tmp_path: Path) -> None:
-        test_packages = ["foo", "bar", "django", "requests", "sqlalchemy"]
-
-        with patch_pypi_packages_download(test_packages) as m_pypi:
-            ref = TopPyPiReference(
-                source=DEFAULT_TOP_PYPI_PACKAGES, cache_handler=CacheHandler(str(tmp_path / "cache"))
-            )
-            packages = ref.get_packages()
-
-        assert packages == {"foo", "bar", "django", "requests", "sqlalchemy"}
-        assert m_pypi.call_count == 1
-
-    def test__parse_no_rows(self) -> None:
-        data = {"bananas": 5}
-        top_pypi = TopPyPiReference(source="foo", cache_handler=CacheHandler())
-
-        with pytest.raises(InvalidPyPiFormatError, match="Invalid JSON format."):
-            top_pypi._parse(data)
-
-    def test_empty_packages_list_exception(self) -> None:
-        with pytest.raises(
-            EmptyPackagesListError,
-            match="Downloaded packages list is empty",
-        ):
-            TopPyPiReference._parse({"rows": []})
-
-    def test__parse_retrieves_package_names(self) -> None:
-        data = {"rows": [{"project": "boto3"}, {"project": "requests"}]}
-        top_pypi = TopPyPiReference(source="foo", cache_handler=CacheHandler())
-
-        assert top_pypi._parse(data) == {"boto3", "requests"}
-
-    @patch("requests.get")
-    def test__download_json_exception(self, mock_get: Mock) -> None:
-        mock_get.return_value.json.side_effect = requests.exceptions.JSONDecodeError(
-            "This exception will be mapped and never shown", "", 1
-        )
-        top_pypi = TopPyPiReference(source="foo", cache_handler=CacheHandler())
-
-        with pytest.raises(
-            InvalidJSONError,
-            match="Could not json decode the downloaded packages list",
-        ):
-            top_pypi._download()
 
     @freeze_time("2025-8-19")
     def test_get_trusted_packages_uses_valid_cache(self, tmp_path: Path) -> None:
@@ -174,3 +106,100 @@ class TestTopPyPiReference:
         # Should download from source due to invalid package names in cache
         assert mock_pypi.call_count == 1
         assert result == {"valid-package", "another-valid", "third-valid"}
+
+    @freeze_time("2025-8-21", tz_offset=0)
+    def test_cache_is_saved_when_not_existing(self, tmp_path: Path) -> None:
+        """Test that cache starts empty and gets filled after downloading packages."""
+        cached_packages = {"numpy", "requests", "django"}
+        cache_handler = CacheHandler(str(tmp_path / "cache"))
+        with patch_pypi_packages_download(cached_packages) as m_pypi:
+            pypi_ref = TopPyPiReference(source="pypi", cache_handler=cache_handler)
+
+            retrieved_packages = pypi_ref.get_packages()
+
+        # The packages were downloaded and match the expected result
+        assert m_pypi.call_count == 1
+        assert retrieved_packages == cached_packages
+
+        # The packages were saved to the cache file, with its associated metadata
+        cache_content = cache_handler.get_cache_entry("pypi")
+
+        assert set(cache_content.packages) == cached_packages
+        assert cache_content.saved_date == "2025-08-21"
+
+    @patch("requests.get")
+    def test__download_json_exception(self, mock_get: Mock) -> None:
+        mock_get.return_value.json.side_effect = requests.exceptions.JSONDecodeError(
+            "This exception will be mapped and never shown", "", 1
+        )
+        top_pypi = TopPyPiReference(source="foo", cache_handler=CacheHandler())
+
+        with pytest.raises(
+            InvalidJSONError,
+            match="Could not json decode the downloaded packages list",
+        ):
+            top_pypi._download()
+
+
+class TestTopPyPiReference:
+    def test_get_trusted_packages(self, tmp_path: Path) -> None:
+        test_packages = ["foo", "bar", "django", "requests", "sqlalchemy"]
+
+        with patch_pypi_packages_download(test_packages) as m_pypi:
+            ref = TopPyPiReference(cache_handler=CacheHandler(str(tmp_path / "cache")))
+            packages = ref.get_packages()
+
+        assert packages == {"foo", "bar", "django", "requests", "sqlalchemy"}
+        assert m_pypi.call_count == 1
+
+    def test__parse_no_rows(self) -> None:
+        data = {"bananas": 5}
+        top_pypi = TopPyPiReference(source="foo", cache_handler=CacheHandler())
+
+        with pytest.raises(InvalidReferenceFormatError, match="Invalid JSON format."):
+            top_pypi._parse(data)
+
+    def test_empty_packages_list_exception(self) -> None:
+        with pytest.raises(
+            EmptyPackagesListError,
+            match="Downloaded packages list is empty",
+        ):
+            TopPyPiReference._parse({"rows": []})
+
+    def test__parse_retrieves_package_names(self) -> None:
+        data = {"rows": [{"project": "boto3"}, {"project": "requests"}]}
+        top_pypi = TopPyPiReference(source="foo", cache_handler=CacheHandler())
+
+        assert top_pypi._parse(data) == {"boto3", "requests"}
+
+
+class TestTopNpmReference:
+    def test_get_trusted_packages_v2(self, tmp_path: Path) -> None:
+        test_packages = ["foo", "bar", "react", "express", "lodash"]
+
+        with patch_npm_packages_download(test_packages) as m_npm:
+            ref = TopNpmReference(cache_handler=CacheHandler(str(tmp_path / "cache")))
+            packages = ref.get_packages()
+
+        assert packages == {"foo", "bar", "react", "express", "lodash"}
+        assert m_npm.call_count == 1
+
+    def test__parse_no_rows(self) -> None:
+        data = {"bananas": 5}
+        npm_ref = TopNpmReference(source="foo", cache_handler=CacheHandler())
+
+        with pytest.raises(InvalidReferenceFormatError, match="Invalid JSON format."):
+            npm_ref._parse(data)
+
+    def test_empty_packages_list_exception(self) -> None:
+        with pytest.raises(
+            EmptyPackagesListError,
+            match="Downloaded packages list is empty",
+        ):
+            TopNpmReference._parse({"packages": []})
+
+    def test__parse_retrieves_package_names(self) -> None:
+        data = {"packages": [{"name": "react"}, {"name": "express"}]}
+        npm_ref = TopNpmReference(source="foo", cache_handler=CacheHandler())
+
+        assert npm_ref._parse(data) == {"react", "express"}

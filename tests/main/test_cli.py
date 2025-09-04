@@ -90,6 +90,7 @@ class TestCli:
                 use_cache=None,
                 show_progress_bar=True,
                 load_config_from_file=True,
+                package_ecosystem=None,
             )
         ]
 
@@ -113,6 +114,31 @@ class TestCli:
                 use_cache=None,
                 show_progress_bar=True,
                 load_config_from_file=True,
+                package_ecosystem=None,
+            )
+        ]
+
+    @patch("twyn.cli.check_dependencies")
+    def test_package_ecosystem_option(self, mock_check_dependencies: Mock) -> None:
+        runner = CliRunner()
+        runner.invoke(
+            cli.run,
+            [
+                "--package-ecosystem",
+                "pypi",
+            ],
+        )
+
+        assert mock_check_dependencies.call_args_list == [
+            call(
+                config_file=None,
+                dependency_file=None,
+                dependencies=None,
+                selector_method=None,
+                use_cache=None,
+                show_progress_bar=True,
+                load_config_from_file=True,
+                package_ecosystem="pypi",
             )
         ]
 
@@ -135,6 +161,7 @@ class TestCli:
                 use_cache=None,
                 show_progress_bar=True,
                 load_config_from_file=True,
+                package_ecosystem=None,
             )
         ]
 
@@ -169,6 +196,7 @@ class TestCli:
                 use_cache=None,
                 show_progress_bar=True,
                 load_config_from_file=True,
+                package_ecosystem=None,
             )
         ]
 
@@ -186,6 +214,7 @@ class TestCli:
                 use_cache=None,
                 show_progress_bar=True,
                 load_config_from_file=True,
+                package_ecosystem=None,
             )
         ]
 
