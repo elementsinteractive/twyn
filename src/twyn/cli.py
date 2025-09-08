@@ -123,7 +123,7 @@ def run(
             load_config_from_file=True,
         )
     except TwynError as e:
-        raise CliError(e.message) from e
+        raise CliError(str(e)) from e
     except Exception as e:
         raise CliError("Unhandled exception occured.") from e
 
