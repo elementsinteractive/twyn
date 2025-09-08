@@ -249,13 +249,37 @@ class TestCli:
         assert "Dependency file name not supported." in result.output
 
     @patch("twyn.cli.check_dependencies")
-    def test_base_twyn_error_is_caught_and_wrapped_in_cli_error(self, mock_check_dependencies, caplog):
+    def test_custom_twyn_error_is_caught_and_wrapped_in_cli_error(self, mock_check_dependencies, caplog):
         """Test that BaseTwynError is caught and wrapped in CliError."""
+
+        class CustomError(TwynError):
+            message = "Test base error message"
+
         runner = CliRunner()
 
         # Mock check_dependencies to raise a BaseTwynError
-        test_error = TwynError("Test base error")
-        test_error.message = "Test base error message"
+        test_error = CustomError("Custom error")
+        mock_check_dependencies.side_effect = test_error
+
+        result = runner.invoke(cli.run, ["--dependency", "requests"])
+
+        assert result.exit_code == 1
+        assert isinstance(result.exception, SystemExit)
+        # Check that the error message was logged
+        assert "Custom error" in caplog.text
+        assert "Test base error mesasge " not in caplog.text
+
+    @patch("twyn.cli.check_dependencies")
+    def test_default_twyn_error_is_caught_and_wrapped_in_cli_error(self, mock_check_dependencies, caplog):
+        """Test that BaseTwynError is caught and wrapped in CliError."""
+
+        class CustomError(TwynError):
+            message = "Test base error message"
+
+        runner = CliRunner()
+
+        # Mock check_dependencies to raise a BaseTwynError
+        test_error = CustomError()
         mock_check_dependencies.side_effect = test_error
 
         result = runner.invoke(cli.run, ["--dependency", "requests"])
