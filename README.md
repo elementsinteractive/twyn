@@ -113,6 +113,7 @@ The following dependency file formats are supported:
 - `requirements.txt`
 - `poetry.lock`
 - `uv.lock`
+- `package-lock.json` (v1, v2, v3)
 
 ### Check dependencies introduced through the CLI
 
@@ -166,7 +167,7 @@ dependency_file="/my/path/requirements.txt"
 selector_method="first_letter"
 logging_level="debug"
 allowlist=["my_package"]
-pypi_reference="https://mirror-with-trusted-dependencies.com/file.json"
+source="https://mirror-with-trusted-dependencies.com/file.json"
 ```
 
 > [!WARNING]

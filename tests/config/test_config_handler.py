@@ -9,7 +9,6 @@ from tomlkit import TOMLDocument, dumps, parse
 from twyn.base.constants import (
     DEFAULT_PROJECT_TOML_FILE,
     DEFAULT_SELECTOR_METHOD,
-    DEFAULT_TOP_PYPI_PACKAGES,
     DEFAULT_TWYN_TOML_FILE,
 )
 from twyn.config.config_handler import ConfigHandler, ReadTwynConfiguration, TwynConfiguration
@@ -40,8 +39,9 @@ class TestConfigHandler:
             dependency_file=None,
             selector_method="all",
             allowlist=set(),
-            pypi_reference=DEFAULT_TOP_PYPI_PACKAGES,
+            source=None,
             use_cache=True,
+            package_ecosystem=None,
         )
 
     def test_config_raises_for_unknown_file(self) -> None:
@@ -64,7 +64,7 @@ class TestConfigHandler:
             dependency_file="my_file.txt",
             selector_method="all",
             allowlist={"boto4", "boto2"},
-            pypi_reference=None,
+            source=None,
             use_cache=False,
         )
 
@@ -102,7 +102,6 @@ class TestConfigHandler:
                     "dependency_file": "my_file.txt",
                     "selector_method": "all",
                     "allowlist": {},
-                    "pypi_reference": DEFAULT_TOP_PYPI_PACKAGES,
                     "use_cache": False,
                 },
             }
@@ -143,7 +142,7 @@ class TestConfigHandler:
         assert config.dependency_file is None
         assert config.use_cache is True
         assert config.selector_method == DEFAULT_SELECTOR_METHOD
-        assert config.pypi_reference == DEFAULT_TOP_PYPI_PACKAGES
+        assert config.source is None
 
     def test_cannot_write_if_file_not_configured(self) -> None:
         with pytest.raises(ConfigFileNotConfiguredError, match="write operation"):

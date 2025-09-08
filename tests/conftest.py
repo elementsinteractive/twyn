@@ -27,6 +27,19 @@ def patch_pypi_packages_download(packages: Iterable[str]) -> Iterator[mock.Mock]
         yield mock_download
 
 
+@contextmanager
+def patch_npm_packages_download(packages: Iterable[str]) -> Iterator[mock.Mock]:
+    """Patcher of `requests.get` for Top Npm list.
+
+    Replaces call with the output you would get from downloading the top Npm packages list.
+    """
+    json_response = {"packages": [{"name": name} for name in packages]}
+
+    with mock.patch("twyn.trusted_packages.references.TopNpmReference._download") as mock_download:
+        mock_download.return_value = json_response
+        yield mock_download
+
+
 @pytest.fixture
 def requirements_txt_file(tmp_path: Path) -> Iterator[Path]:
     requirements_txt_file = tmp_path / "requirements.txt"
@@ -177,6 +190,32 @@ def uv_lock_file(tmp_path: Path) -> Iterator[Path]:
 
 
 @pytest.fixture
+def uv_lock_file_with_typo(tmp_path: Path) -> Iterator[Path]:
+    """Uv lock file with a typo."""
+    uv_lock_file = tmp_path / "uv.lock"
+    data = """
+            version = 1
+            revision = 2
+            requires-python = ">=3.13, <4"
+
+            [[package]]
+            name = "reqests"
+
+
+            [[package]]
+            name = "anyio"
+
+
+            [[package]]
+            name = "argcomplete"
+
+
+        """
+    with create_tmp_file(uv_lock_file, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
 def pyproject_toml_file(tmp_path: Path) -> Iterator[Path]:
     pyproject_toml = tmp_path / "pyproject.toml"
     data = """
@@ -200,4 +239,146 @@ def pyproject_toml_file(tmp_path: Path) -> Iterator[Path]:
     use_cache=false
     """
     with create_tmp_file(pyproject_toml, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
+def package_lock_json_file_v2(tmp_path: Path) -> Iterator[Path]:
+    """NPM package-lock.json file."""
+    package_lock_file = tmp_path / "package-lock.json"
+    data = """{
+        "name": "test-project",
+        "version": "1.0.0",
+        "lockfileVersion": 2,
+        "requires": true,
+        "packages": {
+            "": {
+            "name": "test-project",
+            "version": "1.0.0",
+            "dependencies": {
+                "express": "4.18.2"
+            }
+            },
+            "node_modules/express": {
+            "version": "4.18.2",
+            "resolved": "https://registry.npmjs.org/express/-/express-4.18.2.tgz",
+            "integrity": "sha512-express",
+            "dependencies": {
+                "body-parser": "1.20.1"
+            }
+            },
+            "node_modules/body-parser": {
+            "version": "1.20.1",
+            "resolved": "https://registry.npmjs.org/body-parser/-/body-parser-1.20.1.tgz",
+            "integrity": "sha512-bodyparser",
+            "dependencies": {
+                "debug": "2.6.9"
+            }
+            },
+            "node_modules/debug": {
+            "version": "2.6.9",
+            "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
+            "integrity": "sha512-debug"
+            }
+        },
+        "dependencies": {
+            "express": {
+            "version": "4.18.2",
+            "requires": {
+                "body-parser": "1.20.1"
+            },
+            "dependencies": {
+                "body-parser": {
+                "version": "1.20.1",
+                "requires": {
+                    "debug": "2.6.9"
+                }
+                }
+            }
+            }
+        }
+        }
+        """
+    with create_tmp_file(package_lock_file, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
+def package_lock_json_file_v1(tmp_path: Path) -> Iterator[Path]:
+    """NPM package-lock.json v1 file."""
+    package_lock_file = tmp_path / "package-lock.json"
+    data = """{
+        "name": "test-project",
+        "version": "1.0.0",
+        "lockfileVersion": 1,
+        "requires": true,
+        "dependencies": {
+            "express": {
+                "version": "4.18.2",
+                "resolved": "https://registry.npmjs.org/express/-/express-4.18.2.tgz",
+                "integrity": "sha512-express",
+                "requires": { "body-parser": "1.20.1" },
+                "dependencies": {
+                    "body-parser": {
+                        "version": "1.20.1",
+                        "resolved": "https://registry.npmjs.org/body-parser/-/body-parser-1.20.1.tgz",
+                        "integrity": "sha512-bodyparser",
+                        "requires": { "debug": "2.6.9" },
+                        "dependencies": {
+                            "debug": {
+                                "version": "2.6.9",
+                                "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
+                                "integrity": "sha512-debug"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }"""
+    with create_tmp_file(package_lock_file, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
+def package_lock_json_file_v3(tmp_path: Path) -> Iterator[Path]:
+    """NPM package-lock.json v3 file."""
+    package_lock_file = tmp_path / "package-lock.json"
+    data = """{
+        "name": "test-project",
+        "version": "1.0.0",
+        "lockfileVersion": 3,
+        "requires": true,
+        "packages": {
+            "": {
+                "name": "test-project",
+                "version": "1.0.0",
+                "dependencies": {
+                    "express": "4.18.2"
+                }
+            },
+            "node_modules/express": {
+                "version": "4.18.2",
+                "resolved": "https://registry.npmjs.org/express/-/express-4.18.2.tgz",
+                "integrity": "sha512-express",
+                "dependencies": {
+                    "body-parser": "1.20.1"
+                }
+            },
+            "node_modules/body-parser": {
+                "version": "1.20.1",
+                "resolved": "https://registry.npmjs.org/body-parser/-/body-parser-1.20.1.tgz",
+                "integrity": "sha512-bodyparser",
+                "dependencies": {
+                    "debug": "2.6.9"
+                }
+            },
+            "node_modules/debug": {
+                "version": "2.6.9",
+                "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
+                "integrity": "sha512-debug"
+            }
+        }
+    }"""
+    with create_tmp_file(package_lock_file, data) as tmp_file:
         yield tmp_file

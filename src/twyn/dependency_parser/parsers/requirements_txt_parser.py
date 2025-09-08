@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from dparse import filetypes, parse
 
-from twyn.dependency_parser.abstract_parser import AbstractParser
+from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
 
 if TYPE_CHECKING:
     from dparse.dependencies import Dependency, DependencyFile
