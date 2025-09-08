@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 from twyn.dependency_parser import PackageLockJsonParser, PoetryLockParser, RequirementsTxtParser, UvLockParser
 from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
+from twyn.dependency_parser.parsers.yarn_lock_parser import YarnLockParser
 from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
 
 
@@ -89,3 +90,15 @@ class TestPackageLockJsonParser:
         assert "body-parser" in result
         assert "debug" in result
         assert "test-project" not in result
+
+
+class TestYarnLockParser:
+    def test_parse_yarn_lock_v1(self, yarn_lock_file_v1: Path) -> None:
+        parser = YarnLockParser(file_path=str(yarn_lock_file_v1))
+
+        assert parser.parse() == {"lodash", "react", "react-dom"}
+
+    def test_parse_yarn_lock_v2(self, yarn_lock_file_v2: Path) -> None:
+        parser = YarnLockParser(file_path=str(yarn_lock_file_v2))
+
+        assert parser.parse() == {"dependencies", "react-dom", "lodash", "version", "cacheKey", "resolution", "react"}

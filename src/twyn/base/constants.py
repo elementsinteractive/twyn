@@ -25,6 +25,7 @@ DEPENDENCY_FILE_MAPPING: dict[str, type[AbstractParser]] = {
     "poetry.lock": dependency_parser.PoetryLockParser,
     "uv.lock": dependency_parser.UvLockParser,
     "package-lock.json": dependency_parser.PackageLockJsonParser,
+    "yarn.lock": dependency_parser.YarnLockParser,
 }
 
 

@@ -6,14 +6,14 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 from freezegun import freeze_time
-from twyn.trusted_packages import TopPyPiReference
+from twyn.trusted_packages import TopNpmReference, TopPyPiReference
 from twyn.trusted_packages.cache_handler import CacheEntry, CacheHandler
 from twyn.trusted_packages.exceptions import (
     EmptyPackagesListError,
     InvalidJSONError,
     InvalidReferenceFormatError,
 )
-from twyn.trusted_packages.references import AbstractPackageReference, TopNpmReference
+from twyn.trusted_packages.references.base import AbstractPackageReference
 
 from tests.conftest import patch_npm_packages_download, patch_pypi_packages_download
 

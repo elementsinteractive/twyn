@@ -6,17 +6,17 @@ import pytest
 from tomlkit import dumps, parse
 from twyn.config.config_handler import ConfigHandler, TwynConfiguration
 from twyn.config.exceptions import InvalidSelectorMethodError
-from twyn.dependency_managers.dependency_manager import (
+from twyn.dependency_managers.exceptions import NoMatchingDependencyManagerError
+from twyn.dependency_managers.utils import (
     get_dependency_manager_from_file,
     get_dependency_manager_from_name,
 )
-from twyn.dependency_managers.exceptions import NoMatchingDependencyManagerError
 from twyn.file_handler.file_handler import FileHandler
 from twyn.main import (
     check_dependencies,
 )
+from twyn.trusted_packages import TopPyPiReference
 from twyn.trusted_packages.exceptions import InvalidArgumentsError
-from twyn.trusted_packages.references import TopPyPiReference
 from twyn.trusted_packages.trusted_packages import TyposquatCheckResult, TyposquatCheckResultList
 
 from tests.conftest import create_tmp_file, patch_npm_packages_download
@@ -111,7 +111,7 @@ class TestCheckDependencies:
         assert resolved.allowlist == expected_resolved_config.allowlist
         assert resolved.use_cache == expected_resolved_config.use_cache
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference.get_packages")
+    @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     def test_check_dependencies_detects_typosquats_from_file(
         self, mock_get_packages: Mock, uv_lock_file_with_typo: Path
     ) -> None:
@@ -128,7 +128,7 @@ class TestCheckDependencies:
             errors=[TyposquatCheckResult(dependency="reqests", similars=["requests"])]
         )
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference.get_packages")
+    @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     def test_check_dependencies_detects_typosquats_from_file_and_language_is_set(
         self, mock_get_packages: Mock, uv_lock_file_with_typo: Path
     ) -> None:
@@ -146,7 +146,7 @@ class TestCheckDependencies:
             errors=[TyposquatCheckResult(dependency="reqests", similars=["requests"])]
         )
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference.get_packages")
+    @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     @patch("twyn.main._get_config")
     @patch("twyn.dependency_parser.parsers.abstract_parser.Path")
     def test_check_dependencies_detects_typosquats_and_autodetects_file(
@@ -175,7 +175,7 @@ class TestCheckDependencies:
             errors=[TyposquatCheckResult(dependency="reqests", similars=["requests"])]
         )
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference.get_packages")
+    @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     @patch("twyn.main._get_config")
     @patch("twyn.dependency_parser.parsers.abstract_parser.Path")
     def test_check_dependencies_detects_typosquats_and_autodetects_file_and_language_is_set(
@@ -204,7 +204,7 @@ class TestCheckDependencies:
             errors=[TyposquatCheckResult(dependency="reqests", similars=["requests"])]
         )
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache_if_enabled")
+    @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_check_dependencies_with_input_from_cli_detects_typosquats(
         self, mock_get_packages_from_cache: Mock
     ) -> None:
@@ -218,7 +218,7 @@ class TestCheckDependencies:
             errors=[TyposquatCheckResult(dependency="my-package", similars=["mypackage"])]
         )
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache_if_enabled")
+    @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_check_dependencies_with_input_loads_file_from_different_location(
         self, mock_get_packages_from_cache: Mock, tmp_path: Path
     ) -> None:
@@ -236,7 +236,7 @@ class TestCheckDependencies:
             errors=[TyposquatCheckResult(dependency="mypackag", similars=["mypackage"])]
         )
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache_if_enabled")
+    @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_check_dependencies_with_input_from_cli_accepts_multiple_dependencies(
         self, mock_get_packages_from_cache: Mock
     ) -> None:
@@ -254,7 +254,7 @@ class TestCheckDependencies:
         assert TyposquatCheckResult(dependency="reqests", similars=["requests"]) in error.errors
         assert TyposquatCheckResult(dependency="my-package", similars=["mypackage"]) in error.errors
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference.get_packages")
+    @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     def test_check_dependencies_ignores_package_in_allowlist(
         self, mock_get_packages: Mock, uv_lock_file_with_typo: Path
     ) -> None:
@@ -295,7 +295,7 @@ class TestCheckDependencies:
             "My.Package",
         ],
     )
-    @patch("twyn.trusted_packages.references.TopPyPiReference._get_packages_from_cache_if_enabled")
+    @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_normalize_package(self, mock_get_packages_from_cache: Mock, package_name: Mock) -> None:
         mock_get_packages_from_cache.return_value = {"requests", "mypackage"}
         error = check_dependencies(
@@ -312,7 +312,7 @@ class TestCheckDependencies:
             ]
         )
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference.get_packages")
+    @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     def test_check_dependencies_does_not_error_on_same_package(
         self, mock_get_packages: Mock, uv_lock_file_with_typo: Path
     ) -> None:
@@ -324,7 +324,7 @@ class TestCheckDependencies:
 
         assert error == TyposquatCheckResultList(errors=[])
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference.get_packages")
+    @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     @patch("twyn.main._get_config")
     def test_track_is_disabled_by_default_when_used_as_package(
         self, mock_config: Mock, mock_get_packages: Mock, uv_lock_file: Path
@@ -342,7 +342,7 @@ class TestCheckDependencies:
             check_dependencies()
         assert m_track.call_count == 0
 
-    @patch("twyn.trusted_packages.references.TopPyPiReference.get_packages")
+    @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     @patch("twyn.main._get_config")
     def test_track_is_shown_when_enabled(self, mock_config: Mock, mock_get_packages: Mock, uv_lock_file: Path) -> None:
         mock_config.return_value = TwynConfiguration(
@@ -386,12 +386,21 @@ class TestCheckDependencies:
         assert m_download.call_count == 1
         assert found == {"express"}
 
-    def test_get_top_reference_from_file_no_matching_parser_error(self):
+    def test_get_top_reference_from_file_no_matching_parser_error(self) -> None:
         """Test that get_top_reference_from_file raises NoMatchingParserError for unknown file type."""
         with pytest.raises(NoMatchingDependencyManagerError):
             get_dependency_manager_from_file("unknown.lock")
 
-    def test_get_top_reference_from_name_no_matching_parser_error(self):
+    def test_get_top_reference_from_name_no_matching_parser_error(self) -> None:
         """Test that get_top_reference_from_name raises NoMatchingParserError for unknown language name."""
         with pytest.raises(NoMatchingDependencyManagerError):
             get_dependency_manager_from_name("unknownlang")
+
+    def test_check_dependencies_yarn(self, yarn_lock_file_v1: Path) -> None:
+        """Verifies that the yarn flow is working."""
+        with patch_npm_packages_download(["lodas"]) as mock_download:
+            result = check_dependencies(dependency_file=str(yarn_lock_file_v1), use_cache=False)
+        found = {e.dependency for e in result.errors}
+
+        assert mock_download.call_count == 1
+        assert found == {"lodash"}
