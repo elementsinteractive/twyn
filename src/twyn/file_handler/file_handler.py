@@ -3,7 +3,7 @@ import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any
+from typing import TextIO
 
 from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
 
@@ -26,7 +26,7 @@ class FileHandler:
         return content
 
     @contextmanager
-    def open(self, mode="r") -> Iterator[Any]:
+    def open(self, mode="r") -> Iterator[TextIO]:
         self._raise_for_file_exists()
 
         with self.file_path.open(mode) as fp:

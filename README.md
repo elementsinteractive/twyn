@@ -114,6 +114,7 @@ The following dependency file formats are supported:
 - `poetry.lock`
 - `uv.lock`
 - `package-lock.json` (v1, v2, v3)
+- `yarn.lock` (v1, v2)
 
 ### Check dependencies introduced through the CLI
 

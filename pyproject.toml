@@ -19,6 +19,7 @@ dependencies = [
     "tomlkit<0.14.0,>=0.11.6",
     "tomli<3.0.0,>=2.2.1; python_version < \"3.13\"",
     "pydantic>=2.11.7,<3.0.0",
+    "pyyaml>=6.0.2",
 ]
 name = "twyn"
 description = "Security tool against dependency typosquatting attacks"
@@ -47,6 +48,7 @@ dev = [
     "types-requests<3.0.0.0,>=2.32.4.20250611",
     "types-python-dateutil>=2.9.0.20250809",
     "freezegun>=1.5.5",
+    "types-pyyaml>=6.0.12.20250822",
 ]
 local = ["ipdb<1.0.0,>=0.13.9", "commitizen<5.0,>=2.38", "pdbpp<1.0.0,>=0.11.6"]
 

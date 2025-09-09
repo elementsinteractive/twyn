@@ -10,7 +10,7 @@ from twyn.base.constants import (
 )
 from twyn.config.config_handler import ConfigHandler, TwynConfiguration
 from twyn.config.exceptions import InvalidSelectorMethodError
-from twyn.dependency_managers.dependency_manager import (
+from twyn.dependency_managers.utils import (
     PACKAGE_ECOSYSTEMS,
     get_dependency_manager_from_file,
     get_dependency_manager_from_name,
@@ -20,7 +20,7 @@ from twyn.file_handler.file_handler import FileHandler
 from twyn.similarity.algorithm import EditDistance, SimilarityThreshold
 from twyn.trusted_packages.cache_handler import CacheHandler
 from twyn.trusted_packages.exceptions import InvalidArgumentsError
-from twyn.trusted_packages.references import AbstractPackageReference
+from twyn.trusted_packages.references.base import AbstractPackageReference
 from twyn.trusted_packages.trusted_packages import (
     TrustedPackages,
     TyposquatCheckResultList,
