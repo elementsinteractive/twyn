@@ -4,7 +4,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union
 
-from tomlkit import TOMLDocument, dumps, parse, table
+from tomlkit import TOMLDocument, dumps, load, table
 
 from twyn.base.constants import (
     DEFAULT_PROJECT_TOML_FILE,
@@ -22,7 +22,7 @@ from twyn.config.exceptions import (
     TOMLError,
 )
 from twyn.file_handler.exceptions import PathNotFoundError
-from twyn.file_handler.file_handler import BaseFileHandler
+from twyn.file_handler.file_handler import FileHandler
 
 logger = logging.getLogger("twyn")
 
@@ -54,7 +54,7 @@ class ReadTwynConfiguration:
 class ConfigHandler:
     """Manage reading and writing configurations for Twyn."""
 
-    def __init__(self, file_handler: Optional[BaseFileHandler] = None) -> None:
+    def __init__(self, file_handler: Optional[FileHandler] = None) -> None:
         self.file_handler = file_handler
 
     def resolve_config(
@@ -160,7 +160,8 @@ class ConfigHandler:
         if not self.file_handler:
             raise ConfigFileNotConfiguredError("Config file not configured. Cannot perform read operation.")
         try:
-            return parse(self.file_handler.read())
+            with self.file_handler.open("rb") as fp:
+                return load(fp)
         except PathNotFoundError:
             if self.file_handler.is_handler_of_file(DEFAULT_PROJECT_TOML_FILE):
                 return TOMLDocument()

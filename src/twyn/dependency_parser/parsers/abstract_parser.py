@@ -22,9 +22,6 @@ class AbstractParser(ABC):
     def __str__(self) -> str:
         return self.__class__.__name__
 
-    def _read(self) -> str:
-        return self.file_handler.read()
-
     def file_exists(self) -> bool:
         return self.file_handler.exists()
 

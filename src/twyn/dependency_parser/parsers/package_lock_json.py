@@ -14,7 +14,7 @@ class PackageLockJsonParser(AbstractParser):
 
         It supports v1, v2 and v3.
         """
-        data = json.loads(self._read())
+        data = json.loads(self.file_handler.read())
         result: set[str] = set()
 
         # Handle v1 & v2

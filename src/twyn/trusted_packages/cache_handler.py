@@ -8,7 +8,6 @@ from typing import Optional
 
 from pydantic import BaseModel, ValidationError, field_validator
 
-from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
 from twyn.file_handler.file_handler import FileHandler
 from twyn.trusted_packages.constants import CACHE_DIR, TRUSTED_PACKAGES_MAX_RETENTION_DAYS
 
@@ -47,14 +46,13 @@ class CacheHandler:
     def get_cache_entry(self, source: str) -> Optional[CacheEntry]:
         """Retrieve cache entry from source-specific cache file."""
         file_handler = self._get_file_handler(source)
-        try:
-            content = file_handler.read()
-        except (PathNotFoundError, PathIsNotFileError):
+        if not file_handler.exists():
             logger.debug("Cache file not found: %s", file_handler.file_path)
             return None
 
         try:
-            json_content = json.loads(content)
+            with file_handler.open("rb") as fp:
+                json_content = json.load(fp)
         except json.JSONDecodeError as e:
             logger.warning("Failed to decode JSON from cache file %s: %s", file_handler.file_path, e)
             return None

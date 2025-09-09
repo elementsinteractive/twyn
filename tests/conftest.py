@@ -47,6 +47,11 @@ def requirements_txt_file(tmp_path: Path) -> Iterator[Path]:
     data = """
         South==1.0.1 --hash=sha256:abcdefghijklmno
         pycrypto>=2.6
+        requests~=2.25.1
+        django[postgres]>=3.2
+        -e git+https://github.com/psf/requests.git#egg=requests
+        https://github.com/psf/requests3.git#egg=urllib3
+        Flask; python_version<'3.8'
         """
 
     with create_tmp_file(requirements_txt_file, data) as tmp_file:

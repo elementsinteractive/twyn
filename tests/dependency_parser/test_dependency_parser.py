@@ -42,7 +42,7 @@ class TestAbstractParser:
 class TestRequirementsTxtParser:
     def test_parse_requirements_txt_file(self, requirements_txt_file: Path) -> None:
         parser = RequirementsTxtParser(file_path=requirements_txt_file)
-        assert parser.parse() == {"South", "pycrypto"}
+        assert parser.parse() == {"South", "pycrypto", "Flask", "django", "requests", "urllib3"}
 
 
 class TestLockParser:

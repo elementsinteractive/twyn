@@ -1,9 +1,7 @@
 import sys
 
-from dparse import filetypes
-
 from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
-from twyn.dependency_parser.parsers.constants import UV_LOCK
+from twyn.dependency_parser.parsers.constants import POETRY_LOCK, UV_LOCK
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -16,14 +14,14 @@ class TomlLockParser(AbstractParser):
 
     def parse(self) -> set[str]:
         """Parse dependencies names and map them to a set."""
-        data = tomllib.loads(self._read())
+        data = tomllib.loads(self.file_handler.read())
         return {dependency["name"] for dependency in data["package"]}
 
 
 class PoetryLockParser(TomlLockParser):
     """Parser for poetry.lock files."""
 
-    def __init__(self, file_path: str = filetypes.poetry_lock) -> None:
+    def __init__(self, file_path: str = POETRY_LOCK) -> None:
         super().__init__(file_path)
 
 
