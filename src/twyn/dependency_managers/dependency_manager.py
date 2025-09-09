@@ -1,10 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from dparse import filetypes
-
 from twyn.dependency_managers.exceptions import NoMatchingDependencyManagerError
-from twyn.dependency_parser.parsers.constants import PACKAGE_LOCK_JSON, UV_LOCK
+from twyn.dependency_parser.parsers.constants import PACKAGE_LOCK_JSON, POETRY_LOCK, REQUIREMENTS_TXT, UV_LOCK
 from twyn.trusted_packages.references import AbstractPackageReference, TopNpmReference, TopPyPiReference
 
 
@@ -32,7 +30,7 @@ class BaseDependencyManager:
 class PypiDependencyManager(BaseDependencyManager):
     name = "pypi"
     trusted_packages_source = TopPyPiReference
-    dependency_files = {UV_LOCK, filetypes.poetry_lock, filetypes.requirements_txt}
+    dependency_files = {UV_LOCK, POETRY_LOCK, REQUIREMENTS_TXT}
 
 
 @dataclass

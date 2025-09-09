@@ -1,21 +1,16 @@
 import logging
 import os
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Protocol
+from typing import Any
 
 from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
 
 logger = logging.getLogger("twyn")
 
 
-class BaseFileHandler(Protocol):
-    def read(self) -> str: ...
-    def exists(self) -> bool: ...
-    def write(self, data: str) -> None: ...
-    def delete(self, remove_parent_dir: bool) -> None: ...
-
-
-class FileHandler(BaseFileHandler):
+class FileHandler:
     def __init__(self, file_path: str) -> None:
         self.file_path = self._get_file_path(file_path)
 
@@ -29,6 +24,14 @@ class FileHandler(BaseFileHandler):
         logger.debug("Successfully read content from local dependencies file")
 
         return content
+
+    @contextmanager
+    def open(self, mode="r") -> Iterator[Any]:
+        self._raise_for_file_exists()
+
+        with self.file_path.open(mode) as fp:
+            yield fp
+        logger.debug("Successfully read content from local dependencies file")
 
     def exists(self) -> bool:
         try:
