@@ -154,3 +154,39 @@ class TestCacheHandler:
 
         # Should not raise any errors
         assert True
+
+    def test_get_cache_entry_json_decode_error(self, tmp_path, caplog):
+        """Test get_cache_entry handles JSONDecodeError and logs a warning."""
+        cache_handler = CacheHandler(str(tmp_path))
+        source = "bad-json"
+        fpath = tmp_path / f"{cache_handler.get_cache_file_path(source)}"
+        fpath.parent.mkdir(parents=True, exist_ok=True)
+        fpath.write_text("not a json")
+        with caplog.at_level("WARNING"):
+            result = cache_handler.get_cache_entry(source)
+        assert result is None
+        assert any("Failed to decode JSON" in m for m in caplog.messages)
+
+    def test_get_cache_entry_validation_error(self, tmp_path, caplog):
+        """Test get_cache_entry handles ValidationError and logs a warning, clears entry."""
+        cache_handler = CacheHandler(str(tmp_path))
+        source = "bad-entry"
+        fpath = tmp_path / f"{cache_handler.get_cache_file_path(source)}"
+        # Write valid JSON but invalid CacheEntry (missing packages)
+        fpath.parent.mkdir(parents=True, exist_ok=True)
+        fpath.write_text('{"saved_date": "2025-01-01"}')
+        with caplog.at_level("WARNING"):
+            result = cache_handler.get_cache_entry(source)
+        assert result is None
+        assert any("Could not read cache for source" in m for m in caplog.messages)
+        assert not fpath.exists()  # Should be deleted
+
+    def test__clear_entry_deletes_file(self, tmp_path):
+        cache_handler = CacheHandler(str(tmp_path))
+        source = "to-delete"
+        fpath = tmp_path / f"{cache_handler.get_cache_file_path(source)}"
+        fpath.parent.mkdir(parents=True, exist_ok=True)
+        fpath.write_text('{"saved_date": "2025-01-01", "packages": ["pkg"]}')
+        assert fpath.exists()
+        cache_handler._clear_entry(source)
+        assert not fpath.exists()
