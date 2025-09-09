@@ -5,7 +5,7 @@ run := "uv run"
 
 venv-exists := path_exists(venv)
 
-target_dirs := "src tests"
+target_dirs := "src tests dependencies"
 
 # ALIASES
 alias t := test
@@ -53,3 +53,6 @@ build: venv
 # Install package in development mode
 install-dev: venv
     uv pip install -e .
+
+download ecosystem: venv
+    uv run dependencies/scripts/download_packages.py run --ecosystem {{ecosystem}}

@@ -1,0 +1,38 @@
+name: Scheduled Pipeline
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"  # every Monday at 00:00 UTC
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b # v2.1.1
+          id: app-token
+          with:
+            app-id: ${{ vars.ELEMENTSINTERACTIVE_BOT_APP_ID }}
+            private-key: ${{ secrets.ELEMENTSINTERACTIVE_BOT_PRIVATE_KEY }}
+        - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+          with:
+            fetch-depth: 0
+            token: ${{ steps.app-token.outputs.token }}
+            ref: ${{ github.head_ref }}
+        - name: Install uv
+          uses: astral-sh/setup-uv@557e51de59eb14aaaba2ed9621916900a91d50c6 # v6.6.1
+
+        - name: Install the project
+          run: uv sync --locked --only-group download
+
+        - name: Download packages from trusted sources
+          run: |
+            uv run dependencies/scripts/download_packages.py run --ecosystem pypi 
+            uv run dependencies/scripts/download_packages.py run --ecosystem npm 
+        
+        - name: Push changes to repo
+          run: |
+            git add .
+            git commit -m "chore: Weekly update of trusted packages"
+            git push origin HEAD:main
