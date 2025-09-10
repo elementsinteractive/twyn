@@ -1,4 +1,5 @@
-from collections.abc import Iterable, Iterator
+import datetime
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from unittest import mock
@@ -14,12 +15,12 @@ def create_tmp_file(path: Path, data: str) -> Iterator[Path]:
 
 
 @contextmanager
-def patch_pypi_packages_download(packages: Iterable[str]) -> Iterator[mock.Mock]:
+def patch_pypi_packages_download(packages: list[str]) -> Iterator[mock.Mock]:
     """Patcher of `requests.get` for Top PyPi list.
 
     Replaces call with the output you would get from downloading the top PyPi packages list.
     """
-    json_response = {"rows": [{"project": name} for name in packages]}
+    json_response = {"packages": packages, "date": datetime.datetime.now().isoformat()}
 
     with mock.patch("twyn.trusted_packages.TopPyPiReference._download") as mock_download:
         mock_download.return_value = json_response
@@ -28,12 +29,12 @@ def patch_pypi_packages_download(packages: Iterable[str]) -> Iterator[mock.Mock]
 
 
 @contextmanager
-def patch_npm_packages_download(packages: Iterable[str]) -> Iterator[mock.Mock]:
+def patch_npm_packages_download(packages: list[str]) -> Iterator[mock.Mock]:
     """Patcher of `requests.get` for Top Npm list.
 
     Replaces call with the output you would get from downloading the top Npm packages list.
     """
-    json_response = {"packages": [{"name": name} for name in packages]}
+    json_response = {"packages": packages, "date": datetime.datetime.now().isoformat()}
 
     with mock.patch("twyn.trusted_packages.TopNpmReference._download") as mock_download:
         mock_download.return_value = json_response

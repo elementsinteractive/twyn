@@ -6,6 +6,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=yellow)](https://pypi.org/project/twyn/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License](https://img.shields.io/github/license/elementsinteractive/twyn)](LICENSE)
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -171,18 +172,14 @@ allowlist=["my_package"]
 source="https://mirror-with-trusted-dependencies.com/file.json"
 ```
 
-> [!WARNING]
-> `twyn` will have a default reference URL for every source of trusted packages that is configurable.
-> If you want to protect yourself against spoofing attacks, it is recommended to set your own
-> reference url.
-
 The file format for each reference is as follows:
 
-- **PyPI reference**:
-
-```ts
+```jsonc
 {
-    rows: {project: string}[]
+  "date": "string (ISO 8601 format, e.g. 2025-09-10T14:23:00+00)",
+  "packages": [
+    { "name": "string" }
+  ]
 }
 ```
 

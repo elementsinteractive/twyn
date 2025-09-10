@@ -1,12 +1,9 @@
 import logging
 import re
-from typing import Any
 
 from typing_extensions import override
 
 from twyn.trusted_packages.exceptions import (
-    EmptyPackagesListError,
-    InvalidReferenceFormatError,
     PackageNormalizingError,
 )
 from twyn.trusted_packages.references.base import AbstractPackageReference
@@ -17,22 +14,9 @@ logger = logging.getLogger("twyn")
 class TopNpmReference(AbstractPackageReference):
     """Top npm packages retrieved from an online source."""
 
-    DEFAULT_SOURCE: str = "https://www.npmleaderboard.org/api/packages"
-
-    @override
-    @staticmethod
-    def _parse(packages_info: dict[str, Any]) -> set[str]:
-        try:
-            names = {pkg["name"] for pkg in packages_info["packages"]}
-
-        except KeyError as err:
-            raise InvalidReferenceFormatError from err
-
-        if not names:
-            raise EmptyPackagesListError
-
-        logger.debug("Successfully parsed trusted packages list")
-        return names
+    DEFAULT_SOURCE: str = (
+        "https://raw.githubusercontent.com/elementsinteractive/twyn/refs/heads/main/dependencies/npm.json"
+    )
 
     @override
     @staticmethod

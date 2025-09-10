@@ -7,6 +7,7 @@ import requests
 
 from twyn.trusted_packages.cache_handler import CacheEntry, CacheHandler
 from twyn.trusted_packages.exceptions import (
+    EmptyPackagesListError,
     InvalidJSONError,
 )
 
@@ -30,24 +31,17 @@ class AbstractPackageReference:
 
     @staticmethod
     @abstractmethod
-    def _parse(packages_json: dict[str, Any]) -> set[str]:
-        """Parse and retrieve the packages within the given json structure."""
-
-    @staticmethod
-    @abstractmethod
     def normalize_packages(packages: set[str]) -> set[str]:
         """Normalize package names to make sure they're valid within the package manager context."""
 
     def _download(self) -> dict[str, Any]:
-        packages = requests.get(self.source)
-        packages.raise_for_status()
+        response = requests.get(self.source)
+        response.raise_for_status()
+
         try:
-            packages_json: dict[str, Any] = packages.json()
+            return response.json()
         except requests.exceptions.JSONDecodeError as err:
             raise InvalidJSONError from err
-        else:
-            logger.debug("Successfully downloaded trusted packages list from %s", self.source)
-            return packages_json
 
     def _save_trusted_packages_to_cache_if_enabled(self, packages: set[str]) -> None:
         """Save trusted packages using CacheHandler."""
@@ -69,18 +63,24 @@ class AbstractPackageReference:
         return cache_entry.packages
 
     def get_packages(self) -> set[str]:
-        """Download and parse online source of top Python Package Index packages."""
-        packages_to_use = set()
-        packages_to_use = self._get_packages_from_cache_if_enabled()
+        """Download and parse online source of top packages from the package ecosystem."""
+        packages = self._get_packages_from_cache_if_enabled()
         # we don't save the cache here, we keep it as it is so the date remains the original one.
-
-        if not packages_to_use:
+        if not packages:
             # no cache usage, no cache hit (non-existent or outdated) or cache was empty.
             logger.info("Fetching trusted packages from trusted packages reference...")
-            packages_to_use = self._parse(self._download())
+            data = self._download()
+            try:
+                packages = set(data["packages"])
+            except KeyError as err:
+                raise InvalidJSONError("`packages` key not in JSON.") from err
+
+            logger.debug("Successfully downloaded trusted packages list from %s", self.source)
+            if not packages:
+                raise EmptyPackagesListError
 
             # New packages were downloaded, we create a new entry updating all values.
-            self._save_trusted_packages_to_cache_if_enabled(packages_to_use)
+            self._save_trusted_packages_to_cache_if_enabled(packages)
 
-        normalized_packages = self.normalize_packages(packages_to_use)
+        normalized_packages = self.normalize_packages(packages)
         return normalized_packages

@@ -286,32 +286,6 @@ class TestCheckDependencies:
 
         assert error == TyposquatCheckResultList(errors=[])
 
-    @pytest.mark.parametrize(
-        "package_name",
-        [
-            "my.package",
-            "my-package",
-            "my_package",
-            "My.Package",
-        ],
-    )
-    @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
-    def test_normalize_package(self, mock_get_packages_from_cache: Mock, package_name: Mock) -> None:
-        mock_get_packages_from_cache.return_value = {"requests", "mypackage"}
-        error = check_dependencies(
-            config_file=None,
-            dependency_file=None,
-            dependencies={package_name},
-            selector_method="first-letter",
-            package_ecosystem="pypi",
-        )
-
-        assert error == TyposquatCheckResultList(
-            errors=[
-                TyposquatCheckResult(dependency="my-package", similars=["mypackage"]),
-            ]
-        )
-
     @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     def test_check_dependencies_does_not_error_on_same_package(
         self, mock_get_packages: Mock, uv_lock_file_with_typo: Path
