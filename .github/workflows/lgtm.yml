@@ -46,7 +46,7 @@ jobs:
           -w /workspace \
           elementsinteractive/lgtm-ai \
           review \
-          --pr-url "https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}" \
           --git-api-key "${{ secrets.GITHUB_TOKEN }}" \
           --ai-api-key "${{ secrets.AI_API_TOKEN }}" \
-          -vv
+          -vv \
+          "https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}"
