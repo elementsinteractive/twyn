@@ -1,4 +1,4 @@
-name: Scheduled Pipeline
+name: Weekly download
 
 on:
   schedule:
@@ -7,7 +7,7 @@ on:
 
 
 jobs:
-  build:
+  download:
     runs-on: ubuntu-latest
     steps:
         - uses: actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b # v2.1.1
@@ -28,9 +28,9 @@ jobs:
 
         - name: Download packages from trusted sources
           run: |
-            uv run dependencies/scripts/download_packages.py run --ecosystem pypi 
-            uv run dependencies/scripts/download_packages.py run --ecosystem npm 
-        
+            uv run --no-project dependencies/scripts/download_packages.py download pypi || echo 'Failed to download trusted pypi packages'
+            uv run --no-project dependencies/scripts/download_packages.py donwload npm || echo 'Failed to download trusted npm packages'
+            
         - name: Push changes to repo
           run: |
             git add .
