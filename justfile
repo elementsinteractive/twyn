@@ -55,4 +55,4 @@ install-dev: venv
     uv pip install -e .
 
 download ecosystem: venv
-    uv run dependencies/scripts/download_packages.py run --ecosystem {{ecosystem}}
+    uv run --no-project dependencies/scripts/download_packages.py download {{ecosystem}}

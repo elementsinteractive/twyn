@@ -1,10 +1,20 @@
 import json
+import logging
+from datetime import datetime
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import click
 import httpx
 import stamina
+
+logger = logging.getLogger("weekly_download")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 
 def parse_npm(data: list[dict[str, Any]]) -> list[str]:
@@ -33,31 +43,35 @@ def entry_point() -> None:
 
 
 @entry_point.command()
-@click.option(
-    "--ecosystem",
+@click.argument(
+    "ecosystem",
     type=str,
     required=True,
-    help="Package ecosystem to download packages from.",
 )
-def run(ecosystem: str) -> None:
+def download(ecosystem: str) -> None:
     for attempt in stamina.retry_context(
         on=(
             httpx.TransportError,
             httpx.TimeoutException,
         ),
         attempts=3,
-        timeout=60,
+        wait_jitter=1,
+        wait_exp_base=2,
+        wait_max=8,
     ):
-        with attempt, httpx.Client() as client:
+        with attempt, httpx.Client(timeout=30) as client:
+            logger.info("Attempting to download %s packages. Attempt #%d.", ecosystem, attempt.num)
             response = client.get(ECOSYSTEMS[ecosystem]["url"])  # type: ignore[arg-type]
-        response.raise_for_status()
+            response.raise_for_status()
 
     fpath = Path("dependencies") / f"{ecosystem}.json"
 
-    data = ECOSYSTEMS[ecosystem]["parser"](response.json())  # type: ignore[operator]
-
+    packages = ECOSYSTEMS[ecosystem]["parser"](response.json())  # type: ignore[operator]
+    data = {"date": datetime.now(ZoneInfo("UTC")).isoformat(), "packages": packages}
     with open(str(fpath), "w") as fp:
         json.dump(data, fp)
+
+    logger.info("Saved `%s` file.", fpath)
 
 
 if __name__ == "__main__":
