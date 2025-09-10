@@ -29,8 +29,13 @@ jobs:
         - name: Download packages from trusted sources
           run: |
             uv run --no-project dependencies/scripts/download_packages.py download pypi || echo 'Failed to download trusted pypi packages'
-            uv run --no-project dependencies/scripts/download_packages.py donwload npm || echo 'Failed to download trusted npm packages'
-            
+            uv run --no-project dependencies/scripts/download_packages.py download npm || echo 'Failed to download trusted npm packages'
+        
+        - name: Configure git
+          run: |
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+ 
         - name: Push changes to repo
           run: |
             git add .
