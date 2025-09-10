@@ -1,3 +1,66 @@
+## v4.0.0 (2025-09-10)
+
+### Feat
+
+- use repo as source of truth (#317)
+- save trusted packages in the repo (#314)
+- add support for yarn.lock files (#308)
+- add support for package-lock.json files (#305)
+- make config file optional (#295)
+- allow to set use_cache from config file (#292)
+- load config from `twyn.toml` if it exists (#291)
+
+### Fix
+
+- remove wrong formatting in weekly_download.yml (#319)
+- add git configuration to weekly download (#318)
+- properly propagate error messages (#306)
+
+### Refactor
+
+- Improve weekly download flow (#316)
+- rewrite requirements.txt parser and change the way we read files (#311)
+- Abstract general behaviour from TopPypiReference (#299)
+- remove custom logging implementation (#302)
+
+### CI
+
+- adapt to breaking change in lgtm-ai (#315)
+- add lgtm options (#301)
+- fix preview bump version (#298)
+- preview next version job (#296)
+- bump checkout action to 5.0.0 in docker-build action (#289)
+
+### Technical
+
+- manual update of dependencies (#320)
+- Weekly update of trusted packages
+- bump the patch-updates group with 2 updates (#309)
+- Docker Hub badge (#304)
+- Revert "bump: version 3.1.0 → 3.2.0" (#297)
+
+### Tests
+
+- improve cache handler testing (#310)
+
+## v3.2.0 (2025-09-01)
+
+### Feat
+
+- allow to get results as json (#284)
+- allow to disable track while evaluating dependencies (#282)
+- expose `check_dependencies` to the main interface (#278)
+
+### Fix
+
+- Properly annotate `check_dependencies`'s `selector_method` arg (#287)
+
+### Docs
+
+- remove old cache file path from docs (#288)
+- fix docs (#286)
+- update docs with json and "twyn as a package" examples (#285)
+
 ## v3.1.0 (2025-08-28)
 
 ### Feat
