@@ -2,29 +2,38 @@ import logging
 import sys
 from typing import Optional
 
-import click
-from rich.console import Console
-from rich.logging import RichHandler
-
 from twyn.__version__ import __version__
 from twyn.base.constants import (
     DEFAULT_PROJECT_TOML_FILE,
     DEPENDENCY_FILE_MAPPING,
     SELECTOR_METHOD_MAPPING,
 )
-from twyn.base.exceptions import CliError, TwynError
+from twyn.base.exceptions import TwynError
 from twyn.config.config_handler import ConfigHandler
 from twyn.file_handler.file_handler import FileHandler
 from twyn.main import check_dependencies
 from twyn.trusted_packages.cache_handler import CacheHandler
 from twyn.trusted_packages.constants import CACHE_DIR
 
+try:
+    import click
+    from rich.console import Console
+    from rich.logging import RichHandler
+
+    from twyn.base.exceptions import CliError
+except ImportError:
+    print("Could not run twyn as a cli tool, some dependencies are missing! Run `pip install twyn[cli]`.")
+    import sys
+
+    sys.exit(1)
+
+logger = logging.getLogger("twyn")
+
 logging.basicConfig(
     format="%(message)s",
     datefmt="[%X]",
     handlers=[RichHandler(rich_tracebacks=True, show_path=False, console=Console(stderr=True))],
 )
-logger = logging.getLogger("twyn")
 
 
 @click.group()

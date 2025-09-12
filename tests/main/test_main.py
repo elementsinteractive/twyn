@@ -312,7 +312,7 @@ class TestCheckDependencies:
             package_ecosystem=None,
         )
         mock_get_packages.return_value = {"requests"}
-        with patch("twyn.main.track") as m_track:
+        with patch("rich.progress.track") as m_track:
             check_dependencies()
         assert m_track.call_count == 0
 
@@ -328,7 +328,7 @@ class TestCheckDependencies:
             package_ecosystem=None,
         )
         mock_get_packages.return_value = {"requests"}
-        with patch("twyn.main.track") as m_track:
+        with patch("rich.progress.track") as m_track:
             check_dependencies(show_progress_bar=True)
         assert m_track.call_count == 1
 

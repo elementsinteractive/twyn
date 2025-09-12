@@ -1,7 +1,6 @@
 import logging
+from collections.abc import Iterable
 from typing import Optional, Union
-
-from rich.progress import track
 
 from twyn.base.constants import (
     SELECTOR_METHOD_MAPPING,
@@ -88,10 +87,8 @@ def check_dependencies(
     normalized_dependencies = top_package_reference.normalize_packages(dependencies_to_check)
 
     typos_list = TyposquatCheckResultList()
-    dependencies_list = (
-        track(normalized_dependencies, description="Processing...") if show_progress_bar else normalized_dependencies
-    )
-    for dependency in dependencies_list:
+
+    for dependency in _get_dependencies_list(normalized_dependencies, show_progress_bar):
         if dependency in normalized_allowlist_packages:
             logger.info("Dependency %s is in the allowlist", dependency)
             continue
@@ -99,8 +96,20 @@ def check_dependencies(
         logger.info("Analyzing %s", dependency)
         if dependency not in trusted_packages and (typosquat_results := trusted_packages.get_typosquat(dependency)):
             typos_list.errors.append(typosquat_results)
-
     return typos_list
+
+
+def _get_dependencies_list(normalized_dependencies: set[str], show_progress_bar: bool) -> Iterable[str]:
+    try:
+        from rich.progress import track  # noqa: PLC0415
+
+        return (
+            track(normalized_dependencies, description="Processing...")
+            if show_progress_bar
+            else normalized_dependencies
+        )
+    except ImportError:
+        return normalized_dependencies
 
 
 def _get_selector_method(selector_method: str) -> SelectorMethod:

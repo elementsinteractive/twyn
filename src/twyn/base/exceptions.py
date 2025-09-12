@@ -1,8 +1,6 @@
 import logging
 from typing import IO, Any, Optional
 
-import click
-
 logger = logging.getLogger("twyn")
 
 
@@ -19,14 +17,20 @@ class TwynError(Exception):
         super().__init__(message or self.message)
 
 
-class CliError(click.ClickException):
-    """Error that will populate application errors to stdout. It does not inherit from `TwynError`."""
+try:
+    import click
 
-    message = "CLI error"
+    class CliError(click.ClickException):
+        """Error that will populate application errors to stdout. It does not inherit from `TwynError`."""
 
-    def __init__(self, message: str = "") -> None:
-        super().__init__(message)
+        message = "CLI error"
 
-    def show(self, file: Optional[IO[Any]] = None) -> None:
-        logger.debug(self.format_message(), exc_info=True)
-        logger.error(self.format_message(), exc_info=False)
+        def __init__(self, message: str = "") -> None:
+            super().__init__(message)
+
+        def show(self, file: Optional[IO[Any]] = None) -> None:
+            logger.debug(self.format_message(), exc_info=True)
+            logger.error(self.format_message(), exc_info=False)
+
+except ModuleNotFoundError:
+    pass
