@@ -1,37 +1,14 @@
 from collections import defaultdict
 from typing import Any
 
-from pydantic import BaseModel
-
 from twyn.similarity.algorithm import (
     AbstractSimilarityAlgorithm,
     SimilarityThreshold,
 )
+from twyn.trusted_packages.models import TyposquatCheckResultEntry
 from twyn.trusted_packages.selectors import AbstractSelector
 
 _PackageNames = defaultdict[str, set[str]]
-
-
-class TyposquatCheckResult(BaseModel):
-    """Represents the result of analyzing a dependency for a possible typosquat."""
-
-    dependency: str
-    similars: list[str] = []
-
-    def __bool__(self) -> bool:
-        return bool(self.similars)
-
-    def add(self, similar_name: str) -> None:
-        """Add a similar dependency to this typosquat check result."""
-        self.similars.append(similar_name)
-
-
-class TyposquatCheckResultList(BaseModel):
-    errors: list[TyposquatCheckResult] = []
-
-    def get_typosquats(self) -> set[str]:
-        """Return a set containing all the detected packages with a typo."""
-        return {typo.dependency for typo in self.errors}
 
 
 class TrustedPackages:
@@ -65,7 +42,7 @@ class TrustedPackages:
     def get_typosquat(
         self,
         package_name: str,
-    ) -> TyposquatCheckResult:
+    ) -> TyposquatCheckResultEntry:
         """Check if a given package name is similar to any trusted package and returns it.
 
         Only if there is a match on the first letter can a package name be
@@ -73,7 +50,7 @@ class TrustedPackages:
         are used to determine if the package name can be considered similar.
         """
         threshold = self.threshold_class.from_name(package_name)
-        typosquat_result = TyposquatCheckResult(dependency=package_name)
+        typosquat_result = TyposquatCheckResultEntry(dependency=package_name)
         for trusted_package_name in self.selector.select_similar_names(names=self.names, name=package_name):
             distance = self.algorithm.get_distance(package_name, trusted_package_name)
             if threshold.is_inside_threshold(distance):

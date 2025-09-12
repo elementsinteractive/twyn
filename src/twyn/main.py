@@ -3,27 +3,32 @@ from collections.abc import Iterable
 from typing import Optional, Union
 
 from twyn.base.constants import (
+    MANUAL_INPUT_SOURCE,
     SELECTOR_METHOD_MAPPING,
     PackageEcosystems,
     SelectorMethod,
 )
 from twyn.config.config_handler import ConfigHandler, TwynConfiguration
 from twyn.config.exceptions import InvalidSelectorMethodError
+from twyn.dependency_managers.managers.base import BaseDependencyManager
 from twyn.dependency_managers.utils import (
     PACKAGE_ECOSYSTEMS,
     get_dependency_manager_from_file,
     get_dependency_manager_from_name,
 )
 from twyn.dependency_parser.dependency_selector import DependencySelector
+from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
 from twyn.file_handler.file_handler import FileHandler
 from twyn.similarity.algorithm import EditDistance, SimilarityThreshold
 from twyn.trusted_packages.cache_handler import CacheHandler
 from twyn.trusted_packages.exceptions import InvalidArgumentsError
-from twyn.trusted_packages.references.base import AbstractPackageReference
-from twyn.trusted_packages.trusted_packages import (
-    TrustedPackages,
-    TyposquatCheckResultList,
+from twyn.trusted_packages.models import (
+    TyposquatCheckResultEntry,
+    TyposquatCheckResultFromSource,
+    TyposquatCheckResults,
 )
+from twyn.trusted_packages.references.base import AbstractPackageReference
+from twyn.trusted_packages.trusted_packages import TrustedPackages
 
 logger = logging.getLogger("twyn")
 logger.addHandler(logging.NullHandler())
@@ -38,7 +43,7 @@ def check_dependencies(
     show_progress_bar: bool = False,
     load_config_from_file: bool = False,
     package_ecosystem: Optional[PackageEcosystems] = None,
-) -> TyposquatCheckResultList:
+) -> TyposquatCheckResults:
     """
     Check if the provided dependencies are potential typosquats of trusted packages.
 
@@ -66,27 +71,88 @@ def check_dependencies(
         use_cache=use_cache,
         package_ecosystem=package_ecosystem,
     )
-
+    maybe_cache_handler = CacheHandler() if config.use_cache else None
     selector_method = _get_selector_method(config.selector_method)
 
-    dependencies_to_check, top_package_reference = _get_dependencies_to_check_and_top_package_reference(
-        config.package_ecosystem,
-        dependencies,
-        config.source,
-        config.dependency_file,
-        config.use_cache,
-    )
+    if dependencies:  # Dependencies where input manually, will not read dependency files.
+        if not config.package_ecosystem:
+            raise InvalidArgumentsError("`package_ecosystem` is required when using `dependencies`.")
+        if config.package_ecosystem not in PACKAGE_ECOSYSTEMS:
+            raise InvalidArgumentsError("Not a valid package_ecosystem")
 
+        dependency_manager = get_dependency_manager_from_name(config.package_ecosystem)
+        top_package_reference = dependency_manager.trusted_packages_source(config.source, maybe_cache_handler)
+        trusted_packages = TrustedPackages(
+            names=top_package_reference.get_packages(),
+            algorithm=EditDistance(),
+            selector=selector_method,
+            threshold_class=SimilarityThreshold,
+        )
+        return TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=_analyze_dependencies(
+                        top_package_reference, trusted_packages, dependencies, config.allowlist, show_progress_bar
+                    ),
+                    source=MANUAL_INPUT_SOURCE,
+                )
+            ]
+        )
+
+    if config.package_ecosystem:
+        logger.warning("`package_ecosystem` is not supported when reading dependencies from files. It will be ignored.")
+
+    dependency_managers = _get_dependency_managers_and_parsers(config.dependency_file)
+    typos_by_file = TyposquatCheckResults()
+    for dependency_manager, parsers in dependency_managers.items():
+        typos_by_file.results += _analyze_packages_from_file(
+            dependency_manager.trusted_packages_source(config.source, maybe_cache_handler),
+            parsers,
+            config.allowlist,
+            selector_method,
+            show_progress_bar,
+        )
+
+    return typos_by_file
+
+
+def _analyze_packages_from_file(  # TODO async
+    top_package_reference: AbstractPackageReference,
+    parsers: list[AbstractParser],
+    allowlist: set[str],
+    selector_method: SelectorMethod,
+    show_progress_bar: bool,
+) -> list[TyposquatCheckResultFromSource]:
+    packages_from_source = top_package_reference.get_packages()
     trusted_packages = TrustedPackages(
-        names=top_package_reference.get_packages(),
+        names=packages_from_source,
         algorithm=EditDistance(),
         selector=selector_method,
         threshold_class=SimilarityThreshold,
     )
-    normalized_allowlist_packages = top_package_reference.normalize_packages(config.allowlist)
-    normalized_dependencies = top_package_reference.normalize_packages(dependencies_to_check)
+    results: list[TyposquatCheckResultFromSource] = []
+    for parser in parsers:
+        analyzed_dependencies = _analyze_dependencies(
+            top_package_reference, trusted_packages, parser.parse(), allowlist, show_progress_bar
+        )
 
-    typos_list = TyposquatCheckResultList()
+        if analyzed_dependencies:
+            results.append(TyposquatCheckResultFromSource(source=str(parser.file_path), errors=analyzed_dependencies))
+
+    return results
+
+
+def _analyze_dependencies(
+    top_package_reference: AbstractPackageReference,
+    trusted_packages: TrustedPackages,
+    packages: set[str],
+    allowlist: set[str],
+    show_progress_bar: bool,
+) -> list[TyposquatCheckResultEntry]:
+    normalized_allowlist_packages = top_package_reference.normalize_packages(allowlist)
+    normalized_dependencies = top_package_reference.normalize_packages(packages)
+
+    errors = []
 
     for dependency in _get_dependencies_list(normalized_dependencies, show_progress_bar):
         if dependency in normalized_allowlist_packages:
@@ -95,8 +161,22 @@ def check_dependencies(
 
         logger.info("Analyzing %s", dependency)
         if dependency not in trusted_packages and (typosquat_results := trusted_packages.get_typosquat(dependency)):
-            typos_list.errors.append(typosquat_results)
-    return typos_list
+            errors.append(typosquat_results)
+
+    return errors
+
+
+def _get_dependencies_list(normalized_dependencies: set[str], show_progress_bar: bool) -> Iterable[str]:
+    try:
+        from rich.progress import track  # noqa: PLC0415
+
+        return (
+            track(normalized_dependencies, description="Processing...")
+            if show_progress_bar
+            else normalized_dependencies
+        )
+    except ImportError:
+        return normalized_dependencies
 
 
 def _get_dependencies_list(normalized_dependencies: set[str], show_progress_bar: bool) -> Iterable[str]:
@@ -119,36 +199,22 @@ def _get_selector_method(selector_method: str) -> SelectorMethod:
     return SELECTOR_METHOD_MAPPING[selector_method]()
 
 
-def _get_dependencies_to_check_and_top_package_reference(
-    package_ecosystem: str,
-    dependencies: Optional[set[str]],
-    source: str,
+def _get_dependency_managers_and_parsers(
     dependency_file: Optional[str],
-    use_cache: bool,
-) -> tuple[Optional[set[str]], AbstractPackageReference]:
-    dependency_selector: Optional[DependencySelector] = None
-    cache_handler = CacheHandler() if use_cache else None
-
-    if dependencies:
-        if not package_ecosystem:
-            raise InvalidArgumentsError("`package_ecosystem` is required when using `dependencies`.")
-        if package_ecosystem not in PACKAGE_ECOSYSTEMS:
-            raise InvalidArgumentsError("not a valid programming language")
-
-        dependencies_to_check = dependencies
-        dependency_manager = get_dependency_manager_from_name(package_ecosystem)
-        return dependencies_to_check, dependency_manager.trusted_packages_source(source, cache_handler)
+) -> dict[type[BaseDependencyManager], list[AbstractParser]]:
+    dependency_managers: dict[type[BaseDependencyManager], list[AbstractParser]] = {}
 
     # No dependencies introduced via the CLI, so the dependecy file was either given or will be auto-detected
     dependency_selector = DependencySelector(dependency_file)
-    dependency_parser = dependency_selector.get_dependency_parser()
-    dependency_manager = get_dependency_manager_from_file(dependency_selector.dependency_file)
+    dependency_parsers = dependency_selector.get_dependency_parsers()
 
-    if package_ecosystem and dependency_manager.name != package_ecosystem:
-        raise InvalidArgumentsError("Given `package_ecosystem` does not match `dependency_file`'s `package_ecosystem`")
+    for parser in dependency_parsers:
+        manager = get_dependency_manager_from_file(parser.file_path)
 
-    dependencies_to_check = dependency_parser.parse()
-    return dependencies_to_check, dependency_manager.trusted_packages_source(source, cache_handler)
+        if manager not in dependency_managers:
+            dependency_managers[manager] = []
+        dependency_managers[manager].append(parser)
+    return dependency_managers
 
 
 def _get_config(

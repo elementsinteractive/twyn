@@ -11,7 +11,7 @@ from twyn.trusted_packages.selectors import (
 )
 from twyn.trusted_packages.trusted_packages import (
     TrustedPackages,
-    TyposquatCheckResult,
+    TyposquatCheckResultEntry,
 )
 
 
@@ -117,6 +117,6 @@ class TestTrustedPackages:
             threshold_class=SimilarityThreshold,
         )
 
-        assert trusted_packages.get_typosquat(package_name=package_name) == TyposquatCheckResult(
+        assert trusted_packages.get_typosquat(package_name=package_name) == TyposquatCheckResultEntry(
             dependency=package_name, similars=matches
         )

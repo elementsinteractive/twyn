@@ -34,7 +34,7 @@ In short, `Twyn` protects you against [typosquatting attacks](https://en.wikiped
 
 It works as follows:
 
-1. Either choose to scan the dependencies in a dependencies file you specify (`--dependency-file`) or some dependencies introduced through the CLI (`--dependency`). If no option was provided, it will try to find a dependencies file in your working path.
+1. Either choose to scan the dependencies in a dependencies file you specify (`--dependency-file`) or some dependencies introduced through the CLI (`--dependency`). If no option was provided, it will try to find a dependencies file in your working path. It will try to parse all the supported dependency files that it finds. To know which files are supported head to the [Dependency files](#dependency-files) section.
 2. If the name of your package name matches with the name of one of the most well known packages, the package is accepted.
 3. If the name of your package is similar to the name of one of the most used packages, `Twyn` will prompt an error.
 4. If your package name is not in the list of the most known ones and is not similar enough to any of those to be considered misspelled, the package is accepted. `Twyn` assumes that you're using either a not so popular package (therefore it can't verify its legitimacy) or a package created by yourself, therefore unknown for the rest.
@@ -84,8 +84,43 @@ If you want your output in JSON format, you can run `Twyn` with the following fl
 This will output:
 
  ```json
-  {"errors":[{"dependency":"reqests","similars":["requests","grequests"]}]}
+  {"results":[{"errors":[{"dependency":"my-package","similars":["mypackage"]}],"source":"manual_input"}]}
  ```
+If `Twyn` was run by manually giving it dependencies (with `--dependency`), the source will be `manual_input`. 
+
+In any other case (when dependencies are parsed from a file), the source will be the path to the dependencies file. One entry will be created for every source.
+
+### Using Twyn as a library
+
+
+#### Installation
+`Twyn` also supports being used as 3rd party library for you project. To install it, run:
+
+
+```sh
+pip install twyn
+```
+
+Example usage in your code:
+
+```python
+from twyn import check_dependencies
+
+typos = check_dependencies()
+
+for typo in typos.errors:
+  print(f"Dependency:{typo.dependency}")
+  print(f"Did you mean any of [{','.join(typo.similars)}]")
+  
+```
+
+#### Logging level
+By default, logging is disabled when running as a 3rd party library. To override this behaviour, you can:
+
+```python
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("twyn").setLevel(logging.INFO)
+```
 
 ### Using Twyn as a library
 
