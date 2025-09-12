@@ -11,10 +11,13 @@
 
 - [Overview](#overview)
 - [Quickstart](#quickstart)
-  - [Installation](#installation)
-  - [Docker](#docker)
-  - [Run](#run)
-  - [JSON Format](#json-format)
+  - [Using `Twyn` as a cli tool](#using-twyn-as-a-cli-tool)
+    - [Installation](#installation)
+    - [Docker](#docker)
+    - [Run](#run)
+    - [JSON Format](#json-format)
+  - [Using `Twyn` as a library](#using-twyn-as-a-library)
+    - [Logging level](#logging-level)
 - [Configuration](#configuration)
   - [Allowlist](#allowlist)
   - [Dependency files](#dependency-files)
@@ -22,8 +25,7 @@
   - [Selector method](#selector-method)
   - [Configuration file](#configuration-file)
   - [Cache](#cache)
-- [Using `Twyn` as a library](#using-twyn-as-a-library)
-  - [Logging level](#logging-level)
+
 
 ## Overview
 `Twyn` is a security tool that compares the name of your dependencies against a set of the most popular ones,
@@ -39,15 +41,16 @@ It works as follows:
 
 ## Quickstart
 
-### Installation
+### Using twyn as a CLI tool
+#### Installation
 
 `Twyn` is available on PyPi repository, you can install it by running
 
 ```sh
-pip install twyn
+pip install twyn[cli]
 ```
 
-### Docker
+#### Docker
 
 `Twyn` provides a Docker image, which can be found [here](https://hub.docker.com/r/elementsinteractive/twyn).
 
@@ -58,7 +61,7 @@ docker pull elementsinteractive/twyn:latest
 docker run elementsinteractive/twyn --help
 ```
 
-### Run
+#### Run
 
 To run twyn simply type:
 
@@ -72,7 +75,7 @@ For a list of all the available options as well as their expected arguments run:
 twyn run --help
 ```
 
-### JSON format
+#### JSON format
 If you want your output in JSON format, you can run `Twyn` with the following flag:
 
 ```python
@@ -84,12 +87,43 @@ This will output:
   {"errors":[{"dependency":"reqests","similars":["requests","grequests"]}]}
  ```
 
+### Using Twyn as a library
+
+
+#### Installation
+`Twyn` also supports being used as 3rd party library for you project. To install it, run:
+
+
+```sh
+pip install twyn
+```
+
+Example usage in your code:
+
+```python
+from twyn import check_dependencies
+
+typos = check_dependencies()
+
+for typo in typos.errors:
+  print(f"Dependency:{typo.dependency}")
+  print(f"Did you mean any of [{','.join(typo.similars)}]")
+  
+```
+
+#### Logging level
+By default, logging is disabled when running as a 3rd party library. To override this behaviour, you can:
+
+```python
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("twyn").setLevel(logging.INFO)
+```
+
 ## Configuration
 
 ### Allowlist
 
-It can happen that a legitimate package known by the user raises an error because is too similar to one of the most trusted ones.
-You can then add this packages to the `allowlist`, so it will be skipped:
+It can happen that a legitimate package known by the user raises an error because it is too similar to one of the most trusted ones. Imagine that you are using internally a package that you developed called `reqests`. You can then add this packages to the `allowlist`, so it will not be reported as a typo:
 
 ```sh
 twyn allowlist add <package>
@@ -201,24 +235,3 @@ To clear the cache, run:
 ```
 
 
- ### Using Twyn as a library
-
-`Twyn` also supports being used as 3rd party library for you project.
-
-```python
-from twyn import check_dependencies
-
-typos = check_dependencies()
-
-for typo in typos.errors:
-  print(f"Dependency:{typo.dependency}")
-  print(f"Did you mean any of [{','.join(typo.similars)}]")
-  
-```
-### Logging level
-To override the logging level when using `Twyn` as a 3rd party library, simply override it like:
-
-```python
-logging.basicConfig(level=logging.DEBUG)
-logging.getLogger("twyn").setLevel(logging.DEBUG)
-```
