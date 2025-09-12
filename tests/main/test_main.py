@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
@@ -17,7 +18,11 @@ from twyn.main import (
 )
 from twyn.trusted_packages import TopPyPiReference
 from twyn.trusted_packages.exceptions import InvalidArgumentsError
-from twyn.trusted_packages.trusted_packages import TyposquatCheckResult, TyposquatCheckResultList
+from twyn.trusted_packages.models import (
+    TyposquatCheckResultEntry,
+    TyposquatCheckResultFromSource,
+    TyposquatCheckResults,
+)
 
 from tests.conftest import create_tmp_file, patch_npm_packages_download
 
@@ -124,8 +129,13 @@ class TestCheckDependencies:
         )
 
         assert mock_get_packages.call_count == 1
-        assert error == TyposquatCheckResultList(
-            errors=[TyposquatCheckResult(dependency="reqests", similars=["requests"])]
+        assert error == TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[TyposquatCheckResultEntry(dependency="reqests", similars=["requests"])],
+                    source=str(uv_lock_file_with_typo),
+                )
+            ]
         )
 
     @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
@@ -142,8 +152,13 @@ class TestCheckDependencies:
         )
 
         assert mock_get_packages.call_count == 1
-        assert error == TyposquatCheckResultList(
-            errors=[TyposquatCheckResult(dependency="reqests", similars=["requests"])]
+        assert error == TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[TyposquatCheckResultEntry(dependency="reqests", similars=["requests"])],
+                    source=str(uv_lock_file_with_typo),
+                )
+            ]
         )
 
     @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
@@ -171,8 +186,13 @@ class TestCheckDependencies:
 
         assert mock_get_packages.call_count == 1
         assert mock_config.call_count == 1
-        assert error == TyposquatCheckResultList(
-            errors=[TyposquatCheckResult(dependency="reqests", similars=["requests"])]
+        assert error == TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[TyposquatCheckResultEntry(dependency="reqests", similars=["requests"])],
+                    source=str(uv_lock_file_with_typo),
+                )
+            ]
         )
 
     @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
@@ -200,8 +220,13 @@ class TestCheckDependencies:
 
         assert mock_get_packages.call_count == 1
         assert mock_config.call_count == 1
-        assert error == TyposquatCheckResultList(
-            errors=[TyposquatCheckResult(dependency="reqests", similars=["requests"])]
+        assert error == TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[TyposquatCheckResultEntry(dependency="reqests", similars=["requests"])],
+                    source=str(uv_lock_file_with_typo),
+                )
+            ]
         )
 
     @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
@@ -214,8 +239,13 @@ class TestCheckDependencies:
             package_ecosystem="pypi",
         )
 
-        assert error == TyposquatCheckResultList(
-            errors=[TyposquatCheckResult(dependency="my-package", similars=["mypackage"])]
+        assert error == TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[TyposquatCheckResultEntry(dependency="my-package", similars=["mypackage"])],
+                    source="manual_input",
+                )
+            ]
         )
 
     @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
@@ -232,8 +262,13 @@ class TestCheckDependencies:
                 selector_method="first-letter",
             )
 
-        assert error == TyposquatCheckResultList(
-            errors=[TyposquatCheckResult(dependency="mypackag", similars=["mypackage"])]
+        assert error == TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[TyposquatCheckResultEntry(dependency="mypackag", similars=["mypackage"])],
+                    source=str(tmp_file),
+                )
+            ]
         )
 
     @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
@@ -249,10 +284,77 @@ class TestCheckDependencies:
             selector_method="first-letter",
             package_ecosystem="pypi",
         )
+        assert isinstance(error, TyposquatCheckResults)
+        assert TyposquatCheckResultEntry(dependency="my-package", similars=["mypackage"]) in error.results[0]
+        assert TyposquatCheckResultEntry(dependency="reqests", similars=["requests"]) in error.results[0]
 
-        assert len(error.errors) == 2
-        assert TyposquatCheckResult(dependency="reqests", similars=["requests"]) in error.errors
-        assert TyposquatCheckResult(dependency="my-package", similars=["mypackage"]) in error.errors
+    @patch("twyn.main._analyze_dependencies_from_input")
+    @patch("twyn.main.ConfigHandler")
+    def test_check_dependencies_loads_config_from_file(self, mock_config: Mock, mock_analyze: Mock) -> None:
+        mock_analyze.return_value = TyposquatCheckResults()
+        mock_config.return_value = ConfigHandler()
+
+        check_dependencies(load_config_from_file=True)
+
+        assert mock_config.call_count == 1
+        assert len(mock_config.call_args) == 2
+        assert len(mock_config.call_args[0]) == 1
+        assert isinstance(mock_config.call_args[0][0], FileHandler)
+
+    @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
+    def test_check_dependencies_with_input_from_cli_no_results(self, mock_get_packages_from_cache: Mock) -> None:
+        mock_get_packages_from_cache.return_value = {"requests"}
+
+        error = check_dependencies(
+            config_file=None,
+            dependency_file=None,
+            dependencies={"requests"},
+            selector_method="first-letter",
+            package_ecosystem="pypi",
+        )
+        assert isinstance(error, TyposquatCheckResults)
+        assert not error
+
+    @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
+    def test_error_when_show_progress_bar_and_dependencies_not_installed(
+        self, mock_get_packages_from_cache: Mock
+    ) -> None:
+        mock_get_packages_from_cache.return_value = {"requests"}
+        sys.modules.pop("rich.progress", None)
+        sys.modules.pop("rich", None)
+
+        with patch.dict(sys.modules, {"rich.progress": None}), pytest.raises(InvalidArgumentsError):
+            check_dependencies(
+                dependencies={"requests"},
+                selector_method="first-letter",
+                package_ecosystem="pypi",
+                show_progress_bar=True,
+            )
+
+    @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
+    @patch("twyn.main.InvalidArgumentsError")
+    def test_no_error_when_no_show_progress_bar_and_dependencies_not_installed(
+        self, mock_exc: Mock, mock_get_packages_from_cache: Mock
+    ) -> None:
+        mock_exc.side_effect = Exception()
+
+        mock_get_packages_from_cache.return_value = {"requests"}
+        sys.modules.pop("rich.progress", None)
+        sys.modules.pop("rich", None)
+
+        with patch.dict(sys.modules, {"rich.progress": None}):
+            result = check_dependencies(
+                dependencies={"requests"},
+                selector_method="first-letter",
+                package_ecosystem="pypi",
+                show_progress_bar=False,
+            )
+        assert not result
+        assert mock_exc.call_count == 0
+
+    def test_get_invalid_selector_method(self) -> None:
+        with pytest.raises(InvalidSelectorMethodError):
+            check_dependencies(selector_method="i am batman")
 
     @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     def test_check_dependencies_ignores_package_in_allowlist(
@@ -265,8 +367,13 @@ class TestCheckDependencies:
             dependency_file=str(uv_lock_file_with_typo),
         )
         assert mock_get_packages.call_count == 1
-        assert error == TyposquatCheckResultList(
-            errors=[TyposquatCheckResult(dependency="reqests", similars=["requests"])]
+        assert error == TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[TyposquatCheckResultEntry(dependency="reqests", similars=["requests"])],
+                    source=str(uv_lock_file_with_typo),
+                )
+            ]
         )
 
         m_config = TwynConfiguration(
@@ -284,7 +391,7 @@ class TestCheckDependencies:
                 dependency_file=str(uv_lock_file_with_typo),
             )
 
-        assert error == TyposquatCheckResultList(errors=[])
+        assert error == TyposquatCheckResults(results=[])
 
     @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     def test_check_dependencies_does_not_error_on_same_package(
@@ -296,7 +403,7 @@ class TestCheckDependencies:
             dependency_file=str(uv_lock_file_with_typo),
         )
 
-        assert error == TyposquatCheckResultList(errors=[])
+        assert error == TyposquatCheckResults(results=[])
 
     @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     @patch("twyn.main._get_config")
@@ -342,10 +449,10 @@ class TestCheckDependencies:
         with pytest.raises(InvalidArgumentsError):
             check_dependencies(dependencies={"foo"}, package_ecosystem="asdf")
 
-    def test_check_dependency_file_invalid_language_error(self) -> None:
-        """Test that InvalidArgumentsError is raised when a non valid package_ecosystem is given together with a depdendecy_file."""
-        with pytest.raises(InvalidArgumentsError):
-            check_dependencies(dependency_file="uv.lock", package_ecosystem="asdf")
+    def test_check_dependency_file_invalid_language_error(self, uv_lock_file_with_typo: Path) -> None:
+        """Test that when a non valid package_ecosystem is given together with a depdendecy_file, package_ecosystem is ignored."""
+        result = check_dependencies(dependency_file=str(uv_lock_file_with_typo), package_ecosystem="npm")
+        assert bool(result)
 
     def test_check_dependencies_invalid_selector_method_error(self) -> None:
         """Test that InvalidSelectorMethodError is raised when an invalid selector_method is provided."""
@@ -356,9 +463,15 @@ class TestCheckDependencies:
         """Integration: check_dependencies works for npm v3 lockfile."""
         with patch_npm_packages_download(["expres"]) as m_download:
             result = check_dependencies(dependency_file=str(package_lock_json_file_v3), use_cache=False)
-        found = {e.dependency for e in result.errors}
+
         assert m_download.call_count == 1
-        assert found == {"express"}
+        assert len(result.results) == 1  # only one file was scanned
+        assert result.results == [
+            TyposquatCheckResultFromSource(
+                errors=[TyposquatCheckResultEntry(dependency="express", similars=["expres"])],
+                source=str(package_lock_json_file_v3),
+            )
+        ]
 
     def test_get_top_reference_from_file_no_matching_parser_error(self) -> None:
         """Test that get_top_reference_from_file raises NoMatchingParserError for unknown file type."""
@@ -374,7 +487,12 @@ class TestCheckDependencies:
         """Verifies that the yarn flow is working."""
         with patch_npm_packages_download(["lodas"]) as mock_download:
             result = check_dependencies(dependency_file=str(yarn_lock_file_v1), use_cache=False)
-        found = {e.dependency for e in result.errors}
 
         assert mock_download.call_count == 1
-        assert found == {"lodash"}
+        assert len(result.results) == 1  # only one file was scanned
+        assert result.results == [
+            TyposquatCheckResultFromSource(
+                errors=[TyposquatCheckResultEntry(dependency="lodash", similars=["lodas"])],
+                source=str(yarn_lock_file_v1),
+            )
+        ]

@@ -11,6 +11,8 @@ if TYPE_CHECKING:
     from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
 
 
+MANUAL_INPUT_SOURCE = "manual_input"
+
 SELECTOR_METHOD_MAPPING: dict[str, type[selectors.AbstractSelector]] = {
     "first-letter": selectors.FirstLetterExact,
     "nearby-letter": selectors.FirstLetterNearbyInKeyboard,

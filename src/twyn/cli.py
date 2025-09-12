@@ -103,7 +103,7 @@ def entry_point() -> None:
     default=False,
     help="Display the results in json format. It implies --no-track.",
 )
-def run(
+def run(  # noqa: C901
     config: str,
     dependency_file: Optional[str],
     dependency: tuple[str],
@@ -146,14 +146,15 @@ def run(
 
     if json:
         click.echo(possible_typos.model_dump_json())
-        sys.exit(int(bool(possible_typos.errors)))
-    elif possible_typos.errors:
-        for possible_typosquats in possible_typos.errors:
-            click.echo(
-                click.style("Possible typosquat detected: ", fg="red") + f"`{possible_typosquats.dependency}`, "
-                f"did you mean any of [{', '.join(possible_typosquats.similars)}]?",
-                color=True,
-            )
+        sys.exit(int(bool(possible_typos)))
+    elif possible_typos:
+        for possible_typosquats in possible_typos.results:
+            for error in possible_typosquats.errors:
+                click.echo(
+                    click.style("Possible typosquat detected: ", fg="red") + f"`{error.dependency}`, "
+                    f"did you mean any of [{', '.join(error.similars)}]?",
+                    color=True,
+                )
         sys.exit(1)
     else:
         click.echo(click.style("No typosquats detected", fg="green"), color=True)

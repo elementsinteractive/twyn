@@ -6,7 +6,11 @@ from click.testing import CliRunner
 from twyn import cli
 from twyn.base.exceptions import TwynError
 from twyn.trusted_packages.cache_handler import CacheEntry, CacheHandler
-from twyn.trusted_packages.trusted_packages import TyposquatCheckResult, TyposquatCheckResultList
+from twyn.trusted_packages.models import (
+    TyposquatCheckResultEntry,
+    TyposquatCheckResultFromSource,
+    TyposquatCheckResults,
+)
 
 
 class TestCli:
@@ -221,8 +225,13 @@ class TestCli:
     @patch("twyn.cli.check_dependencies")
     def test_return_code_1(self, mock_check_dependencies: Mock) -> None:
         runner = CliRunner()
-        mock_check_dependencies.return_value = TyposquatCheckResultList(
-            errors=[TyposquatCheckResult(dependency="my-package", similars=["mypackage"])]
+        mock_check_dependencies.return_value = TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[TyposquatCheckResultEntry(dependency="my-package", similars=["mypackage"])],
+                    source="manual_input",
+                )
+            ]
         )
 
         result = runner.invoke(cli.run)
@@ -231,8 +240,13 @@ class TestCli:
 
     @patch("twyn.cli.check_dependencies")
     def test_json_typo_detected(self, mock_check_dependencies: Mock) -> None:
-        mock_check_dependencies.return_value = TyposquatCheckResultList(
-            errors=[TyposquatCheckResult(dependency="my-package", similars=["mypackage"])]
+        mock_check_dependencies.return_value = TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[TyposquatCheckResultEntry(dependency="my-package", similars=["mypackage"])],
+                    source="manual_input",
+                )
+            ]
         )
         runner = CliRunner()
         result = runner.invoke(
@@ -243,11 +257,14 @@ class TestCli:
         )
 
         assert result.exit_code == 1
-        assert result.output == '{"errors":[{"dependency":"my-package","similars":["mypackage"]}]}\n'
+        assert (
+            result.output
+            == '{"results":[{"errors":[{"dependency":"my-package","similars":["mypackage"]}],"source":"manual_input"}]}\n'
+        )
 
     @patch("twyn.cli.check_dependencies")
     def test_json_no_typo(self, mock_check_dependencies: Mock) -> None:
-        mock_check_dependencies.return_value = TyposquatCheckResultList(errors=[])
+        mock_check_dependencies.return_value = TyposquatCheckResults()
         runner = CliRunner()
         result = runner.invoke(
             cli.run,
@@ -257,12 +274,12 @@ class TestCli:
         )
 
         assert result.exit_code == 0
-        assert result.output == '{"errors":[]}\n'
+        assert result.output == '{"results":[]}\n'
 
     @patch("twyn.cli.check_dependencies")
     def test_return_code_0(self, mock_check_dependencies: Mock) -> None:
         runner = CliRunner()
-        mock_check_dependencies.return_value = TyposquatCheckResultList()
+        mock_check_dependencies.return_value = TyposquatCheckResults()
 
         result = runner.invoke(cli.run)
 
