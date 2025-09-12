@@ -12,8 +12,6 @@ maintainers = [
 requires-python = "<4,>=3.9"
 dependencies = [
     "requests<3.0.0,>=2.32.4",
-    "click<9.0.0,>=8.1.8",
-    "rich<15.0.0,>=14.0.0",
     "rapidfuzz<4.0.0,>=2.13.7",
     "pyparsing<4.0.0,>=3.2.3",
     "tomlkit<0.14.0,>=0.11.6",
@@ -25,6 +23,13 @@ name = "twyn"
 description = "Security tool against dependency typosquatting attacks"
 readme = "README.md"
 dynamic = ["version"]
+
+[project.optional-dependencies]
+cli = [
+    "click<9.0.0,>=8.1.8",
+    "rich<15.0.0,>=14.0.0",
+]
+
 
 [tool.hatch.version]
 path = "VERSION"

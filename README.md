@@ -11,10 +11,13 @@
 
 - [Overview](#overview)
 - [Quickstart](#quickstart)
-  - [Installation](#installation)
-  - [Docker](#docker)
-  - [Run](#run)
-  - [JSON Format](#json-format)
+  - [Using `Twyn` as a cli tool](#using-twyn-as-a-cli-tool)
+    - [Installation](#installation)
+    - [Docker](#docker)
+    - [Run](#run)
+    - [JSON Format](#json-format)
+  - [Using `Twyn` as a library](#using-twyn-as-a-library)
+    - [Logging level](#logging-level)
 - [Configuration](#configuration)
   - [Allowlist](#allowlist)
   - [Dependency files](#dependency-files)
@@ -22,8 +25,7 @@
   - [Selector method](#selector-method)
   - [Configuration file](#configuration-file)
   - [Cache](#cache)
-- [Using `Twyn` as a library](#using-twyn-as-a-library)
-  - [Logging level](#logging-level)
+
 
 ## Overview
 `Twyn` is a security tool that compares the name of your dependencies against a set of the most popular ones,
@@ -32,22 +34,23 @@ In short, `Twyn` protects you against [typosquatting attacks](https://en.wikiped
 
 It works as follows:
 
-1. Either choose to scan the dependencies in a dependencies file you specify (`--dependency-file`) or some dependencies introduced through the CLI (`--dependency`). If no option was provided, it will try to find a dependencies file in your working path.
+1. Either choose to scan the dependencies in a dependencies file you specify (`--dependency-file`) or some dependencies introduced through the CLI (`--dependency`). If no option was provided, it will try to find a dependencies file in your working path. It will try to parse all the supported dependency files that it finds. To know which files are supported head to the [Dependency files](#dependency-files) section.
 2. If the name of your package name matches with the name of one of the most well known packages, the package is accepted.
 3. If the name of your package is similar to the name of one of the most used packages, `Twyn` will prompt an error.
 4. If your package name is not in the list of the most known ones and is not similar enough to any of those to be considered misspelled, the package is accepted. `Twyn` assumes that you're using either a not so popular package (therefore it can't verify its legitimacy) or a package created by yourself, therefore unknown for the rest.
 
 ## Quickstart
 
-### Installation
+### Using twyn as a CLI tool
+#### Installation
 
 `Twyn` is available on PyPi repository, you can install it by running
 
 ```sh
-pip install twyn
+pip install twyn[cli]
 ```
 
-### Docker
+#### Docker
 
 `Twyn` provides a Docker image, which can be found [here](https://hub.docker.com/r/elementsinteractive/twyn).
 
@@ -58,7 +61,7 @@ docker pull elementsinteractive/twyn:latest
 docker run elementsinteractive/twyn --help
 ```
 
-### Run
+#### Run
 
 To run twyn simply type:
 
@@ -72,7 +75,7 @@ For a list of all the available options as well as their expected arguments run:
 twyn run --help
 ```
 
-### JSON format
+#### JSON format
 If you want your output in JSON format, you can run `Twyn` with the following flag:
 
 ```python
@@ -81,15 +84,81 @@ If you want your output in JSON format, you can run `Twyn` with the following fl
 This will output:
 
  ```json
-  {"errors":[{"dependency":"reqests","similars":["requests","grequests"]}]}
+  {"results":[{"errors":[{"dependency":"my-package","similars":["mypackage"]}],"source":"manual_input"}]}
  ```
+If `Twyn` was run by manually giving it dependencies (with `--dependency`), the source will be `manual_input`. 
+
+In any other case (when dependencies are parsed from a file), the source will be the path to the dependencies file. One entry will be created for every source.
+
+### Using Twyn as a library
+
+
+#### Installation
+`Twyn` also supports being used as 3rd party library for you project. To install it, run:
+
+
+```sh
+pip install twyn
+```
+
+Example usage in your code:
+
+```python
+from twyn import check_dependencies
+
+typos = check_dependencies()
+
+for typo in typos.errors:
+  print(f"Dependency:{typo.dependency}")
+  print(f"Did you mean any of [{','.join(typo.similars)}]")
+  
+```
+
+#### Logging level
+By default, logging is disabled when running as a 3rd party library. To override this behaviour, you can:
+
+```python
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("twyn").setLevel(logging.INFO)
+```
+
+### Using Twyn as a library
+
+
+#### Installation
+`Twyn` also supports being used as 3rd party library for you project. To install it, run:
+
+
+```sh
+pip install twyn
+```
+
+Example usage in your code:
+
+```python
+from twyn import check_dependencies
+
+typos = check_dependencies()
+
+for typo in typos.errors:
+  print(f"Dependency:{typo.dependency}")
+  print(f"Did you mean any of [{','.join(typo.similars)}]")
+  
+```
+
+#### Logging level
+By default, logging is disabled when running as a 3rd party library. To override this behaviour, you can:
+
+```python
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("twyn").setLevel(logging.INFO)
+```
 
 ## Configuration
 
 ### Allowlist
 
-It can happen that a legitimate package known by the user raises an error because is too similar to one of the most trusted ones.
-You can then add this packages to the `allowlist`, so it will be skipped:
+It can happen that a legitimate package known by the user raises an error because it is too similar to one of the most trusted ones. Imagine that you are using internally a package that you developed called `reqests`. You can then add this packages to the `allowlist`, so it will not be reported as a typo:
 
 ```sh
 twyn allowlist add <package>
@@ -201,24 +270,3 @@ To clear the cache, run:
 ```
 
 
- ### Using Twyn as a library
-
-`Twyn` also supports being used as 3rd party library for you project.
-
-```python
-from twyn import check_dependencies
-
-typos = check_dependencies()
-
-for typo in typos.errors:
-  print(f"Dependency:{typo.dependency}")
-  print(f"Did you mean any of [{','.join(typo.similars)}]")
-  
-```
-### Logging level
-To override the logging level when using `Twyn` as a 3rd party library, simply override it like:
-
-```python
-logging.basicConfig(level=logging.DEBUG)
-logging.getLogger("twyn").setLevel(logging.DEBUG)
-```

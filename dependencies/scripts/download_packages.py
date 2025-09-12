@@ -61,7 +61,7 @@ def download(ecosystem: str) -> None:
     ):
         with attempt, httpx.Client(timeout=30) as client:
             logger.info("Attempting to download %s packages. Attempt #%d.", ecosystem, attempt.num)
-            response = client.get(ECOSYSTEMS[ecosystem]["url"])  # type: ignore[arg-type]
+            response = client.get(ECOSYSTEMS[ecosystem]["url"])
             response.raise_for_status()
 
     fpath = Path("dependencies") / f"{ecosystem}.json"
