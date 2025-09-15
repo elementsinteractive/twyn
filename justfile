@@ -16,7 +16,7 @@ help:
 venv: 
     @if ! {{ venv-exists }}; \
     then \
-    uv sync --frozen --all-groups; \
+    uv sync --frozen --all-extras --all-groups; \
     fi
 
 # Cleans all artifacts generated while running this project, including the virtualenv.
