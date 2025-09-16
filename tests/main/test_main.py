@@ -36,21 +36,21 @@ class TestCheckDependencies:
             (
                 {
                     "selector_method": "first-letter",
-                    "dependency_file": "requirements.txt",
+                    "dependency_file": {"requirements.txt"},
                     "use_cache": True,
                     "pypi_reference": "https://myurl.com",
                     "recurisve": True,
                 },
                 {
                     "selector_method": "nearby-letter",
-                    "dependency_file": "poetry.lock",
+                    "dependency_file": ["poetry.lock"],
                     "allowlist": ["boto4", "boto2"],  # There is no allowlist option in the cli
                     "use_cache": False,
                     "pypi_reference": "https://mysecondurl.com",
                     "recursive": False,
                 },
                 TwynConfiguration(
-                    dependency_file="requirements.txt",
+                    dependency_files={"requirements.txt"},
                     selector_method="first-letter",
                     allowlist={"boto4", "boto2"},
                     source=TopPyPiReference.DEFAULT_SOURCE,
@@ -63,14 +63,14 @@ class TestCheckDependencies:
                 {},
                 {
                     "selector_method": "nearby-letter",
-                    "dependency_file": "poetry.lock",
+                    "dependency_file": ["poetry.lock"],
                     "allowlist": ["boto4", "boto2"],
                     "use_cache": False,
                     "pypi_reference": "https://mysecondurl.com",
                     "recursive": True,
                 },
                 TwynConfiguration(
-                    dependency_file="poetry.lock",
+                    dependency_files={"poetry.lock"},
                     selector_method="nearby-letter",
                     allowlist={"boto4", "boto2"},
                     source=TopPyPiReference.DEFAULT_SOURCE,
@@ -83,7 +83,7 @@ class TestCheckDependencies:
                 {},
                 {},
                 TwynConfiguration(
-                    dependency_file=None,
+                    dependency_files=set(),
                     selector_method="all",
                     allowlist=set(),
                     source=TopPyPiReference.DEFAULT_SOURCE,
@@ -114,11 +114,11 @@ class TestCheckDependencies:
         with patch.object(handler, "_read_toml", return_value=parse(dumps({"tool": {"twyn": file_config}}))):
             resolved = handler.resolve_config(
                 selector_method=cli_config.get("selector_method"),
-                dependency_file=cli_config.get("dependency_file"),
+                dependency_files=cli_config.get("dependency_file", set()),
                 use_cache=cli_config.get("use_cache"),
             )
 
-        assert resolved.dependency_file == expected_resolved_config.dependency_file
+        assert resolved.dependency_files == expected_resolved_config.dependency_files
         assert resolved.selector_method == expected_resolved_config.selector_method
         assert resolved.allowlist == expected_resolved_config.allowlist
         assert resolved.use_cache == expected_resolved_config.use_cache
@@ -131,7 +131,7 @@ class TestCheckDependencies:
         mock_get_packages.return_value = {"requests"}
 
         error = check_dependencies(
-            dependency_file=str(uv_lock_file_with_typo),
+            dependency_files={str(uv_lock_file_with_typo)},
             use_cache=False,
         )
 
@@ -153,7 +153,7 @@ class TestCheckDependencies:
         mock_get_packages.return_value = {"requests"}
 
         error = check_dependencies(
-            dependency_file=str(uv_lock_file_with_typo),
+            dependency_files={str(uv_lock_file_with_typo)},
             use_cache=False,
             package_ecosystem="pypi",
         )
@@ -181,7 +181,7 @@ class TestCheckDependencies:
         """Check that dependencies are loaded from file, retrieved from source, and a typosquat is detected."""
         mock_get_packages.return_value = {"requests"}
         mock_config.return_value = TwynConfiguration(
-            str(uv_lock_file_with_typo),
+            dependency_files={str(uv_lock_file_with_typo)},
             selector_method="all",
             allowlist=set(),
             source=None,
@@ -216,7 +216,7 @@ class TestCheckDependencies:
         """Check that dependencies are loaded from file, retrieved from source, and a typosquat is detected."""
         mock_get_packages.return_value = {"requests"}
         mock_config.return_value = TwynConfiguration(
-            str(uv_lock_file_with_typo),
+            dependency_files={str(uv_lock_file_with_typo)},
             selector_method="all",
             allowlist=set(),
             source=None,
@@ -264,7 +264,7 @@ class TestCheckDependencies:
         """Test that recursive and dependency file can be set at the same time, and then dependency file takes precedence while recurisve is ignored."""
         mock_get_packages_from_cache.return_value = {"requests"}
         error = check_dependencies(
-            dependency_file=str(uv_lock_file_with_typo),
+            dependency_files={str(uv_lock_file_with_typo)},
             package_ecosystem="pypi",
         )
 
@@ -286,7 +286,7 @@ class TestCheckDependencies:
         with create_tmp_file(tmp_file, "mypackag"):
             error = check_dependencies(
                 config_file=None,
-                dependency_file=str(tmp_file),
+                dependency_files={str(tmp_file)},
                 dependencies=None,
                 selector_method="first-letter",
             )
@@ -301,6 +301,32 @@ class TestCheckDependencies:
         )
 
     @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
+    def test_check_dependencies_with_multiple_dependency_files(
+        self, mock_get_packages_from_cache: Mock, tmp_path: Path, uv_lock_file_with_typo: Path
+    ) -> None:
+        mock_get_packages_from_cache.return_value = {"requests"}
+        tmp_file = tmp_path / "fake-dir" / "requirements.txt"
+        with create_tmp_file(tmp_file, "reqests"):
+            error = check_dependencies(
+                dependency_files={str(tmp_file), str(uv_lock_file_with_typo)},
+            )
+
+        assert (
+            TyposquatCheckResultFromSource(
+                errors=[TyposquatCheckResultEntry(dependency="reqests", similars=["requests"])],
+                source=str(tmp_file),
+            )
+            in error.results
+        )
+        assert (
+            TyposquatCheckResultFromSource(
+                errors=[TyposquatCheckResultEntry(dependency="reqests", similars=["requests"])],
+                source=str(uv_lock_file_with_typo),
+            )
+            in error.results
+        )
+
+    @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
     def test_check_dependencies_with_input_from_cli_accepts_multiple_dependencies(
         self, mock_get_packages_from_cache: Mock
     ) -> None:
@@ -308,7 +334,7 @@ class TestCheckDependencies:
 
         error = check_dependencies(
             config_file=None,
-            dependency_file=None,
+            dependency_files=None,
             dependencies={"my-package", "reqests"},
             selector_method="first-letter",
             package_ecosystem="pypi",
@@ -339,7 +365,7 @@ class TestCheckDependencies:
 
         error = check_dependencies(
             config_file=None,
-            dependency_file=None,
+            dependency_files=None,
             dependencies={"requests"},
             selector_method="first-letter",
             package_ecosystem="pypi",
@@ -396,7 +422,7 @@ class TestCheckDependencies:
 
         # Verify that before the whitelist configuration the package is classified as an error.
         error = check_dependencies(
-            dependency_file=str(uv_lock_file_with_typo),
+            dependency_files={str(uv_lock_file_with_typo)},
         )
         assert mock_get_packages.call_count == 1
         assert error == TyposquatCheckResults(
@@ -410,7 +436,7 @@ class TestCheckDependencies:
 
         m_config = TwynConfiguration(
             allowlist={"reqests"},
-            dependency_file=str(uv_lock_file_with_typo),
+            dependency_files={str(uv_lock_file_with_typo)},
             selector_method="first-letter",
             use_cache=True,
             source=None,
@@ -421,7 +447,7 @@ class TestCheckDependencies:
         # Check that the package is no longer an error
         with patch("twyn.main.ConfigHandler.resolve_config", return_value=m_config):
             error = check_dependencies(
-                dependency_file=str(uv_lock_file_with_typo),
+                dependency_files={str(uv_lock_file_with_typo)},
             )
 
         assert error == TyposquatCheckResults(results=[])
@@ -433,7 +459,7 @@ class TestCheckDependencies:
         mock_get_packages.return_value = {"reqests"}  # According to the source, this package is correct
 
         error = check_dependencies(
-            dependency_file=str(uv_lock_file_with_typo),
+            dependency_files={str(uv_lock_file_with_typo)},
         )
 
         assert error == TyposquatCheckResults(results=[])
@@ -444,7 +470,7 @@ class TestCheckDependencies:
         self, mock_config: Mock, mock_get_packages: Mock, uv_lock_file: Path
     ) -> None:
         mock_config.return_value = TwynConfiguration(
-            str(uv_lock_file),
+            dependency_files={str(uv_lock_file)},
             selector_method="all",
             allowlist=set(),
             source=None,
@@ -461,7 +487,7 @@ class TestCheckDependencies:
     @patch("twyn.main._get_config")
     def test_track_is_shown_when_enabled(self, mock_config: Mock, mock_get_packages: Mock, uv_lock_file: Path) -> None:
         mock_config.return_value = TwynConfiguration(
-            str(uv_lock_file),
+            dependency_files={str(uv_lock_file)},
             selector_method="all",
             allowlist=set(),
             source=None,
@@ -489,7 +515,7 @@ class TestCheckDependencies:
         """Test that when a non valid package_ecosystem is given together with a depdendecy_file, package_ecosystem is ignored."""
         m_packages.return_value = {"requests"}
         result = check_dependencies(
-            dependency_file=str(uv_lock_file_with_typo), package_ecosystem="npm", use_cache=False
+            dependency_files={str(uv_lock_file_with_typo)}, package_ecosystem="npm", use_cache=False
         )
         assert bool(result)
 
@@ -501,7 +527,7 @@ class TestCheckDependencies:
     def test_check_dependencies_npm_v3(self, package_lock_json_file_v3: Path) -> None:
         """Integration: check_dependencies works for npm v3 lockfile."""
         with patch_npm_packages_download(["expres"]) as m_download:
-            result = check_dependencies(dependency_file=str(package_lock_json_file_v3), use_cache=False)
+            result = check_dependencies(dependency_files={str(package_lock_json_file_v3)}, use_cache=False)
 
         assert m_download.call_count == 1
         assert len(result.results) == 1  # only one file was scanned
@@ -525,7 +551,7 @@ class TestCheckDependencies:
     def test_check_dependencies_yarn(self, yarn_lock_file_v1: Path) -> None:
         """Verifies that the yarn flow is working."""
         with patch_npm_packages_download(["lodas"]) as mock_download:
-            result = check_dependencies(dependency_file=str(yarn_lock_file_v1), use_cache=False)
+            result = check_dependencies(dependency_files={str(yarn_lock_file_v1)}, use_cache=False)
 
         assert mock_download.call_count == 1
         assert len(result.results) == 1  # only one file was scanned
