@@ -37,7 +37,7 @@ logger.addHandler(logging.NullHandler())
 def check_dependencies(
     selector_method: Union[SelectorMethod, None] = None,
     config_file: Optional[str] = None,
-    dependency_file: Optional[str] = None,
+    dependency_file: Optional[set[str]] = None,
     dependencies: Optional[set[str]] = None,
     use_cache: Optional[bool] = True,
     show_progress_bar: bool = False,
@@ -68,7 +68,7 @@ def check_dependencies(
         load_config_from_file=load_config_from_file,
         config_file=config_file,
         selector_method=selector_method,
-        dependency_file=dependency_file,
+        dependency_files=dependency_file,
         use_cache=use_cache,
         package_ecosystem=package_ecosystem,
         recursive=recursive,
@@ -104,7 +104,7 @@ def check_dependencies(
         maybe_cache_handler=maybe_cache_handler,
         allowlist=config.allowlist,
         show_progress_bar=show_progress_bar,
-        dependency_file=config.dependency_file,
+        dependency_files=config.dependency_file,
     )
 
 
@@ -153,7 +153,7 @@ def _analyze_packages_from_source(
     allowlist: set[str],
     selector_method: SelectorMethod,
     show_progress_bar: bool,
-    dependency_file: Optional[str],
+    dependency_files: Optional[set[str]],
     source: Optional[str],
     maybe_cache_handler: Optional[CacheHandler],
 ) -> TyposquatCheckResults:
@@ -161,30 +161,31 @@ def _analyze_packages_from_source(
 
     It will return a list of the possible typos grouped by source, each source being a dependency file.
     """
-    dependency_managers = _get_dependency_managers_and_parsers_mapping(dependency_file)
-    typos_by_file = TyposquatCheckResults()
-    for dependency_manager, parsers in dependency_managers.items():
-        top_package_reference = dependency_manager.trusted_packages_source(source, maybe_cache_handler)
+    dependency_files = dependency_files or {""}
+    for dep_file in dependency_files:
+        dependency_managers = _get_dependency_managers_and_parsers_mapping(dep_file)
+        typos_by_file = TyposquatCheckResults()
+        for dependency_manager, parsers in dependency_managers.items():
+            top_package_reference = dependency_manager.trusted_packages_source(source, maybe_cache_handler)
 
-        packages_from_source = top_package_reference.get_packages()
-        trusted_packages = TrustedPackages(
-            names=packages_from_source,
-            algorithm=EditDistance(),
-            selector=selector_method,
-            threshold_class=SimilarityThreshold,
-        )
-        results: list[TyposquatCheckResultFromSource] = []
-
-        for parser in parsers:
-            analyzed_dependencies = _analyze_dependencies(
-                top_package_reference, trusted_packages, parser.parse(), allowlist, show_progress_bar, parser.file_path
+            packages_from_source = top_package_reference.get_packages()
+            trusted_packages = TrustedPackages(
+                names=packages_from_source,
+                algorithm=EditDistance(),
+                selector=selector_method,
+                threshold_class=SimilarityThreshold,
             )
-
-            if analyzed_dependencies:
-                results.append(
-                    TyposquatCheckResultFromSource(source=str(parser.file_path), errors=analyzed_dependencies)
+            results: list[TyposquatCheckResultFromSource] = []
+            for parser in parsers:
+                analyzed_dependencies = _analyze_dependencies(
+                    top_package_reference, trusted_packages, parser.parse(), allowlist, show_progress_bar
                 )
-        typos_by_file.results += results
+
+                if analyzed_dependencies:
+                    results.append(
+                        TyposquatCheckResultFromSource(source=str(parser.file_path), errors=analyzed_dependencies)
+                    )
+            typos_by_file.results += results
 
     return typos_by_file
 
@@ -258,6 +259,7 @@ def _get_dependency_managers_and_parsers_mapping(
     dependency_managers: dict[type[BaseDependencyManager], list[AbstractParser]] = {}
 
     # No dependencies introduced via the CLI, so the dependecy file was either given or will be auto-detected
+
     dependency_selector = DependencySelector(dependency_file)
     dependency_parsers = dependency_selector.get_dependency_parsers()
 
@@ -274,7 +276,7 @@ def _get_config(
     load_config_from_file: bool,
     config_file: Optional[str],
     selector_method: Union[SelectorMethod, None],
-    dependency_file: Optional[str],
+    dependency_files: Optional[set[str]],
     use_cache: Optional[bool],
     package_ecosystem: Optional[PackageEcosystems],
     recursive: Optional[bool],
@@ -286,7 +288,7 @@ def _get_config(
         config_file_handler = None
     return ConfigHandler(config_file_handler).resolve_config(
         selector_method=selector_method,
-        dependency_file=dependency_file,
+        dependency_files=dependency_files,
         use_cache=use_cache,
         package_ecosystem=package_ecosystem,
         recursive=recursive,

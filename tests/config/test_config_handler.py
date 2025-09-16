@@ -1,7 +1,6 @@
 import dataclasses
 from copy import deepcopy
 from pathlib import Path
-from typing import NoReturn
 from unittest.mock import Mock, patch
 
 import pytest
@@ -26,17 +25,14 @@ from tests.conftest import create_tmp_file
 
 
 class TestConfigHandler:
-    def throw_exception(self) -> NoReturn:
-        raise PathNotFoundError
-
     @patch("twyn.file_handler.file_handler.FileHandler.read")
     def test_no_enforce_file_on_non_existent_file(self, mock_is_file: Mock) -> None:
         """Resolving the config without enforcing the file to be present gives you defaults."""
-        mock_is_file.side_effect = self.throw_exception
+        mock_is_file.side_effect = PathNotFoundError()
         config = ConfigHandler(FileHandler(DEFAULT_PROJECT_TOML_FILE)).resolve_config()
 
         assert config == TwynConfiguration(
-            dependency_file=None,
+            dependency_file=set(),
             selector_method="all",
             allowlist=set(),
             source=None,
@@ -51,7 +47,7 @@ class TestConfigHandler:
 
     def test_read_config_values(self, pyproject_toml_file: Path) -> None:
         config = ConfigHandler(file_handler=FileHandler(pyproject_toml_file)).resolve_config()
-        assert config.dependency_file == "my_file.txt"
+        assert config.dependency_file == {"my_file.txt", "my_other_file.txt"}
         assert config.selector_method == "all"
         assert config.allowlist == {"boto4", "boto2"}
         assert config.use_cache is False
@@ -62,7 +58,7 @@ class TestConfigHandler:
         toml = handler._read_toml()
         twyn_data = ConfigHandler(FileHandler(pyproject_toml_file))._get_read_config(toml)
         assert twyn_data == ReadTwynConfiguration(
-            dependency_file="my_file.txt",
+            dependency_file={"my_file.txt", "my_other_file.txt"},
             selector_method="all",
             allowlist={"boto4", "boto2"},
             source=None,
@@ -75,7 +71,7 @@ class TestConfigHandler:
 
         initial_config = handler.resolve_config()
         to_write = deepcopy(initial_config)
-        to_write = dataclasses.replace(to_write, allowlist={})
+        to_write = dataclasses.replace(to_write, allowlist={}, dependency_file={})
 
         handler._write_config(toml, to_write)
 
@@ -100,7 +96,7 @@ class TestConfigHandler:
                     "scripts": {"twyn": "twyn.cli:entry_point"},
                 },
                 "twyn": {
-                    "dependency_file": "my_file.txt",
+                    "dependency_file": {},
                     "selector_method": "all",
                     "allowlist": {},
                     "use_cache": False,
@@ -141,7 +137,7 @@ class TestConfigHandler:
         config = ConfigHandler().resolve_config()
 
         assert config.allowlist == set()
-        assert config.dependency_file is None
+        assert config.dependency_file == set()
         assert config.use_cache is True
         assert config.selector_method == DEFAULT_SELECTOR_METHOD
         assert config.source is None

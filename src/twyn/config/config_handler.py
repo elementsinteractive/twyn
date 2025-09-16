@@ -32,20 +32,20 @@ logger = logging.getLogger("twyn")
 class TwynConfiguration:
     """Fully resolved configuration for Twyn."""
 
-    dependency_file: Optional[str]
     selector_method: str
     allowlist: set[str]
     source: Optional[str]
     use_cache: bool
     package_ecosystem: Optional[PackageEcosystems]
     recursive: Optional[bool]
+    dependency_file: set[str]
 
 
 @dataclass
 class ReadTwynConfiguration:
     """Configuration for twyn as set by the user. It may have None values."""
 
-    dependency_file: Optional[str] = None
+    dependency_file: Optional[set[str]] = field(default_factory=set)
     selector_method: Optional[str] = None
     allowlist: set[str] = field(default_factory=set)
     source: Optional[str] = None
@@ -63,7 +63,7 @@ class ConfigHandler:
     def resolve_config(
         self,
         selector_method: Optional[str] = None,
-        dependency_file: Optional[str] = None,
+        dependency_files: Optional[set[str]] = None,
         use_cache: Optional[bool] = None,
         package_ecosystem: Optional[PackageEcosystems] = None,
         recursive: Optional[bool] = None,
@@ -107,7 +107,7 @@ class ConfigHandler:
             final_recursive = DEFAULT_RECURSIVE
 
         return TwynConfiguration(
-            dependency_file=dependency_file or read_config.dependency_file,
+            dependency_file=dependency_files or read_config.dependency_file or set(),
             selector_method=final_selector_method,
             allowlist=read_config.allowlist,
             source=read_config.source,
@@ -142,11 +142,13 @@ class ConfigHandler:
         """Read the twyn configuration from a provided toml document."""
         twyn_config_data = toml.get("tool", {}).get("twyn", {})
         return ReadTwynConfiguration(
-            dependency_file=twyn_config_data.get("dependency_file"),
+            dependency_file=set(twyn_config_data.get("dependency_file", set())),
             selector_method=twyn_config_data.get("selector_method"),
             allowlist=set(twyn_config_data.get("allowlist", set())),
             source=twyn_config_data.get("source"),
             use_cache=twyn_config_data.get("use_cache"),
+            package_ecosystem=twyn_config_data.get("package_ecosystem"),
+            recursive=twyn_config_data.get("recursive"),
         )
 
     def _write_config(self, toml: TOMLDocument, config: ReadTwynConfiguration) -> None:
@@ -155,12 +157,12 @@ class ConfigHandler:
         All null values are simply omitted from the toml file.
         """
         twyn_toml_data = asdict(config, dict_factory=lambda x: _serialize_config(x))
+
         if "tool" not in toml:
             toml.add("tool", table())
         if "twyn" not in toml["tool"]:  # type: ignore[operator]
             toml["tool"]["twyn"] = {}  # type: ignore[index]
         toml["tool"]["twyn"] = twyn_toml_data  # type: ignore[index]
-
         self._write_toml(toml)
 
     def _write_toml(self, toml: TOMLDocument) -> None:

@@ -47,6 +47,7 @@ def entry_point() -> None:
 @click.option(
     "--dependency-file",
     type=str,
+    multiple=True,
     help=(
         "Dependency file to analyze. By default, twyn will search in the current directory "
         "for supported files, but this option will override that behavior."
@@ -112,7 +113,7 @@ def entry_point() -> None:
 )
 def run(  # noqa: C901
     config: str,
-    dependency_file: Optional[str],
+    dependency_file: tuple[str],
     dependency: tuple[str],
     selector_method: str,
     v: bool,
@@ -133,15 +134,16 @@ def run(  # noqa: C901
             "Only one of --dependency or --dependency-file can be set at a time.", ctx=click.get_current_context()
         )
 
-    if dependency_file and not any(dependency_file.endswith(key) for key in DEPENDENCY_FILE_MAPPING):
-        raise click.UsageError("Dependency file name not supported.", ctx=click.get_current_context())
+    for dep_file in dependency_file:
+        if dep_file and not any(dep_file.endswith(key) for key in DEPENDENCY_FILE_MAPPING):
+            raise click.UsageError(f"Dependency file name {dep_file} not supported.", ctx=click.get_current_context())
 
     try:
         possible_typos = check_dependencies(
             selector_method=selector_method,
             dependencies=set(dependency) or None,
             config_file=config,
-            dependency_file=dependency_file,
+            dependency_file=set(dependency_file) or None,
             use_cache=not no_cache if no_cache is not None else no_cache,
             show_progress_bar=False if json else not no_track,
             load_config_from_file=True,

@@ -42,7 +42,6 @@ class DependencySelector:
             if self.dependency_file.endswith(known_dependency_file_name):
                 file_parser = DEPENDENCY_FILE_MAPPING[known_dependency_file_name](self.dependency_file)
                 parsers.append(file_parser)
-
         if not parsers:
             raise NoMatchingParserError
 
