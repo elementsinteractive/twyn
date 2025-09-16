@@ -174,9 +174,10 @@ def _analyze_packages_from_source(
             threshold_class=SimilarityThreshold,
         )
         results: list[TyposquatCheckResultFromSource] = []
+
         for parser in parsers:
             analyzed_dependencies = _analyze_dependencies(
-                top_package_reference, trusted_packages, parser.parse(), allowlist, show_progress_bar
+                top_package_reference, trusted_packages, parser.parse(), allowlist, show_progress_bar, parser.file_path
             )
 
             if analyzed_dependencies:
@@ -194,6 +195,7 @@ def _analyze_dependencies(
     packages: set[str],
     allowlist: set[str],
     show_progress_bar: bool,
+    dependency_file: Optional[str] = None,
 ) -> list[TyposquatCheckResultEntry]:
     """Analyze the set of given dependencies against the trusted packages' golden set.
 
@@ -203,8 +205,7 @@ def _analyze_dependencies(
     normalized_dependencies = top_package_reference.normalize_packages(packages)
 
     errors = []
-
-    for dependency in _get_dependencies_list(normalized_dependencies, show_progress_bar):
+    for dependency in _get_dependencies_list(normalized_dependencies, show_progress_bar, dependency_file):
         if dependency in normalized_allowlist_packages:
             logger.info("Dependency %s is in the allowlist", dependency)
             continue
@@ -216,20 +217,26 @@ def _analyze_dependencies(
     return errors
 
 
-def _get_dependencies_list(normalized_dependencies: set[str], show_progress_bar: bool) -> Iterable[str]:
+def _get_dependencies_list(
+    normalized_dependencies: set[str], show_progress_bar: bool, dependency_file: Optional[str] = None
+) -> Iterable[str]:
     """Determine if the progress bar will be showed or not. It returns an iterable of all the dependencies to analyze."""
     try:
         from rich.progress import track  # noqa: PLC0415
 
+        if dependency_file:
+            from click import echo, style  # noqa: PLC0415
+
+            echo(style(f"Reading file {dependency_file}", fg="green"), color=True)
         return (
             track(normalized_dependencies, description="Processing...")
             if show_progress_bar
             else normalized_dependencies
         )
-    except ImportError as e:
+    except ModuleNotFoundError as e:
         if show_progress_bar:
             raise InvalidArgumentsError(
-                "Cannot show progress bar because `rich` dependency is not installed. "
+                "Cannot show progress bar because `rich` and `click` dependencies are not installed. "
                 "It is only meant to be shown when running `twyn` as a cli tool. "
                 "If this is you case, install all the dependencies with `pip install twyn[cli]`. "
             ) from e
