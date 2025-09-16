@@ -111,3 +111,6 @@ GitHub.sublime-settings
 .history
 /.ruff_cache/
 /.env.local
+
+# Test lock files
+yarn.lock

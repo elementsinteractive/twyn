@@ -14,6 +14,7 @@
   - [Using `Twyn` as a cli tool](#using-twyn-as-a-cli-tool)
     - [Installation](#installation)
     - [Docker](#docker)
+    - [CLI Options Reference](#cli-options-reference)
     - [Run](#run)
     - [JSON Format](#json-format)
   - [Using `Twyn` as a library](#using-twyn-as-a-library)
@@ -61,15 +62,29 @@ docker pull elementsinteractive/twyn:latest
 docker run elementsinteractive/twyn --help
 ```
 
+##### CLI Options Reference
+
+| Option / Argument         | Type / Values                                      | Description                                                                                   |
+|--------------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| `--config`               | `str` (path)                                       | Path to configuration file (`twyn.toml` or `pyproject.toml` by default).                      |
+| `--dependency-file`      | `str` (path)                                       | Dependency file to analyze. Supported: `requirements.txt`, `poetry.lock`, `uv.lock`, etc.     |
+| `--dependency`           | `str` (multiple allowed)                           | Dependency to analyze directly. Can be specified multiple times.                              |
+| `--selector-method`      | `all`, `first-letter`, `nearby-letter`             | Method for selecting possible typosquats.                                                     |
+| `--package-ecosystem`    | `pypi`, `npm`                                      | Package ecosystem for analysis.                                                               |
+| `-v`                     | flag                                               | Enable info-level logging.                                                                    |
+| `-vv`                    | flag                                               | Enable debug-level logging.                                                                   |
+| `--no-cache`             | flag                                               | Disable use of trusted packages cache. Always fetch from the source.                          |
+| `--no-track`             | flag                                               | Do not show the progress bar while processing packages.                                       |
+| `--json`                 | flag                                               | Display results in JSON format. Implies `--no-track`.                                         |
+| `-r`, `--recursive`      | flag                                               | Scan directories recursively for dependency files.                                            |
 #### Run
 
-To run twyn simply type:
+**Usage Example:**
 
 ```sh
 twyn run <OPTIONS>
 ```
-
-For a list of all the available options as well as their expected arguments run:
+or get help with
 
 ```sh
 twyn run --help
@@ -90,8 +105,8 @@ If `Twyn` was run by manually giving it dependencies (with `--dependency`), the 
 
 In any other case (when dependencies are parsed from a file), the source will be the path to the dependencies file. One entry will be created for every source.
 
-### Using Twyn as a library
 
+### Using Twyn as a library
 
 #### Installation
 `Twyn` also supports being used as 3rd party library for you project. To install it, run:
@@ -122,37 +137,6 @@ logging.basicConfig(level=logging.INFO)
 logging.getLogger("twyn").setLevel(logging.INFO)
 ```
 
-### Using Twyn as a library
-
-
-#### Installation
-`Twyn` also supports being used as 3rd party library for you project. To install it, run:
-
-
-```sh
-pip install twyn
-```
-
-Example usage in your code:
-
-```python
-from twyn import check_dependencies
-
-typos = check_dependencies()
-
-for typo in typos.errors:
-  print(f"Dependency:{typo.dependency}")
-  print(f"Did you mean any of [{','.join(typo.similars)}]")
-  
-```
-
-#### Logging level
-By default, logging is disabled when running as a 3rd party library. To override this behaviour, you can:
-
-```python
-logging.basicConfig(level=logging.INFO)
-logging.getLogger("twyn").setLevel(logging.INFO)
-```
 
 ## Configuration
 
@@ -268,5 +252,3 @@ To clear the cache, run:
 ```python
   twyn run cache clear
 ```
-
-

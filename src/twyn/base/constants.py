@@ -35,6 +35,7 @@ DEFAULT_SELECTOR_METHOD = "all"
 DEFAULT_PROJECT_TOML_FILE = "pyproject.toml"
 DEFAULT_TWYN_TOML_FILE = "twyn.toml"
 DEFAULT_USE_CACHE = True
+DEFAULT_RECURSIVE = False
 
 
 PackageEcosystems: TypeAlias = Literal["pypi", "npm"]

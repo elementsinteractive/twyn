@@ -8,6 +8,7 @@ from tomlkit import TOMLDocument, dumps, load, table
 
 from twyn.base.constants import (
     DEFAULT_PROJECT_TOML_FILE,
+    DEFAULT_RECURSIVE,
     DEFAULT_SELECTOR_METHOD,
     DEFAULT_TWYN_TOML_FILE,
     DEFAULT_USE_CACHE,
@@ -37,6 +38,7 @@ class TwynConfiguration:
     source: Optional[str]
     use_cache: bool
     package_ecosystem: Optional[PackageEcosystems]
+    recursive: Optional[bool]
 
 
 @dataclass
@@ -49,6 +51,7 @@ class ReadTwynConfiguration:
     source: Optional[str] = None
     use_cache: Optional[bool] = None
     package_ecosystem: Optional[PackageEcosystems] = None
+    recursive: Optional[bool] = None
 
 
 class ConfigHandler:
@@ -63,6 +66,7 @@ class ConfigHandler:
         dependency_file: Optional[str] = None,
         use_cache: Optional[bool] = None,
         package_ecosystem: Optional[PackageEcosystems] = None,
+        recursive: Optional[bool] = None,
     ) -> TwynConfiguration:
         """Resolve the configuration for Twyn.
 
@@ -95,6 +99,13 @@ class ConfigHandler:
         else:
             final_use_cache = DEFAULT_USE_CACHE
 
+        if recursive is not None:
+            final_recursive = use_cache
+        elif read_config.recursive is not None:
+            final_recursive = read_config.recursive
+        else:
+            final_recursive = DEFAULT_RECURSIVE
+
         return TwynConfiguration(
             dependency_file=dependency_file or read_config.dependency_file,
             selector_method=final_selector_method,
@@ -102,6 +113,7 @@ class ConfigHandler:
             source=read_config.source,
             use_cache=final_use_cache,
             package_ecosystem=package_ecosystem or read_config.package_ecosystem,
+            recursive=final_recursive,
         )
 
     def add_package_to_allowlist(self, package_name: str) -> None:

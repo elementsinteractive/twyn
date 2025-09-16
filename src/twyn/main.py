@@ -43,6 +43,7 @@ def check_dependencies(
     show_progress_bar: bool = False,
     load_config_from_file: bool = False,
     package_ecosystem: Optional[PackageEcosystems] = None,
+    recursive: Optional[bool] = None,
 ) -> TyposquatCheckResults:
     """
     Check if the provided dependencies are potential typosquats of trusted packages.
@@ -70,6 +71,7 @@ def check_dependencies(
         dependency_file=dependency_file,
         use_cache=use_cache,
         package_ecosystem=package_ecosystem,
+        recursive=recursive,
     )
     maybe_cache_handler = CacheHandler() if config.use_cache else None
     selector_method_obj = _get_selector_method(config.selector_method)
@@ -85,8 +87,16 @@ def check_dependencies(
             dependencies=dependencies,
         )
 
+    # The following checks do not result in an error to avoid inconsistencies.
+    # If the user has set in the config file a setting that would conflict with a cli provided option
+    # it would always result in an execution error rather than in overriding the behaviour.
     if config.package_ecosystem:
         logger.warning("`package_ecosystem` is not supported when reading dependencies from files. It will be ignored.")
+
+    if config.dependency_file and config.recursive:
+        logger.warning(
+            "`--recursive` has been set together with `--dependency-file`. `--dependency-file` will take precedence."
+        )
 
     return _analyze_packages_from_source(
         selector_method=selector_method_obj,
@@ -155,6 +165,7 @@ def _analyze_packages_from_source(
     typos_by_file = TyposquatCheckResults()
     for dependency_manager, parsers in dependency_managers.items():
         top_package_reference = dependency_manager.trusted_packages_source(source, maybe_cache_handler)
+
         packages_from_source = top_package_reference.get_packages()
         trusted_packages = TrustedPackages(
             names=packages_from_source,
@@ -259,6 +270,7 @@ def _get_config(
     dependency_file: Optional[str],
     use_cache: Optional[bool],
     package_ecosystem: Optional[PackageEcosystems],
+    recursive: Optional[bool],
 ) -> TwynConfiguration:
     """Given the arguments passed to the main function and the configuration loaded from the config file (if any), return a config object."""
     if load_config_from_file:
@@ -270,4 +282,5 @@ def _get_config(
         dependency_file=dependency_file,
         use_cache=use_cache,
         package_ecosystem=package_ecosystem,
+        recursive=recursive,
     )

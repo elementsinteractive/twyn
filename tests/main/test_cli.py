@@ -95,6 +95,7 @@ class TestCli:
                 show_progress_bar=True,
                 load_config_from_file=True,
                 package_ecosystem=None,
+                recursive=False,
             )
         ]
 
@@ -119,6 +120,7 @@ class TestCli:
                 show_progress_bar=True,
                 load_config_from_file=True,
                 package_ecosystem=None,
+                recursive=False,
             )
         ]
 
@@ -143,6 +145,7 @@ class TestCli:
                 show_progress_bar=True,
                 load_config_from_file=True,
                 package_ecosystem="pypi",
+                recursive=False,
             )
         ]
 
@@ -166,6 +169,7 @@ class TestCli:
                 show_progress_bar=True,
                 load_config_from_file=True,
                 package_ecosystem=None,
+                recursive=False,
             )
         ]
 
@@ -201,8 +205,39 @@ class TestCli:
                 show_progress_bar=True,
                 load_config_from_file=True,
                 package_ecosystem=None,
+                recursive=False,
             )
         ]
+
+    @patch("twyn.cli.check_dependencies")
+    def test_recursive(self, mock_check_dependencies: Mock) -> None:
+        runner = CliRunner()
+        runner.invoke(
+            cli.run,
+            [
+                "--recursive",
+            ],
+        )
+
+        runner.invoke(
+            cli.run,
+            [
+                "-r",
+            ],
+        )
+        call_args = call(
+            selector_method=None,
+            dependencies=None,
+            config_file=None,
+            dependency_file=None,
+            use_cache=None,
+            show_progress_bar=True,
+            load_config_from_file=True,
+            package_ecosystem=None,
+            recursive=True,
+        )
+        assert mock_check_dependencies.call_args_list[0] == call_args
+        assert mock_check_dependencies.call_args_list[1] == call_args
 
     @patch("twyn.cli.check_dependencies")
     def test_click_arguments_default(self, mock_check_dependencies: Mock) -> None:
@@ -219,6 +254,7 @@ class TestCli:
                 show_progress_bar=True,
                 load_config_from_file=True,
                 package_ecosystem=None,
+                recursive=False,
             )
         ]
 
