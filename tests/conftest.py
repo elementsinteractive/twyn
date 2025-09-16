@@ -1,7 +1,8 @@
 import datetime
-from collections.abc import Iterator
+from collections.abc import Generator, Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -21,10 +22,8 @@ def patch_pypi_packages_download(packages: list[str]) -> Iterator[mock.Mock]:
     Replaces call with the output you would get from downloading the top PyPi packages list.
     """
     json_response = {"packages": packages, "date": datetime.datetime.now().isoformat()}
-
     with mock.patch("twyn.trusted_packages.TopPyPiReference._download") as mock_download:
         mock_download.return_value = json_response
-
         yield mock_download
 
 
@@ -447,3 +446,10 @@ def yarn_lock_file_v2(tmp_path: Path) -> Iterator[Path]:
         """
     with create_tmp_file(yarn_file, data) as tmp_file:
         yield tmp_file
+
+
+@pytest.fixture(autouse=True)
+def fail_on_requests_get(request) -> Generator[None, Any, None]:
+    with mock.patch("requests.get") as m_get:
+        m_get.side_effect = RuntimeError("`requests.get()` was called!")
+        yield

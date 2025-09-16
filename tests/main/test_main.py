@@ -12,6 +12,7 @@ from twyn.dependency_managers.utils import (
     get_dependency_manager_from_file,
     get_dependency_manager_from_name,
 )
+from twyn.dependency_parser.dependency_selector import DependencySelector
 from twyn.file_handler.file_handler import FileHandler
 from twyn.main import (
     check_dependencies,
@@ -38,6 +39,7 @@ class TestCheckDependencies:
                     "dependency_file": "requirements.txt",
                     "use_cache": True,
                     "pypi_reference": "https://myurl.com",
+                    "recurisve": True,
                 },
                 {
                     "selector_method": "nearby-letter",
@@ -45,6 +47,7 @@ class TestCheckDependencies:
                     "allowlist": ["boto4", "boto2"],  # There is no allowlist option in the cli
                     "use_cache": False,
                     "pypi_reference": "https://mysecondurl.com",
+                    "recursive": False,
                 },
                 TwynConfiguration(
                     dependency_file="requirements.txt",
@@ -53,6 +56,7 @@ class TestCheckDependencies:
                     source=TopPyPiReference.DEFAULT_SOURCE,
                     use_cache=True,
                     package_ecosystem="pypi",
+                    recursive=True,
                 ),
             ),  # CLI args take precedence over config from file
             (
@@ -63,6 +67,7 @@ class TestCheckDependencies:
                     "allowlist": ["boto4", "boto2"],
                     "use_cache": False,
                     "pypi_reference": "https://mysecondurl.com",
+                    "recursive": True,
                 },
                 TwynConfiguration(
                     dependency_file="poetry.lock",
@@ -71,6 +76,7 @@ class TestCheckDependencies:
                     source=TopPyPiReference.DEFAULT_SOURCE,
                     use_cache=False,
                     package_ecosystem="pypi",
+                    recursive=True,
                 ),
             ),  # Config from file takes precendence over fallback values
             (
@@ -83,6 +89,7 @@ class TestCheckDependencies:
                     source=TopPyPiReference.DEFAULT_SOURCE,
                     use_cache=True,
                     package_ecosystem="pypi",
+                    recursive=False,
                 ),
             ),  # Fallback values
         ],
@@ -180,6 +187,7 @@ class TestCheckDependencies:
             source=None,
             use_cache=False,
             package_ecosystem=None,
+            recursive=False,
         )
         mock_fpath.return_value = uv_lock_file_with_typo
         error = check_dependencies()
@@ -214,6 +222,7 @@ class TestCheckDependencies:
             source=None,
             use_cache=False,
             package_ecosystem="pypi",
+            recursive=False,
         )
         mock_fpath.return_value = uv_lock_file_with_typo
         error = check_dependencies()
@@ -244,6 +253,26 @@ class TestCheckDependencies:
                 TyposquatCheckResultFromSource(
                     errors=[TyposquatCheckResultEntry(dependency="my-package", similars=["mypackage"])],
                     source="manual_input",
+                )
+            ]
+        )
+
+    @patch("twyn.trusted_packages.TopPyPiReference._get_packages_from_cache_if_enabled")
+    def test_check_dependencies_recursive_and_dependency_file_set(
+        self, mock_get_packages_from_cache: Mock, uv_lock_file_with_typo: Path
+    ) -> None:
+        """Test that recursive and dependency file can be set at the same time, and then dependency file takes precedence while recurisve is ignored."""
+        mock_get_packages_from_cache.return_value = {"requests"}
+        error = check_dependencies(
+            dependency_file=str(uv_lock_file_with_typo),
+            package_ecosystem="pypi",
+        )
+
+        assert error == TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[TyposquatCheckResultEntry(dependency="reqests", similars=["requests"])],
+                    source=str(uv_lock_file_with_typo),
                 )
             ]
         )
@@ -290,11 +319,14 @@ class TestCheckDependencies:
 
     @patch("twyn.main._analyze_dependencies_from_input")
     @patch("twyn.main.ConfigHandler")
-    def test_check_dependencies_loads_config_from_file(self, mock_config: Mock, mock_analyze: Mock) -> None:
+    @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
+    def test_check_dependencies_loads_config_from_file(
+        self, m_packages: Mock, mock_config: Mock, mock_analyze: Mock
+    ) -> None:
         mock_analyze.return_value = TyposquatCheckResults()
         mock_config.return_value = ConfigHandler()
-
-        check_dependencies(load_config_from_file=True)
+        m_packages.return_value = {"requests"}
+        check_dependencies(load_config_from_file=True, use_cache=False, dependencies={"requests"})
 
         assert mock_config.call_count == 1
         assert len(mock_config.call_args) == 2
@@ -383,6 +415,7 @@ class TestCheckDependencies:
             use_cache=True,
             source=None,
             package_ecosystem=None,
+            recursive=False,
         )
 
         # Check that the package is no longer an error
@@ -417,6 +450,7 @@ class TestCheckDependencies:
             source=None,
             use_cache=False,
             package_ecosystem=None,
+            recursive=False,
         )
         mock_get_packages.return_value = {"requests"}
         with patch("rich.progress.track") as m_track:
@@ -433,6 +467,7 @@ class TestCheckDependencies:
             source=None,
             use_cache=False,
             package_ecosystem=None,
+            recursive=False,
         )
         mock_get_packages.return_value = {"requests"}
         with patch("rich.progress.track") as m_track:
@@ -449,9 +484,13 @@ class TestCheckDependencies:
         with pytest.raises(InvalidArgumentsError):
             check_dependencies(dependencies={"foo"}, package_ecosystem="asdf")
 
-    def test_check_dependency_file_invalid_language_error(self, uv_lock_file_with_typo: Path) -> None:
+    @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
+    def test_check_dependency_file_invalid_language_error(self, m_packages: Mock, uv_lock_file_with_typo: Path) -> None:
         """Test that when a non valid package_ecosystem is given together with a depdendecy_file, package_ecosystem is ignored."""
-        result = check_dependencies(dependency_file=str(uv_lock_file_with_typo), package_ecosystem="npm")
+        m_packages.return_value = {"requests"}
+        result = check_dependencies(
+            dependency_file=str(uv_lock_file_with_typo), package_ecosystem="npm", use_cache=False
+        )
         assert bool(result)
 
     def test_check_dependencies_invalid_selector_method_error(self) -> None:
@@ -496,3 +535,23 @@ class TestCheckDependencies:
                 source=str(yarn_lock_file_v1),
             )
         ]
+
+    @patch("twyn.main.DependencySelector")
+    @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
+    def test_auto_detect_dependency_file_parser_scans_subdirectories(
+        self, m_packages: Mock, m_dep_selector: Mock, tmp_path: Path
+    ) -> None:
+        # Create nested directories and dependency files
+        subdir = tmp_path / "subdir"
+        subdir.mkdir()
+
+        req_file = subdir / "requirements.txt"
+        req_file.write_text("reqests\n")
+
+        m_dep_selector.return_value = DependencySelector(root_path=str(tmp_path))
+        m_packages.return_value = {"requests"}
+
+        error = check_dependencies(recursive=True, use_cache=False)
+
+        assert len(error.results) == 1
+        assert error.get_results_from_source(str(req_file)) is not None

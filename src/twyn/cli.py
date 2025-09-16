@@ -103,6 +103,13 @@ def entry_point() -> None:
     default=False,
     help="Display the results in json format. It implies --no-track.",
 )
+@click.option(
+    "-r",
+    "--recursive",
+    is_flag=True,
+    default=False,
+    help="Recursively look for files when trying to locate them automatically. Ignored if --dependency-file is given.",
+)
 def run(  # noqa: C901
     config: str,
     dependency_file: Optional[str],
@@ -114,6 +121,7 @@ def run(  # noqa: C901
     no_track: bool,
     json: bool,
     package_ecosystem: Optional[str],
+    recursive: bool,
 ) -> int:
     if vv:
         logger.setLevel(logging.DEBUG)
@@ -138,6 +146,7 @@ def run(  # noqa: C901
             show_progress_bar=False if json else not no_track,
             load_config_from_file=True,
             package_ecosystem=package_ecosystem,
+            recursive=recursive,
         )
     except TwynError as e:
         raise CliError(str(e)) from e

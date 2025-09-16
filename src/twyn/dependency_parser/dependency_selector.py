@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Optional
 
 from twyn.base.constants import DEPENDENCY_FILE_MAPPING
@@ -11,21 +12,28 @@ logger = logging.getLogger("twyn")
 
 
 class DependencySelector:
-    def __init__(self, dependency_file: Optional[str] = None) -> None:
+    def __init__(self, dependency_file: Optional[str] = None, root_path: str = ".") -> None:
         self.dependency_file = dependency_file or ""
+        self.root_path = root_path
 
     def auto_detect_dependency_file_parser(self) -> list[AbstractParser]:
         parsers: list[AbstractParser] = []
-        for dependency_parser in DEPENDENCY_FILE_MAPPING.values():
-            file_parser = dependency_parser()
-            if file_parser.file_exists():
-                parsers.append(file_parser)
-                logger.debug("Assigned %s parser for local dependencies file.", file_parser)
+        root = Path(self.root_path)
+        for path in root.rglob("*"):
+            if ".git" in path.parts:
+                continue
+            if path.is_file():
+                for known_file, dependency_parser in DEPENDENCY_FILE_MAPPING.items():
+                    if path.name == known_file:
+                        file_parser = dependency_parser(str(path))
+                        if file_parser.file_exists():
+                            parsers.append(file_parser)
+                            logger.debug("Assigned %s parser for local dependencies file at %s.", file_parser, path)
 
         if not parsers:
             raise NoMatchingParserError
 
-        logger.debug("Dependencies file found")
+        logger.debug("Dependencies file(s) found: %s", [str(p.file_path) for p in parsers])
         return parsers
 
     def get_dependency_file_parsers_from_file_name(self) -> list[AbstractParser]:

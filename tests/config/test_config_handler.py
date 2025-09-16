@@ -42,6 +42,7 @@ class TestConfigHandler:
             source=None,
             use_cache=True,
             package_ecosystem=None,
+            recursive=False,
         )
 
     def test_config_raises_for_unknown_file(self) -> None:
@@ -103,6 +104,7 @@ class TestConfigHandler:
                     "selector_method": "all",
                     "allowlist": {},
                     "use_cache": False,
+                    "recursive": False,
                 },
             }
         }
