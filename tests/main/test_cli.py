@@ -88,7 +88,7 @@ class TestCli:
         assert mock_check_dependencies.call_args_list == [
             call(
                 config_file="my-config",
-                dependency_file="requirements.txt",
+                dependency_files={"requirements.txt"},
                 dependencies=None,
                 selector_method="first-letter",
                 use_cache=None,
@@ -113,7 +113,7 @@ class TestCli:
         assert mock_check_dependencies.call_args_list == [
             call(
                 config_file=None,
-                dependency_file="/path/requirements.txt",
+                dependency_files={"/path/requirements.txt"},
                 dependencies=None,
                 selector_method=None,
                 use_cache=None,
@@ -138,7 +138,7 @@ class TestCli:
         assert mock_check_dependencies.call_args_list == [
             call(
                 config_file=None,
-                dependency_file=None,
+                dependency_files=None,
                 dependencies=None,
                 selector_method=None,
                 use_cache=None,
@@ -162,7 +162,7 @@ class TestCli:
         assert mock_check_dependencies.call_args_list == [
             call(
                 config_file=None,
-                dependency_file=None,
+                dependency_files=None,
                 dependencies={"reqests"},
                 selector_method=None,
                 use_cache=None,
@@ -198,7 +198,7 @@ class TestCli:
         assert mock_check_dependencies.call_args_list == [
             call(
                 config_file=None,
-                dependency_file=None,
+                dependency_files=None,
                 dependencies={"reqests", "reqeusts"},
                 selector_method=None,
                 use_cache=None,
@@ -229,7 +229,7 @@ class TestCli:
             selector_method=None,
             dependencies=None,
             config_file=None,
-            dependency_file=None,
+            dependency_files=None,
             use_cache=None,
             show_progress_bar=True,
             load_config_from_file=True,
@@ -247,7 +247,7 @@ class TestCli:
         assert mock_check_dependencies.call_args_list == [
             call(
                 config_file=None,
-                dependency_file=None,
+                dependency_files=None,
                 selector_method=None,
                 dependencies=None,
                 use_cache=None,
@@ -328,7 +328,7 @@ class TestCli:
 
         assert isinstance(result.exception, SystemExit)
         assert result.exit_code == 2
-        assert "Dependency file name not supported." in result.output
+        assert "Dependency file name requirements-dev.txt not supported." in result.output
 
     @patch("twyn.cli.check_dependencies")
     def test_custom_twyn_error_is_caught_and_wrapped_in_cli_error(self, mock_check_dependencies, caplog):

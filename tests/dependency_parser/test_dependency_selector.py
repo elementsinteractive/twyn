@@ -28,14 +28,16 @@ class TestDependencySelector:
             ("/some/path/package-lock.json", PackageLockJsonParser),
         ],
     )
-    def test_get_dependency_parser(self, file_name: str, parser_class: type[AbstractParser]):
-        parser = DependencySelector(file_name).get_dependency_parsers()
+    def test_get_dependency_parser(self, file_name: str, parser_class: type[AbstractParser]) -> None:
+        parser = DependencySelector({file_name}).get_dependency_parsers()
         assert len(parser) == 1
 
         assert isinstance(parser[0], parser_class)
         assert str(parser[0].file_handler.file_path).endswith(file_name)
 
-    def test_get_dependency_parser_auto_detect_requirements_file(self, requirements_txt_file: Path, tmp_path: Path):
+    def test_get_dependency_parser_auto_detect_requirements_file(
+        self, requirements_txt_file: Path, tmp_path: Path
+    ) -> None:
         parser = DependencySelector("", root_path=str(tmp_path)).get_dependency_parsers()
         assert isinstance(parser[0], RequirementsTxtParser)
 

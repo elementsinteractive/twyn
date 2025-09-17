@@ -237,7 +237,7 @@ def pyproject_toml_file(tmp_path: Path) -> Iterator[Path]:
     twyn = "twyn.cli:entry_point"
 
     [tool.twyn]
-    dependency_file="my_file.txt"
+    dependency_file=["my_file.txt", "my_other_file.txt"]
     selector_method="all"
     logging_level="debug"
     allowlist=["boto4", "boto2"]
