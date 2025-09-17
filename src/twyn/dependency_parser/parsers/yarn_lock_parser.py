@@ -30,26 +30,29 @@ class YarnLockParser(AbstractParser):
 
     def _parse_v1(self, fp: TextIO) -> set[str]:
         """Parse a yarn.lock file and return all the dependencies in it."""
-        key_line_re = re.compile(r"^(?P<key>[^ \t].*?):\s*$", re.MULTILINE)
+        # Match the entire line up to the colon (allows multiple quoted keys)
+        key_line_re = re.compile(r"^(?P<key>[^ \t].*?):\s*$")
         names = set()
+
         for line in fp:
             match = key_line_re.match(line)
             if not match:
                 continue
             key = match.group("key").strip()
-            # Remove surrounding quotes if present
-            if (key.startswith('"') and key.endswith('"')) or (key.startswith("'") and key.endswith("'")):
-                key = key[1:-1]
 
-            # Split selectors (comma-separated)
+            # Split on commas at the top level (handles multiple quoted keys)
             parts = [p.strip() for p in key.split(",")]
 
             for part in parts:
+                # Remove surrounding quotes if present
                 if (part.startswith('"') and part.endswith('"')) or (part.startswith("'") and part.endswith("'")):
                     part = part[1:-1]  # noqa: PLW2901
+
+                # Skip anything without '@' (not a valid package selector)
                 if "@" not in part:
                     continue
-                # Package name is everything before the last '@'
+
+                # Get everything before the last '@' as the package name
                 pkg_name = part.rsplit("@", 1)[0]
                 names.add(pkg_name)
 
