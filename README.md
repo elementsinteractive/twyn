@@ -218,7 +218,7 @@ All the configurations available through the command line are also supported in 
 
 ```toml
 [tool.twyn]
-dependency_file="/my/path/requirements.txt"
+dependency_file="/my/path/requirements.txt" # it can be either a string or a list of strings
 selector_method="first_letter"
 logging_level="debug"
 allowlist=["my_package"]
@@ -250,5 +250,5 @@ Cache file is valid for 30 days, after that period it will download again the tr
 
 To clear the cache, run:
 ```python
-  twyn run cache clear
+  twyn cache clear
 ```
