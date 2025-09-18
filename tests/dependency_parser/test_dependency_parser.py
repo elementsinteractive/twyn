@@ -96,7 +96,7 @@ class TestYarnLockParser:
     def test_parse_yarn_lock_v1(self, yarn_lock_file_v1: Path) -> None:
         parser = YarnLockParser(file_path=str(yarn_lock_file_v1))
 
-        assert parser.parse() == {"lodash", "react", "react-dom"}
+        assert parser.parse() == {"lodash", "react", "react-dom", "@babel/helper-plugin-utils"}
 
     def test_parse_yarn_lock_v2(self, yarn_lock_file_v2: Path) -> None:
         parser = YarnLockParser(file_path=str(yarn_lock_file_v2))
