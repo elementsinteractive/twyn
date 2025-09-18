@@ -40,13 +40,8 @@ jobs:
           ref: refs/pull/${{ github.event.issue.number }}/merge
 
       - name: Run LGTM Review
-        run: |
-          docker run --rm \
-          -v "${{ github.workspace }}:/workspace" \
-          -w /workspace \
-          elementsinteractive/lgtm-ai \
-          review \
-          --git-api-key "${{ secrets.GITHUB_TOKEN }}" \
-          --ai-api-key "${{ secrets.AI_API_TOKEN }}" \
-          -vv \
-          "https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}"
+        uses: elementsinteractive/lgtm-ai-action@v1
+        with:
+          ai-api-key: ${{ secrets.AI_API_TOKEN }}
+          git-api-key: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ github.event.issue.number }}
