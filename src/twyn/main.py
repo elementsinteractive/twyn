@@ -79,7 +79,8 @@ def check_dependencies(
     if dependencies:  # Dependencies where input manually, will not read dependency files.
         return _analyze_dependencies_from_input(
             selector_method=selector_method_obj,
-            source=config.source,
+            pypi_source=config.pypi_source,
+            npm_source=config.npm_source,
             maybe_cache_handler=maybe_cache_handler,
             allowlist=config.allowlist,
             show_progress_bar=show_progress_bar,
@@ -100,7 +101,8 @@ def check_dependencies(
 
     return _analyze_packages_from_source(
         selector_method=selector_method_obj,
-        source=config.source,
+        pypi_source=config.pypi_source,
+        npm_source=config.npm_source,
         maybe_cache_handler=maybe_cache_handler,
         allowlist=config.allowlist,
         show_progress_bar=show_progress_bar,
@@ -111,7 +113,8 @@ def check_dependencies(
 def _analyze_dependencies_from_input(
     package_ecosystem: Optional[PackageEcosystems],
     selector_method: SelectorMethod,
-    source: Optional[str],
+    pypi_source: Optional[str],
+    npm_source: Optional[str],
     maybe_cache_handler: Optional[CacheHandler],
     dependencies: set[str],
     allowlist: set[str],
@@ -127,6 +130,7 @@ def _analyze_dependencies_from_input(
         raise InvalidArgumentsError("Not a valid `package_ecosystem`.")
 
     dependency_manager = get_dependency_manager_from_name(package_ecosystem)
+    source = dependency_manager.get_alternative_source({"pypi": pypi_source, "npm": npm_source})
     top_package_reference = dependency_manager.trusted_packages_source(source, maybe_cache_handler)
     trusted_packages = TrustedPackages(
         names=top_package_reference.get_packages(),
@@ -154,7 +158,8 @@ def _analyze_packages_from_source(
     selector_method: SelectorMethod,
     show_progress_bar: bool,
     dependency_files: Optional[set[str]],
-    source: Optional[str],
+    pypi_source: Optional[str],
+    npm_source: Optional[str],
     maybe_cache_handler: Optional[CacheHandler],
 ) -> TyposquatCheckResults:
     """Analyze dependencies from a dependencies file.
@@ -165,6 +170,7 @@ def _analyze_packages_from_source(
 
     dependency_managers = _get_dependency_managers_and_parsers_mapping(dependency_files)
     for dependency_manager, parsers in dependency_managers.items():
+        source = dependency_manager.get_alternative_source({"pypi": pypi_source, "npm": npm_source})
         top_package_reference = dependency_manager.trusted_packages_source(source, maybe_cache_handler)
 
         packages_from_source = top_package_reference.get_packages()

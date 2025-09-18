@@ -35,7 +35,8 @@ class TwynConfiguration:
     dependency_files: set[str]
     selector_method: str
     allowlist: set[str]
-    source: Optional[str]
+    pypi_source: Optional[str]
+    npm_source: Optional[str]
     use_cache: bool
     package_ecosystem: Optional[PackageEcosystems]
     recursive: Optional[bool]
@@ -48,7 +49,8 @@ class ReadTwynConfiguration:
     dependency_files: Optional[set[str]] = field(default_factory=set)
     selector_method: Optional[str] = None
     allowlist: set[str] = field(default_factory=set)
-    source: Optional[str] = None
+    pypi_source: Optional[str] = None
+    npm_source: Optional[str] = None
     use_cache: Optional[bool] = None
     package_ecosystem: Optional[PackageEcosystems] = None
     recursive: Optional[bool] = None
@@ -91,7 +93,6 @@ class ConfigHandler:
             raise InvalidSelectorMethodError(
                 f"Invalid selector_method '{final_selector_method}'. Must be one of: {valid_methods}"
             )
-
         if use_cache is not None:
             final_use_cache = use_cache
         elif read_config.use_cache is not None:
@@ -110,7 +111,8 @@ class ConfigHandler:
             dependency_files=dependency_files or read_config.dependency_files or set(),
             selector_method=final_selector_method,
             allowlist=read_config.allowlist,
-            source=read_config.source,
+            pypi_source=read_config.pypi_source,
+            npm_source=read_config.npm_source,
             use_cache=final_use_cache,
             package_ecosystem=package_ecosystem or read_config.package_ecosystem,
             recursive=final_recursive,
@@ -158,7 +160,8 @@ class ConfigHandler:
             dependency_files=dependency_file,
             selector_method=twyn_config_data.get("selector_method"),
             allowlist=allowlist,
-            source=twyn_config_data.get("source"),
+            pypi_source=twyn_config_data.get("pypi_source"),
+            npm_source=twyn_config_data.get("npm_source"),
             use_cache=twyn_config_data.get("use_cache"),
             package_ecosystem=twyn_config_data.get("package_ecosystem"),
             recursive=twyn_config_data.get("recursive"),
