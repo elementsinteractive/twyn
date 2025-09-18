@@ -101,7 +101,7 @@ class ConfigHandler:
             final_use_cache = DEFAULT_USE_CACHE
 
         if recursive is not None:
-            final_recursive = use_cache
+            final_recursive = recursive
         elif read_config.recursive is not None:
             final_recursive = read_config.recursive
         else:
