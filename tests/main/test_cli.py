@@ -96,6 +96,8 @@ class TestCli:
                 load_config_from_file=True,
                 package_ecosystem=None,
                 recursive=False,
+                pypi_source=None,
+                npm_source=None,
             )
         ]
 
@@ -121,6 +123,8 @@ class TestCli:
                 load_config_from_file=True,
                 package_ecosystem=None,
                 recursive=False,
+                pypi_source=None,
+                npm_source=None,
             )
         ]
 
@@ -146,6 +150,8 @@ class TestCli:
                 load_config_from_file=True,
                 package_ecosystem="pypi",
                 recursive=False,
+                pypi_source=None,
+                npm_source=None,
             )
         ]
 
@@ -170,6 +176,8 @@ class TestCli:
                 load_config_from_file=True,
                 package_ecosystem=None,
                 recursive=False,
+                pypi_source=None,
+                npm_source=None,
             )
         ]
 
@@ -206,6 +214,8 @@ class TestCli:
                 load_config_from_file=True,
                 package_ecosystem=None,
                 recursive=False,
+                pypi_source=None,
+                npm_source=None,
             )
         ]
 
@@ -235,6 +245,8 @@ class TestCli:
             load_config_from_file=True,
             package_ecosystem=None,
             recursive=True,
+            pypi_source=None,
+            npm_source=None,
         )
         assert mock_check_dependencies.call_args_list[0] == call_args
         assert mock_check_dependencies.call_args_list[1] == call_args
@@ -255,6 +267,8 @@ class TestCli:
                 load_config_from_file=True,
                 package_ecosystem=None,
                 recursive=False,
+                pypi_source=None,
+                npm_source=None,
             )
         ]
 
@@ -387,3 +401,89 @@ class TestCli:
         assert isinstance(result.exception, SystemExit)
         # Check that the generic error message was logged
         assert "Unhandled exception occured." in caplog.text
+
+    @patch("twyn.cli.check_dependencies")
+    def test_pypi_source_option(self, mock_check_dependencies: Mock) -> None:
+        """Test that --pypi-source option is passed correctly."""
+        runner = CliRunner()
+        runner.invoke(
+            cli.run,
+            [
+                "--pypi-source",
+                "https://custom-pypi.org/",
+            ],
+        )
+
+        assert mock_check_dependencies.call_args_list == [
+            call(
+                config_file=None,
+                dependency_files=None,
+                dependencies=None,
+                selector_method=None,
+                use_cache=None,
+                show_progress_bar=True,
+                load_config_from_file=True,
+                package_ecosystem=None,
+                recursive=False,
+                pypi_source="https://custom-pypi.org/",
+                npm_source=None,
+            )
+        ]
+
+    @patch("twyn.cli.check_dependencies")
+    def test_npm_source_option(self, mock_check_dependencies: Mock) -> None:
+        """Test that --npm-source option is passed correctly."""
+        runner = CliRunner()
+        runner.invoke(
+            cli.run,
+            [
+                "--npm-source",
+                "https://custom-npm.org/",
+            ],
+        )
+
+        assert mock_check_dependencies.call_args_list == [
+            call(
+                config_file=None,
+                dependency_files=None,
+                dependencies=None,
+                selector_method=None,
+                use_cache=None,
+                show_progress_bar=True,
+                load_config_from_file=True,
+                package_ecosystem=None,
+                recursive=False,
+                pypi_source=None,
+                npm_source="https://custom-npm.org/",
+            )
+        ]
+
+    @patch("twyn.cli.check_dependencies")
+    def test_both_source_options(self, mock_check_dependencies: Mock) -> None:
+        """Test that both --pypi-source and --npm-source options work together."""
+        runner = CliRunner()
+        runner.invoke(
+            cli.run,
+            [
+                "--pypi-source",
+                "https://custom-pypi.org/",
+                "--npm-source",
+                "https://custom-npm.org/",
+            ],
+        )
+
+        assert mock_check_dependencies.call_args_list == [
+            call(
+                config_file=None,
+                dependency_files=None,
+                dependencies=None,
+                selector_method=None,
+                use_cache=None,
+                show_progress_bar=True,
+                load_config_from_file=True,
+                package_ecosystem=None,
+                recursive=False,
+                pypi_source="https://custom-pypi.org/",
+                npm_source="https://custom-npm.org/",
+            )
+        ]

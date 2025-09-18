@@ -62,13 +62,15 @@ class ConfigHandler:
     def __init__(self, file_handler: Optional[FileHandler] = None) -> None:
         self.file_handler = file_handler
 
-    def resolve_config(
+    def resolve_config(  # noqa: C901, PLR0912
         self,
         selector_method: Optional[str] = None,
         dependency_files: Optional[set[str]] = None,
         use_cache: Optional[bool] = None,
         package_ecosystem: Optional[PackageEcosystems] = None,
         recursive: Optional[bool] = None,
+        pypi_source: Optional[str] = None,
+        npm_source: Optional[str] = None,
     ) -> TwynConfiguration:
         """Resolve the configuration for Twyn.
 
@@ -107,12 +109,28 @@ class ConfigHandler:
         else:
             final_recursive = DEFAULT_RECURSIVE
 
+        # Determine final pypi_source from CLI, config file, or default
+        if pypi_source is not None:
+            final_pypi_source = pypi_source
+        elif read_config.pypi_source is not None:
+            final_pypi_source = read_config.pypi_source
+        else:
+            final_pypi_source = None
+
+        # Determine final npm_source from CLI, config file, or default
+        if npm_source is not None:
+            final_npm_source = npm_source
+        elif read_config.npm_source is not None:
+            final_npm_source = read_config.npm_source
+        else:
+            final_npm_source = None
+
         return TwynConfiguration(
             dependency_files=dependency_files or read_config.dependency_files or set(),
             selector_method=final_selector_method,
             allowlist=read_config.allowlist,
-            pypi_source=read_config.pypi_source,
-            npm_source=read_config.npm_source,
+            pypi_source=final_pypi_source,
+            npm_source=final_npm_source,
             use_cache=final_use_cache,
             package_ecosystem=package_ecosystem or read_config.package_ecosystem,
             recursive=final_recursive,

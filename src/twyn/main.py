@@ -44,6 +44,8 @@ def check_dependencies(
     load_config_from_file: bool = False,
     package_ecosystem: Optional[PackageEcosystems] = None,
     recursive: Optional[bool] = None,
+    pypi_source: Optional[str] = None,
+    npm_source: Optional[str] = None,
 ) -> TyposquatCheckResults:
     """
     Check if the provided dependencies are potential typosquats of trusted packages.
@@ -72,6 +74,8 @@ def check_dependencies(
         use_cache=use_cache,
         package_ecosystem=package_ecosystem,
         recursive=recursive,
+        pypi_source=pypi_source,
+        npm_source=npm_source,
     )
     maybe_cache_handler = CacheHandler() if config.use_cache else None
     selector_method_obj = _get_selector_method(config.selector_method)
@@ -284,6 +288,8 @@ def _get_config(
     use_cache: Optional[bool],
     package_ecosystem: Optional[PackageEcosystems],
     recursive: Optional[bool],
+    pypi_source: Optional[str],
+    npm_source: Optional[str],
 ) -> TwynConfiguration:
     """Given the arguments passed to the main function and the configuration loaded from the config file (if any), return a config object."""
     if load_config_from_file:
@@ -296,4 +302,6 @@ def _get_config(
         use_cache=use_cache,
         package_ecosystem=package_ecosystem,
         recursive=recursive,
+        pypi_source=pypi_source,
+        npm_source=npm_source,
     )

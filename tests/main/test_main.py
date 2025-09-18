@@ -50,6 +50,7 @@ class TestCheckDependencies:
                     "recursive": False,
                     "pypi_source": "a",
                     "npm_source": "a",
+                    "package_ecosystem": "npm",
                 },
                 TwynConfiguration(
                     dependency_files={"requirements.txt"},
@@ -72,6 +73,7 @@ class TestCheckDependencies:
                     "recursive": True,
                     "pypi_source": "pypi",
                     "npm_source": "npm",
+                    "package_ecosystem": "pypi",
                 },
                 TwynConfiguration(
                     dependency_files={"poetry.lock"},
@@ -80,7 +82,7 @@ class TestCheckDependencies:
                     pypi_source="pypi",
                     npm_source="npm",
                     use_cache=False,
-                    package_ecosystem=None,
+                    package_ecosystem="pypi",
                     recursive=True,
                 ),
             ),  # Config from file takes precendence over fallback values
@@ -122,6 +124,8 @@ class TestCheckDependencies:
                 selector_method=cli_config.get("selector_method"),
                 dependency_files=cli_config.get("dependency_file", set()),
                 use_cache=cli_config.get("use_cache"),
+                pypi_source=cli_config.get("pypi_source"),
+                npm_source=cli_config.get("npm_source"),
                 recursive=cli_config.get("recursive"),
                 package_ecosystem=cli_config.get("package_ecosystem"),
             )
@@ -129,9 +133,10 @@ class TestCheckDependencies:
         assert resolved.dependency_files == expected_resolved_config.dependency_files
         assert resolved.selector_method == expected_resolved_config.selector_method
         assert resolved.allowlist == expected_resolved_config.allowlist
-        assert resolved.use_cache == expected_resolved_config.use_cache
         assert resolved.package_ecosystem == expected_resolved_config.package_ecosystem
         assert resolved.recursive == expected_resolved_config.recursive
+        assert resolved.npm_source == expected_resolved_config.npm_source
+        assert resolved.pypi_source == expected_resolved_config.pypi_source
 
     @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     def test_check_dependencies_detects_typosquats_from_file(
