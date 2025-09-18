@@ -35,7 +35,8 @@ class TestConfigHandler:
             dependency_files=set(),
             selector_method="all",
             allowlist=set(),
-            source=None,
+            pypi_source=None,
+            npm_source=None,
             use_cache=True,
             package_ecosystem=None,
             recursive=False,
@@ -61,7 +62,8 @@ class TestConfigHandler:
             dependency_files={"my_file.txt", "my_other_file.txt"},
             selector_method="all",
             allowlist={"boto4", "boto2"},
-            source=None,
+            pypi_source=None,
+            npm_source=None,
             use_cache=False,
         )
 
@@ -138,7 +140,8 @@ class TestConfigHandler:
         assert config.dependency_files == set()
         assert config.use_cache is True
         assert config.selector_method == DEFAULT_SELECTOR_METHOD
-        assert config.source is None
+        assert config.pypi_source is None
+        assert config.npm_source is None
 
     def test_cannot_write_if_file_not_configured(self) -> None:
         with pytest.raises(ConfigFileNotConfiguredError, match="write operation"):

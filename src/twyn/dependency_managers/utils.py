@@ -13,7 +13,7 @@ def get_dependency_manager_from_file(dependency_file: str) -> type[BaseDependenc
 
 def get_dependency_manager_from_name(name: str) -> type[BaseDependencyManager]:
     for manager in DEPENDENCY_MANAGERS:
-        if manager.matches_language_name(name):
+        if manager.matches_ecosystem_name(name):
             return manager
     raise NoMatchingDependencyManagerError
 

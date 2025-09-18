@@ -222,7 +222,8 @@ dependency_file="/my/path/requirements.txt" # it can be either a string or a lis
 selector_method="first_letter"
 logging_level="debug"
 allowlist=["my_package"]
-source="https://mirror-with-trusted-dependencies.com/file.json"
+pypi_source="https://mirror-with-trusted-dependencies.com/file-pypi.json"
+npm_source="https://mirror-with-trusted-dependencies.com/file-npm.json"
 ```
 
 The file format for each reference is as follows:
