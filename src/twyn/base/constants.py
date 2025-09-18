@@ -31,7 +31,7 @@ DEPENDENCY_FILE_MAPPING: dict[str, type[AbstractParser]] = {
 }
 
 
-DEFAULT_SELECTOR_METHOD = "all"
+DEFAULT_SELECTOR_METHOD = "first-letter"
 DEFAULT_PROJECT_TOML_FILE = "pyproject.toml"
 DEFAULT_TWYN_TOML_FILE = "twyn.toml"
 DEFAULT_USE_CACHE = True

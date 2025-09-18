@@ -35,7 +35,7 @@ class TestCheckDependencies:
         [
             (
                 {
-                    "selector_method": "first-letter",
+                    "selector_method": "all",
                     "dependency_file": {"requirements.txt"},
                     "use_cache": True,
                     "pypi_reference": "https://myurl.com",
@@ -51,7 +51,7 @@ class TestCheckDependencies:
                 },
                 TwynConfiguration(
                     dependency_files={"requirements.txt"},
-                    selector_method="first-letter",
+                    selector_method="all",
                     allowlist={"boto4", "boto2"},
                     source=TopPyPiReference.DEFAULT_SOURCE,
                     use_cache=True,
@@ -84,7 +84,7 @@ class TestCheckDependencies:
                 {},
                 TwynConfiguration(
                     dependency_files=set(),
-                    selector_method="all",
+                    selector_method="first-letter",
                     allowlist=set(),
                     source=TopPyPiReference.DEFAULT_SOURCE,
                     use_cache=True,

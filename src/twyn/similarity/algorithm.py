@@ -11,7 +11,7 @@ logger = logging.getLogger("twyn")
 
 
 class SimilarityThreshold:
-    LENGTH_CUTOFF = 5
+    LENGTH_CUTOFF = 10
     MIN_VALUE = 1.0
     MAX_FOR_SHORT_WORDS = 1.0
     MAX_FOR_LONG_WORDS = 2.0

@@ -71,10 +71,10 @@ class TestTrustedPackages:
                 [],
             ),  # distance is 1, inside threshold, but start with different letter
             (
-                "abcdef",
-                {"abcdefgh"},
+                "abcdefghijklm",
+                {"abcdefghijklmn"},
                 FirstLetterExact(),
-                ["abcdefgh"],
+                ["abcdefghijklmn"],
             ),  # distance is 2, inside threshold (because it's a longer word)
             # Nearby letters
             (
@@ -96,10 +96,10 @@ class TestTrustedPackages:
                 ["numpy"],
             ),  # distance is 1, inside threshold. First letter is changed and nearby
             (
-                "mumpyy",
-                {"numpy"},
+                "abcdefghijklm",
+                {"sbcdefghijklm"},
                 FirstLetterNearbyInKeyboard(),
-                ["numpy"],
+                ["sbcdefghijklm"],
             ),  # distance is 2, inside threshold. First letter is changed and nearby
             (
                 "rest_framework",

@@ -33,7 +33,7 @@ class TestConfigHandler:
 
         assert config == TwynConfiguration(
             dependency_files=set(),
-            selector_method="all",
+            selector_method="first-letter",
             allowlist=set(),
             source=None,
             use_cache=True,

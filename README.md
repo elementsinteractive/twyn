@@ -35,7 +35,7 @@ In short, `Twyn` protects you against [typosquatting attacks](https://en.wikiped
 
 It works as follows:
 
-1. Either choose to scan the dependencies in a dependencies file you specify (`--dependency-file`) or some dependencies introduced through the CLI (`--dependency`). If no option was provided, it will try to find a dependencies file in your working path. It will try to parse all the supported dependency files that it finds. To know which files are supported head to the [Dependency files](#dependency-files) section.
+1. Either choose to scan the dependencies in a dependencies file you specify (`--dependency-file`) or some dependencies introduced through the CLI (`--dependency`). If no option was provided, it will try to find a dependencies file in your working path. It will try to parse all the supported dependency files that it finds. To know which files are supported head to the [Dependency files](#dependency-files) section. You can also provide a `selector-method`, its default value is `first-letter`.
 2. If the name of your package name matches with the name of one of the most well known packages, the package is accepted.
 3. If the name of your package is similar to the name of one of the most used packages, `Twyn` will prompt an error.
 4. If your package name is not in the list of the most known ones and is not similar enough to any of those to be considered misspelled, the package is accepted. `Twyn` assumes that you're using either a not so popular package (therefore it can't verify its legitimacy) or a package created by yourself, therefore unknown for the rest.
@@ -69,7 +69,7 @@ docker run elementsinteractive/twyn --help
 | `--config`               | `str` (path)                                       | Path to configuration file (`twyn.toml` or `pyproject.toml` by default).                      |
 | `--dependency-file`      | `str` (path)                                       | Dependency file to analyze. Supported: `requirements.txt`, `poetry.lock`, `uv.lock`, etc.     |
 | `--dependency`           | `str` (multiple allowed)                           | Dependency to analyze directly. Can be specified multiple times.                              |
-| `--selector-method`      | `all`, `first-letter`, `nearby-letter`             | Method for selecting possible typosquats.                                                     |
+| `--selector-method`      | `all`, `first-letter`, `nearby-letter`. | Method for selecting possible typosquats.                                                     |
 | `--package-ecosystem`    | `pypi`, `npm`                                      | Package ecosystem for analysis.                                                               |
 | `-v`                     | flag                                               | Enable info-level logging.                                                                    |
 | `-vv`                    | flag                                               | Enable debug-level logging.                                                                   |
