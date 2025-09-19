@@ -111,6 +111,16 @@ def entry_point() -> None:
     default=False,
     help="Recursively look for files when trying to locate them automatically. Ignored if --dependency-file is given.",
 )
+@click.option(
+    "--pypi-source",
+    type=str,
+    help="Alternative PyPI source URL to use for fetching trusted packages.",
+)
+@click.option(
+    "--npm-source",
+    type=str,
+    help="Alternative npm source URL to use for fetching trusted packages.",
+)
 def run(  # noqa: C901
     config: str,
     dependency_file: tuple[str],
@@ -123,6 +133,8 @@ def run(  # noqa: C901
     json: bool,
     package_ecosystem: Optional[str],
     recursive: bool,
+    pypi_source: Optional[str],
+    npm_source: Optional[str],
 ) -> int:
     if vv:
         logger.setLevel(logging.DEBUG)
@@ -149,6 +161,8 @@ def run(  # noqa: C901
             load_config_from_file=True,
             package_ecosystem=package_ecosystem,
             recursive=recursive,
+            pypi_source=pypi_source,
+            npm_source=npm_source,
         )
     except TwynError as e:
         raise CliError(str(e)) from e
