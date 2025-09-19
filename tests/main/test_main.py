@@ -17,14 +17,12 @@ from twyn.file_handler.file_handler import FileHandler
 from twyn.main import (
     check_dependencies,
 )
-from twyn.trusted_packages import TopPyPiReference
 from twyn.trusted_packages.exceptions import InvalidArgumentsError
 from twyn.trusted_packages.models import (
     TyposquatCheckResultEntry,
     TyposquatCheckResultFromSource,
     TyposquatCheckResults,
 )
-from twyn.trusted_packages.references.top_npm_reference import TopNpmReference
 
 from tests.conftest import create_tmp_file, patch_npm_packages_download
 
@@ -39,9 +37,10 @@ class TestCheckDependencies:
                     "selector_method": "first-letter",
                     "dependency_file": {"requirements.txt"},
                     "use_cache": True,
-                    "recurisve": True,
+                    "recursive": True,
                     "pypi_source": "pypi",
                     "npm_source": "npm",
+                    "package_ecosystem": "pypi",
                 },
                 {
                     "selector_method": "nearby-letter",
@@ -81,7 +80,7 @@ class TestCheckDependencies:
                     pypi_source="pypi",
                     npm_source="npm",
                     use_cache=False,
-                    package_ecosystem="pypi",
+                    package_ecosystem=None,
                     recursive=True,
                 ),
             ),  # Config from file takes precendence over fallback values
@@ -92,10 +91,10 @@ class TestCheckDependencies:
                     dependency_files=set(),
                     selector_method="all",
                     allowlist=set(),
-                    pypi_source=TopPyPiReference.DEFAULT_SOURCE,
-                    npm_source=TopNpmReference.DEFAULT_SOURCE,
+                    pypi_source=None,
+                    npm_source=None,
                     use_cache=True,
-                    package_ecosystem="pypi",
+                    package_ecosystem=None,
                     recursive=False,
                 ),
             ),  # Fallback values
@@ -123,12 +122,16 @@ class TestCheckDependencies:
                 selector_method=cli_config.get("selector_method"),
                 dependency_files=cli_config.get("dependency_file", set()),
                 use_cache=cli_config.get("use_cache"),
+                recursive=cli_config.get("recursive"),
+                package_ecosystem=cli_config.get("package_ecosystem"),
             )
 
         assert resolved.dependency_files == expected_resolved_config.dependency_files
         assert resolved.selector_method == expected_resolved_config.selector_method
         assert resolved.allowlist == expected_resolved_config.allowlist
         assert resolved.use_cache == expected_resolved_config.use_cache
+        assert resolved.package_ecosystem == expected_resolved_config.package_ecosystem
+        assert resolved.recursive == expected_resolved_config.recursive
 
     @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     def test_check_dependencies_detects_typosquats_from_file(
