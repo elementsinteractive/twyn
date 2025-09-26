@@ -44,7 +44,7 @@ RUN ${BIN_PATH}/python -m ensurepip
 COPY uv.lock pyproject.toml ./
 
 # Install dependencies using uv (only dependencies, not the project itself)
-RUN uv sync --inexact --frozen --all-extras --no-install-project --compile-bytecode
+RUN uv sync --inexact --frozen --all-extras --no-install-project --compile-bytecode 
 
 # --------------- `final` stage --------------- 
 FROM base AS final

@@ -27,9 +27,59 @@ jobs:
           uv build
           uv publish
 
-  push_to_docker_hub:
-    name: Push Docker image to Docker Hub
+  build_and_test_docker:
+    name: Build and test Docker image (${{ matrix.arch }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            cache-ref: buildcache-amd64
+          - arch: arm64
+            platform: linux/arm64
+            cache-ref: buildcache-arm64
+            needs-qemu: true
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        if: matrix.needs-qemu
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+        with:
+          platforms: ${{ matrix.arch }}
+
+      - name: Build Docker image (${{ matrix.arch }})
+        uses: ./.github/actions/docker-build
+        with:
+          push: false
+          load: true
+          platforms: ${{ matrix.platform }}
+          dockerfile: ./Dockerfile
+          context: .
+          image-name: elementsinteractive/twyn
+          cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:${{ matrix.cache-ref }}
+          cache-to: type=registry,ref=ghcr.io/elementsinteractive/twyn:${{ matrix.cache-ref }},mode=max,compression=zstd,force-compression=true,oci-mediatypes=true
+
+      - name: Test Docker image (${{ matrix.arch }})
+        run: |
+          docker run --platform ${{ matrix.platform }} --rm elementsinteractive/twyn --version
+
+  publish_docker_images:
+    name: Push Docker images to registries
+    runs-on: ubuntu-latest
+    needs: [build_and_test_docker]
     permissions:
       contents: read
       packages: write
@@ -50,16 +100,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Push Docker images
         uses: ./.github/actions/docker-build
         with:
-          push-image: "true"
+          push: "true"
           platforms: linux/amd64,linux/arm64
           dockerfile: ./Dockerfile
           context: .
           image-name: elementsinteractive/twyn
-          cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache
-          cache-to: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache,mode=max,compression=zstd,force-compression=true,oci-mediatypes=true
+          cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-amd64,ref=ghcr.io/elementsinteractive/twyn:buildcache-arm64
 
       - name: Delete old cache entries
         env:
@@ -68,17 +117,18 @@ jobs:
           # Get all versions of the container package
           versions=$(gh api "orgs/elementsinteractive/packages/container/twyn/versions" --paginate)
 
-          # Extract version IDs that do NOT have the 'buildcache' tag
-          ids_to_delete=$(echo "$versions" | jq -r '.[] | select(.metadata.container.tags | index("buildcache") | not) | .id')
+          # Extract version IDs that do NOT have any buildcache-* tags (buildcache-amd64, buildcache-arm64, etc.)
+          ids_to_delete=$(echo "$versions" | jq -r '.[] | select(.metadata.container.tags | map(test("^buildcache-")) | any | not) | .id')
 
           # Delete them
           for id in $ids_to_delete; do
             echo "Deleting old cache version ID: $id"
             gh api -X DELETE "orgs/elementsinteractive/packages/container/twyn/versions/$id"
           done
+
   release_notes:
     runs-on: ubuntu-latest
-    needs: [push_to_pypi, push_to_docker_hub]
+    needs: [push_to_pypi, publish_docker_images]
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Release
