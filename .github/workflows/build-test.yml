@@ -7,7 +7,7 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
-  
+
 jobs:
   test-build-package:
     name: Test package build
@@ -34,7 +34,7 @@ jobs:
           WHEEL_FILE=$(ls dist/*.whl | head -1)
           echo "Installing wheel: $WHEEL_FILE"
           uv pip install "$WHEEL_FILE"
-        
+
       - name: Test twyn as a library
         run: uv run python -c "import twyn; twyn.check_dependencies"
 
@@ -73,12 +73,22 @@ jobs:
 
   test-docker-build:
     needs: [should-test-docker-build]
-    name: Test Docker build
+    name: Test Docker build ${{ matrix.arch }}
     runs-on: ubuntu-latest
     if: (needs.should-test-docker-build.outputs.workflow == 'true' || needs.should-test-docker-build.outputs.docker == 'true') && !startsWith(github.event.head_commit.message, 'bump:')
     permissions:
       contents: read
       packages: read
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            image-name: build-amd64
+          - arch: arm64
+            platform: linux/arm64
+            image-name: build-arm64
+            needs-qemu: true
     steps:
       - name: Check out the repo
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -90,12 +100,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up QEMU
+        if: matrix.needs-qemu
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+        with:
+          platforms: ${{ matrix.platform }}
+
       - name: Build image
         uses: ./.github/actions/docker-build
         with:
           context: .
           file: ./Dockerfile
           push: false
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache
-       
+          load: true
+          platforms: ${{ matrix.platform }}
+          cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-${{ matrix.arch }}
+          image-name: ${{ matrix.image-name }}
+
+      - name: Test
+        run: |
+          docker run --platform ${{ matrix.platform }} --rm ${{ matrix.image-name }}:pr-${{ github.event.pull_request.number }} --version
