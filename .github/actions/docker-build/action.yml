@@ -1,14 +1,19 @@
 # Action that wraps together all the necessary actions to build an image and publish it.
 # It does not include login actions.
 # This is a convenience, so that we know that everything related to the build lies in this file,
-# and if it gets updated we can automatically run our `test-docker-build` from `build-test.yml.`
+# and if it gets updated we can automatically run our `test-docker-build` from `build-test.yml.`,
+# so there is no confusion about which is the job that was updated, if there are many in the same workflow file.
 
 name: "Docker Build"
 description: "Builds Docker images with optional caching and multi-platform support"
 
 inputs:
-  push-image:
+  push:
     description: "Whether to push the built image"
+    required: false
+    default: "false"
+  load:
+    description: "Whether to load the built image"
     required: false
     default: "false"
   platforms:
@@ -55,9 +60,10 @@ runs:
       with:
         context: ${{ inputs.context }}
         file: ${{ inputs.dockerfile }}
-        push: ${{ inputs['push-image'] }}
+        push: ${{ inputs.push }}
         platforms: ${{ inputs.platforms }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: ${{ inputs['cache-from'] }}
         cache-to: ${{ inputs['cache-to'] }}
+        load: ${{ inputs.load }}
