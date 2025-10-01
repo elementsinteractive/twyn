@@ -7,25 +7,35 @@ on:
     tags:
       - "v*.*.*"
 
-permissions:
-  contents: write
+env:
+  UV_VERSION: "0.8.22"
 
 jobs:
-  push_to_pypi:
+  build_and_test_package:
+    name: Build and test package
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write
       contents: read
 
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - name: Install uv
-        uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0
-      - name: Publish to pypi
-        run: |
-          uv build
-          uv publish
+
+      - name: Build and test package
+        id: build-test
+        uses: ./.github/actions/python-package-build
+        with:
+          test-package: "true"
+          publish: "false"
+          uv-version: ${{ env.UV_VERSION }}
+          cli-test-command: "twyn --version"
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: python-package-${{ github.sha }}
+          path: ${{ steps.build-test.outputs.dist-path }}
+          retention-days: 1
 
   build_and_test_docker:
     name: Build and test Docker image (${{ matrix.arch }})
@@ -39,6 +49,7 @@ jobs:
           - arch: amd64
             platform: linux/amd64
             cache-ref: buildcache-amd64
+            needs-qemu: false
           - arch: arm64
             platform: linux/arm64
             cache-ref: buildcache-arm64
@@ -54,12 +65,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up QEMU
-        if: matrix.needs-qemu
-        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
-        with:
-          platforms: ${{ matrix.arch }}
-
       - name: Build Docker image (${{ matrix.arch }})
         uses: ./.github/actions/docker-build
         with:
@@ -71,15 +76,43 @@ jobs:
           image-name: elementsinteractive/twyn
           cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:${{ matrix.cache-ref }}
           cache-to: type=registry,ref=ghcr.io/elementsinteractive/twyn:${{ matrix.cache-ref }},mode=max,compression=zstd,force-compression=true,oci-mediatypes=true
+          setup-qemu: ${{ matrix.needs-qemu }}
 
       - name: Test Docker image (${{ matrix.arch }})
         run: |
           docker run --platform ${{ matrix.platform }} --rm elementsinteractive/twyn --version
 
-  publish_docker_images:
+  publish_to_pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: [build_and_test_package, build_and_test_docker]
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Download package artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: python-package-${{ github.sha }}
+          path: dist
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Publish package
+        run: |
+          uv publish
+
+  publish_to_dockerhub:
     name: Push Docker images to registries
     runs-on: ubuntu-latest
-    needs: [build_and_test_docker]
+    needs: [build_and_test_docker, build_and_test_package]
     permissions:
       contents: read
       packages: write
@@ -128,7 +161,9 @@ jobs:
 
   release_notes:
     runs-on: ubuntu-latest
-    needs: [push_to_pypi, publish_docker_images]
+    needs: [publish_to_pypi, publish_to_dockerhub]
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Release

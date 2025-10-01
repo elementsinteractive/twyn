@@ -1,0 +1,77 @@
+name: Build and Test Docker Image
+
+on:
+    pull_request:
+        branches: ["main"]
+    workflow_dispatch:
+
+jobs:
+    should-test-docker-build:
+        permissions:
+            contents: read
+            pull-requests: read
+        name: Check if should `test_docker_build` run
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+            - name: Check if Dockerfile changed
+              uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+              id: docker-changes
+              with:
+                  filters: |
+                      docker:
+                        - 'Dockerfile'
+                        - '.dockerignore'
+                      workflow:
+                        - ./.github/actions/docker-build/action.yml
+        outputs:
+            docker: ${{ steps.docker-changes.outputs.docker }}
+            workflow: ${{ steps.docker-changes.outputs.workflow }}
+
+    test-docker-build:
+        needs: [should-test-docker-build]
+        name: Test Docker build ${{ matrix.arch }}
+        runs-on: ubuntu-latest
+        if: (needs.should-test-docker-build.outputs.workflow == 'true' || needs.should-test-docker-build.outputs.docker == 'true')
+        permissions:
+            contents: read
+            packages: read
+        strategy:
+            matrix:
+                include:
+                    - arch: amd64
+                      platform: linux/amd64
+                      image-name: build-amd64
+                      needs-qemu: false
+                    - arch: arm64
+                      platform: linux/arm64
+                      image-name: build-arm64
+                      needs-qemu: true
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build image
+              uses: ./.github/actions/docker-build
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  push: false
+                  load: true
+                  platforms: ${{ matrix.platform }}
+                  cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-${{ matrix.arch }}
+                  image-name: ${{ matrix.image-name }}
+                  setup-qemu: ${{ matrix.needs-qemu }}
+
+            - name: Test
+              run: |
+                  docker run --platform ${{ matrix.platform }} --rm ${{ matrix.image-name }}:pr-${{ github.event.pull_request.number }} --version
