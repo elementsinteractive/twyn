@@ -17,6 +17,7 @@ class TopPyPiReference(AbstractPackageReference):
     DEFAULT_SOURCE: str = (
         "https://raw.githubusercontent.com/elementsinteractive/twyn/refs/heads/main/dependencies/pypi.json"
     )
+    """Default URL for fetching top PyPI packages."""
 
     @override
     @staticmethod

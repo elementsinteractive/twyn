@@ -13,6 +13,7 @@ class YarnLockParser(AbstractParser):
         super().__init__(file_path)
 
     def parse(self) -> set[str]:
+        """Parse yarn lock file and return package names."""
         with self.file_handler.open() as fp:
             # We want to find out if it's a v1 or v2 file.
             # we will check maximum on the first 20 lines in order to guess
@@ -29,7 +30,7 @@ class YarnLockParser(AbstractParser):
         raise InvalidFileFormatError
 
     def _parse_v1(self, fp: TextIO) -> set[str]:
-        """Parse a yarn.lock file and return all the dependencies in it."""
+        """Parse a yarn.lock file (v1) and return all the dependencies in it."""
         # Match the entire line up to the colon (allows multiple quoted keys)
         key_line_re = re.compile(r"^(?P<key>[^ \t].*?):\s*$")
         names = set()

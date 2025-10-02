@@ -29,6 +29,7 @@ try:
             super().__init__(message)
 
         def show(self, file: Optional[IO[Any]] = None) -> None:
+            """Display the error message."""
             logger.debug(self.format_message(), exc_info=True)
             logger.error(self.format_message(), exc_info=False)
 

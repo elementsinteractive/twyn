@@ -12,11 +12,14 @@ logger = logging.getLogger("twyn")
 
 
 class DependencySelector:
+    """Select and provide parsers for dependency files."""
+
     def __init__(self, dependency_files: Optional[set[str]] = None, root_path: str = ".") -> None:
         self.dependency_files = dependency_files or set()
         self.root_path = root_path
 
     def auto_detect_dependency_file_parser(self) -> list[AbstractParser]:
+        """Automatically detect and return parsers for dependency files."""
         parsers: list[AbstractParser] = []
         root = Path(self.root_path)
         for path in root.rglob("*"):
@@ -37,6 +40,7 @@ class DependencySelector:
         return parsers
 
     def get_dependency_file_parsers_from_file_name(self) -> list[AbstractParser]:
+        """Get parsers for dependency files based on their names."""
         parsers = []
         for dependency_file in self.dependency_files:
             for known_dependency_file_name in DEPENDENCY_FILE_MAPPING:
@@ -49,6 +53,7 @@ class DependencySelector:
         return parsers
 
     def get_dependency_parsers(self) -> list[AbstractParser]:
+        """Get appropriate dependency parsers based on configuration."""
         if self.dependency_files:
             logger.debug("Dependency file provided. Assigning a parser.")
             return self.get_dependency_file_parsers_from_file_name()

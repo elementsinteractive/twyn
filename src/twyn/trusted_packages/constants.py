@@ -1,6 +1,9 @@
 # Cache configuration constants
 CACHE_DIR = ".twyn"
+"""Directory name for storing cache files."""
+
 TRUSTED_PACKAGES_MAX_RETENTION_DAYS = 30
+"""Maximum number of days to retain trusted packages in cache."""
 
 
 ADJACENCY_MATRIX = {
@@ -42,3 +45,4 @@ ADJACENCY_MATRIX = {
     "m": ["j", "k", "n"],
     "@": ["1", "2", "3", "q", "w"],
 }
+"""Keyboard adjacency matrix mapping each key to its neighboring keys."""

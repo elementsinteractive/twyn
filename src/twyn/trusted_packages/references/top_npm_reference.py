@@ -17,6 +17,7 @@ class TopNpmReference(AbstractPackageReference):
     DEFAULT_SOURCE: str = (
         "https://raw.githubusercontent.com/elementsinteractive/twyn/refs/heads/main/dependencies/npm.json"
     )
+    """Default URL for fetching top npm packages."""
 
     @override
     @staticmethod

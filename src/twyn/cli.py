@@ -39,6 +39,7 @@ logging.basicConfig(
 @click.group()
 @click.version_option(__version__, "--version")
 def entry_point() -> None:
+    """Provide main CLI entry point for Twyn."""
     pass
 
 
@@ -188,6 +189,7 @@ def run(  # noqa: C901
 
 @entry_point.group()
 def allowlist() -> None:
+    """Manage package allowlist configuration."""
     pass
 
 
@@ -195,6 +197,7 @@ def allowlist() -> None:
 @click.option("--config", type=click.STRING)
 @click.argument("package_name")
 def add(package_name: str, config: str) -> None:
+    """Add package to allowlist."""
     fh = FileHandler(config or ConfigHandler.get_default_config_file_path())
     ConfigHandler(fh).add_package_to_allowlist(package_name)
 
@@ -203,12 +206,14 @@ def add(package_name: str, config: str) -> None:
 @click.option("--config", type=click.STRING)
 @click.argument("package_name")
 def remove(package_name: str, config: str) -> None:
+    """Remove package from allowlist."""
     fh = FileHandler(config or DEFAULT_PROJECT_TOML_FILE)
     ConfigHandler(fh).remove_package_from_allowlist(package_name)
 
 
 @entry_point.group()
 def cache() -> None:
+    """Manage cache operations."""
     pass
 
 

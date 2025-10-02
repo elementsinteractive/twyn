@@ -8,5 +8,8 @@ from twyn.trusted_packages import TopPyPiReference
 @dataclass
 class PypiDependencyManager(BaseDependencyManager):
     name = "pypi"
+    """Name of the PyPI package ecosystem."""
     trusted_packages_source = TopPyPiReference
+    """Reference source for trusted PyPI packages."""
     dependency_files = {UV_LOCK, POETRY_LOCK, REQUIREMENTS_TXT}
+    """Set of supported Python dependency file names."""
