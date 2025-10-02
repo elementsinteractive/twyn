@@ -1,3 +1,48 @@
+## v5.0.0 (2025-10-02)
+
+### Feat
+
+- allow to set ecosystem sources via the cli (#345)
+- Accept a source for every dependency manager in the config (#340)
+- support multiple dependency files in config and cli (#335)
+- recursively look for lock files (#332)
+- support parsing multiple files (#326)
+- create `cli` extra group (#322)
+
+### Fix
+
+- correctly load resursive config value from file (#347)
+- parse yarn files with multiple dependencies on the same line (#337)
+- show the name of the file that's being analyzed (#333)
+
+### Refactor
+
+- paginate npm (#342)
+
+### CI
+
+- refactor ci (#353)
+- Improve docker cache and test that the image works (#349)
+- use lgtm gh action (#341)
+
+### Docs
+
+- add docstrings to all classes and methods (#355)
+- fix cache section (#336)
+
+### Technical
+
+- Bump to 5.0.0 (#358)
+- bump dependencies (#357)
+- bump actions/cache from 4.2.4 to 4.3.0 (#352)
+- bump docker/login-action from 3.5.0 to 3.6.0 (#351)
+- Weekly update of trusted packages
+- simplify Dockerfile (#348)
+- Weekly update of trusted packages
+- bump astral-sh/setup-uv from 6.6.1 to 6.7.0 in the minor-updates group (#331)
+- bump actions/create-github-app-token from 2.1.1 to 2.1.4 in the patch-updates group (#330)
+- Weekly update of trusted packages
+
 ## v4.0.0 (2025-09-10)
 
 ### Feat
