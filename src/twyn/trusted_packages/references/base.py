@@ -24,6 +24,7 @@ class AbstractPackageReference:
     """
 
     DEFAULT_SOURCE: str
+    """Default URL source for fetching trusted packages."""
 
     def __init__(self, source: Optional[str] = None, cache_handler: Union[CacheHandler, None] = None) -> None:
         self.source = source or self.DEFAULT_SOURCE
@@ -35,6 +36,7 @@ class AbstractPackageReference:
         """Normalize package names to make sure they're valid within the package manager context."""
 
     def _download(self) -> dict[str, Any]:
+        """Download data from the source URL."""
         response = requests.get(self.source)
         response.raise_for_status()
 

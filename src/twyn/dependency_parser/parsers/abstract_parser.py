@@ -20,9 +20,11 @@ class AbstractParser(ABC):
         self.file_handler = FileHandler(file_path=self.file_path)
 
     def __str__(self) -> str:
+        """Return string representation of parser class name."""
         return self.__class__.__name__
 
     def file_exists(self) -> bool:
+        """Check if dependency file exists."""
         return self.file_handler.exists()
 
     @abstractmethod

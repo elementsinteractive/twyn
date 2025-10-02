@@ -16,11 +16,14 @@ logger = logging.getLogger("twyn")
 
 class CacheEntry(BaseModel):
     saved_date: str
+    """ISO format date string when the cache entry was saved."""
     packages: set[str]
+    """Set of trusted package names."""
 
     @field_validator("saved_date")
     @classmethod
     def validate_saved_date(cls, v: str) -> str:
+        """Validate the date format for cache entries."""
         try:
             datetime.fromisoformat(v)
         except (ValueError, TypeError) as e:

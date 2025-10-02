@@ -24,6 +24,7 @@ class RequirementsTxtParser(AbstractParser):
         """,
         re.VERBOSE,
     )
+    """Regular expression pattern for parsing requirement specifications."""
 
     def __init__(self, file_path: str = REQUIREMENTS_TXT) -> None:
         super().__init__(file_path)
@@ -37,6 +38,7 @@ class RequirementsTxtParser(AbstractParser):
         return self._parse_internal(self.file_path, seen_files=set())
 
     def _parse_internal(self, source: Union[str, Path], seen_files: set[Path]) -> set[str]:
+        """Parse requirements file and handle includes recursively."""
         packages: set[str] = set()
         base_dir = Path(source).parent if isinstance(source, Path) else Path(".")
 
@@ -74,6 +76,7 @@ class RequirementsTxtParser(AbstractParser):
 
     @staticmethod
     def _is_valid_line(line: str) -> bool:
+        """Check if line is valid for parsing."""
         return (
             bool(line)
             and not line.startswith("#")

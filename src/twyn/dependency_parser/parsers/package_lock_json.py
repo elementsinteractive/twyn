@@ -35,6 +35,7 @@ class PackageLockJsonParser(AbstractParser):
         return result
 
     def _collect_deps(self, dep_tree: dict[str, Any], collected: set[str]):
+        """Recursively collect dependencies from dependency tree."""
         for name, info in dep_tree.items():
             collected.add(name)
             if "dependencies" in info:

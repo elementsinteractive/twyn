@@ -9,6 +9,7 @@ from twyn.trusted_packages.models import TyposquatCheckResultEntry
 from twyn.trusted_packages.selectors import AbstractSelector
 
 _PackageNames = defaultdict[str, set[str]]
+"""Type alias for mapping package names by ecosystem."""
 
 
 class TrustedPackages:
@@ -27,6 +28,7 @@ class TrustedPackages:
         self.algorithm = algorithm
 
     def __contains__(self, obj: Any) -> bool:
+        """Check if an object exists in the trusted packages."""
         if isinstance(obj, str):
             return obj in self.names[obj[0]]
         return False

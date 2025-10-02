@@ -33,13 +33,21 @@ class TwynConfiguration:
     """Fully resolved configuration for Twyn."""
 
     dependency_files: set[str]
+    """Set of dependency file paths to analyze."""
     selector_method: str
+    """Method for selecting similar packages."""
     allowlist: set[str]
+    """Set of package names to allow without checking."""
     pypi_source: Optional[str]
+    """Alternative PyPI source URL."""
     npm_source: Optional[str]
+    """Alternative npm source URL."""
     use_cache: bool
+    """Whether to use cached trusted packages."""
     package_ecosystem: Optional[PackageEcosystems]
+    """Target package ecosystem for analysis."""
     recursive: Optional[bool]
+    """Whether to recursively search for dependency files."""
 
 
 @dataclass
@@ -47,13 +55,21 @@ class ReadTwynConfiguration:
     """Configuration for twyn as set by the user. It may have None values."""
 
     dependency_files: Optional[set[str]] = field(default_factory=set)
+    """Optional set of dependency file paths to analyze."""
     selector_method: Optional[str] = None
+    """Optional method for selecting similar packages."""
     allowlist: set[str] = field(default_factory=set)
+    """Set of package names to allow without checking."""
     pypi_source: Optional[str] = None
+    """Optional alternative PyPI source URL."""
     npm_source: Optional[str] = None
+    """Optional alternative npm source URL."""
     use_cache: Optional[bool] = None
+    """Optional setting for using cached trusted packages."""
     package_ecosystem: Optional[PackageEcosystems] = None
+    """Optional target package ecosystem for analysis."""
     recursive: Optional[bool] = None
+    """Optional setting for recursive dependency file search."""
 
 
 class ConfigHandler:
@@ -200,11 +216,13 @@ class ConfigHandler:
         self._write_toml(toml)
 
     def _write_toml(self, toml: TOMLDocument) -> None:
+        """Write TOML document to file."""
         if not self.file_handler:
             raise ConfigFileNotConfiguredError("Config file not configured. Cannot perform write operation.")
         self.file_handler.write(dumps(toml))
 
     def _read_toml(self) -> TOMLDocument:
+        """Read TOML document from file."""
         if not self.file_handler:
             raise ConfigFileNotConfiguredError("Config file not configured. Cannot perform read operation.")
         try:
@@ -227,6 +245,8 @@ class ConfigHandler:
 
 
 def _serialize_config(x: Any) -> Union[Any, str, list[Any]]:
+    """Serialize configuration values for TOML format."""
+
     def _value_to_for_config(v: Any) -> Union[str, list[Any], Any]:
         if isinstance(v, Enum):
             return v.name

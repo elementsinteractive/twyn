@@ -8,5 +8,8 @@ from twyn.trusted_packages import TopNpmReference
 @dataclass
 class NpmDependencyManager(BaseDependencyManager):
     name = "npm"
+    """Name of the npm package ecosystem."""
     trusted_packages_source = TopNpmReference
+    """Reference source for trusted npm packages."""
     dependency_files = {PACKAGE_LOCK_JSON, YARN_LOCK}
+    """Set of supported npm dependency file names."""
