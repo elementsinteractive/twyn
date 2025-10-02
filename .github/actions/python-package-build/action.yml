@@ -1,0 +1,72 @@
+name: "Python Package Build"
+description: "Build Python package with uv, test it, and optionally publish"
+author: "Elements Interactive"
+
+inputs:
+  test-package:
+    description: "Whether to test the package (both library and CLI)"
+    required: false
+    default: "false"
+  cli-test-command:
+    description: "CLI command to test"
+    required: false
+    default: ""
+  publish:
+    description: "Whether to publish the package"
+    required: false
+    default: "false"
+  uv-version:
+    description: "Version of uv to use"
+    required: false
+    default: "latest"
+
+outputs:
+  wheel-file:
+    description: "Path to the built wheel file"
+    value: ${{ steps.build.outputs.wheel-file }}
+  dist-path:
+    description: "Path to the dist directory"
+    value: ${{ steps.build.outputs.dist-path }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0
+      with:
+        version: ${{ inputs.uv-version }}
+
+    - name: Build the package
+      id: build
+      shell: bash
+      run: |
+        uv build
+
+        # Set outputs
+        WHEEL_FILE=$(ls dist/*.whl | head -1)
+        echo "wheel-file=$WHEEL_FILE" >> $GITHUB_OUTPUT
+        echo "dist-path=dist" >> $GITHUB_OUTPUT
+        echo "Built wheel: $WHEEL_FILE"
+
+    - name: Install the built wheel
+      shell: bash
+      run: |
+        uv venv
+        uv pip install "${{ steps.build.outputs.wheel-file }}"
+
+    - name: Test package as CLI tool
+      if: inputs.test-package == 'true'
+      shell: bash
+      run: |
+        uv pip install "${{ steps.build.outputs.wheel-file }}[cli]"
+        uv run ${{ inputs.cli-test-command }}
+
+    - name: Publish package
+      if: inputs.publish == 'true'
+      shell: bash
+      run: |
+        uv publish
+
+branding:
+  icon: "package"
+  color: "blue"
