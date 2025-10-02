@@ -116,6 +116,13 @@ jobs:
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            cache-ref: buildcache-amd64
+          - platform: linux/arm64
+            cache-ref: buildcache-arm64
     steps:
       - name: Check out the repo
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -137,21 +144,28 @@ jobs:
         uses: ./.github/actions/docker-build
         with:
           push: "true"
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           dockerfile: ./Dockerfile
           context: .
           image-name: elementsinteractive/twyn
-          cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-amd64,ref=ghcr.io/elementsinteractive/twyn:buildcache-arm64
+          cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:${{ matrix.cache-ref }}
 
       - name: Delete old cache entries
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Get all versions of the container package
-          versions=$(gh api "orgs/elementsinteractive/packages/container/twyn/versions" --paginate)
+          # Get all versions (paginate + slurp into one array)
+          versions=$(gh api "orgs/elementsinteractive/packages/container/twyn/versions" --paginate | jq -s 'add')
 
-          # Extract version IDs that do NOT have any buildcache-* tags (buildcache-amd64, buildcache-arm64, etc.)
-          ids_to_delete=$(echo "$versions" | jq -r '.[] | select(.metadata.container.tags | map(test("^buildcache-")) | any | not) | .id')
+          # Pattern for the current cache ref (GitHub Actions expression expands before script runs)
+          cache_ref="${{ matrix.cache-ref }}"
+
+          # Extract version IDs that do NOT have the cache_ref tag
+          ids_to_delete=$(echo "$versions" | jq -r --arg pattern "$cache_ref" '
+            .[] 
+            | select(.metadata.container.tags | map(test($pattern)) | any | not) 
+            | .id
+          ')
 
           # Delete them
           for id in $ids_to_delete; do
