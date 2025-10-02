@@ -214,6 +214,7 @@ However, you can specify a config file as follows:
 twyn run --config <file>
 ```
 
+
 All the configurations available through the command line are also supported in the config file.
 
 ```toml
