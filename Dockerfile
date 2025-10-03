@@ -37,14 +37,17 @@ ENV PATH="/root/.local/bin/:$PATH"
 # Create a fake VERSION file, so that we don't break the cache because of a mismatch in that file
 RUN echo "v0.0.0" > VERSION
 
+# Create venv
 RUN uv venv
-RUN ${BIN_PATH}/python -m ensurepip
 
 # Copy dependency files
 COPY uv.lock pyproject.toml ./
 
 # Install dependencies using uv (only dependencies, not the project itself)
-RUN uv sync --inexact --frozen --all-extras --no-install-project --compile-bytecode 
+RUN uv sync --frozen --all-extras --no-install-project --compile-bytecode 
+
+# Make sure that pip is available
+RUN ${BIN_PATH}/python -m ensurepip
 
 # --------------- `final` stage --------------- 
 FROM base AS final
