@@ -1,9 +1,9 @@
 # VARIABLE DEFINITIONS
 venv := ".venv"
-python_version :="3.13"
+python_version :="3.10"
 run := "uv run"
 
-venv-exists := path_exists(venv)
+venv_exists := path_exists(venv)
 
 target_dirs := "src tests dependencies"
 
@@ -14,9 +14,9 @@ help:
 
 # Create a new venv with all the dependencies groups
 venv: 
-    @if ! {{ venv-exists }}; \
+    @if ! {{ venv_exists }}; \
     then \
-    uv sync --frozen --all-extras --all-groups; \
+    uv sync --frozen --all-extras --all-groups --python {{ python_version }}; \
     fi
 
 # Cleans all artifacts generated while running this project, including the virtualenv.

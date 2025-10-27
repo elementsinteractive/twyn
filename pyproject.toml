@@ -9,13 +9,12 @@ maintainers = [
     { name = "Daniel Sanz", email = "imsdn4z@gmail.com" },
     { name = "Sergio Castillo", email = "s.cast.lara@gmail.com" },
 ]
-requires-python = "<4,>=3.9"
+requires-python = "<4,>=3.10"
 dependencies = [
     "requests<3.0.0,>=2.32.4",
     "rapidfuzz<4.0.0,>=2.13.7",
     "pyparsing<4.0.0,>=3.2.3",
     "tomlkit<0.14.0,>=0.11.6",
-    "tomli<3.0.0,>=2.2.1; python_version < \"3.13\"",
     "pydantic>=2.11.7,<3.0.0",
     "pyyaml>=6.0.2",
 ]
@@ -29,7 +28,6 @@ cli = [
     "click<9.0.0,>=8.1.8",
     "rich<15.0.0,>=14.0.0",
 ]
-
 
 [tool.hatch.version]
 path = "VERSION"
@@ -70,7 +68,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 120
 
 src = ["twyn", "tests"]
@@ -115,7 +113,7 @@ ignore = [
 convention = "pep257"
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 ignore_missing_imports = true
 namespace_packages = true
 explicit_package_bases = true

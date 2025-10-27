@@ -1,6 +1,5 @@
 import logging
 from pathlib import Path
-from typing import Optional
 
 from twyn.base.constants import DEPENDENCY_FILE_MAPPING
 from twyn.dependency_parser.exceptions import (
@@ -14,7 +13,7 @@ logger = logging.getLogger("twyn")
 class DependencySelector:
     """Select and provide parsers for dependency files."""
 
-    def __init__(self, dependency_files: Optional[set[str]] = None, root_path: str = ".") -> None:
+    def __init__(self, dependency_files: set[str] | None = None, root_path: str = ".") -> None:
         self.dependency_files = dependency_files or set()
         self.root_path = root_path
 

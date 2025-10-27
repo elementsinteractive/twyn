@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from twyn.trusted_packages.references.base import AbstractPackageReference
 
@@ -30,7 +29,7 @@ class BaseDependencyManager:
         return cls.name == Path(name).name.lower()
 
     @classmethod
-    def get_alternative_source(cls, sources: dict[str, str]) -> Optional[str]:
+    def get_alternative_source(cls, sources: dict[str, str]) -> str | None:
         """Get alternative source URL for this ecosystem from sources dict."""
         match = [x for x in sources if x == cls.name]
 

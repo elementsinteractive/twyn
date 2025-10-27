@@ -1,6 +1,5 @@
 import logging
 import sys
-from typing import Optional
 
 from twyn.__version__ import __version__
 from twyn.base.constants import (
@@ -129,13 +128,13 @@ def run(  # noqa: C901
     selector_method: str,
     v: bool,
     vv: bool,
-    no_cache: Optional[bool],
+    no_cache: bool | None,
     no_track: bool,
     json: bool,
-    package_ecosystem: Optional[str],
+    package_ecosystem: str | None,
     recursive: bool,
-    pypi_source: Optional[str],
-    npm_source: Optional[str],
+    pypi_source: str | None,
+    npm_source: str | None,
 ) -> int:
     if vv:
         logger.setLevel(logging.DEBUG)

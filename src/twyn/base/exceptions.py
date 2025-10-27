@@ -1,5 +1,5 @@
 import logging
-from typing import IO, Any, Optional
+from typing import IO, Any
 
 logger = logging.getLogger("twyn")
 
@@ -28,7 +28,7 @@ try:
         def __init__(self, message: str = "") -> None:
             super().__init__(message)
 
-        def show(self, file: Optional[IO[Any]] = None) -> None:
+        def show(self, file: IO[Any] | None = None) -> None:
             """Display the error message."""
             logger.debug(self.format_message(), exc_info=True)
             logger.error(self.format_message(), exc_info=False)

@@ -1,4 +1,4 @@
-ARG PYTHON_IMAGE=3.13-slim@sha256:1020ca463dc51c26bbad49de85dbb2986d93b71050102f3fa2a7f0fc4c2ea81e
+ARG PYTHON_IMAGE=3.14-slim@sha256:4ed33101ee7ec299041cc41dd268dae17031184be94384b1ce7936dc4e5dead3
 
 # --------------- `base` stage --------------- 
 FROM python:${PYTHON_IMAGE} AS base

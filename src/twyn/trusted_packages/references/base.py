@@ -1,7 +1,7 @@
 import logging
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any
 
 import requests
 
@@ -26,7 +26,7 @@ class AbstractPackageReference:
     DEFAULT_SOURCE: str
     """Default URL source for fetching trusted packages."""
 
-    def __init__(self, source: Optional[str] = None, cache_handler: Union[CacheHandler, None] = None) -> None:
+    def __init__(self, source: str | None = None, cache_handler: CacheHandler | None = None) -> None:
         self.source = source or self.DEFAULT_SOURCE
         self.cache_handler = cache_handler
 
