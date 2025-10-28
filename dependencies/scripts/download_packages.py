@@ -1,9 +1,10 @@
 import json
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any
 from zoneinfo import ZoneInfo
 
 import click
@@ -33,8 +34,8 @@ class ServerError(Exception):
 @dataclass(frozen=True)
 class Ecosystem:
     url: str
-    params: Optional[dict[str, Any]]
-    pages: Optional[int]
+    params: dict[str, Any] | None
+    pages: int | None
     parser: Callable[[dict[str, Any]], list[str]]
 
 
@@ -88,7 +89,7 @@ def download(
 
 
 def get_packages(
-    base_url: str, parser: Callable[[dict[str, Any]], list[str]], params: Optional[dict[str, Any]] = None
+    base_url: str, parser: Callable[[dict[str, Any]], list[str]], params: dict[str, Any] | None = None
 ) -> list[str]:
     for attempt in stamina.retry_context(
         on=(httpx.TransportError, httpx.TimeoutException, ServerError),

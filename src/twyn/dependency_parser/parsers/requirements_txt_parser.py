@@ -2,7 +2,6 @@
 
 import re
 from pathlib import Path
-from typing import Union
 
 from typing_extensions import override
 
@@ -37,7 +36,7 @@ class RequirementsTxtParser(AbstractParser):
         """
         return self._parse_internal(self.file_path, seen_files=set())
 
-    def _parse_internal(self, source: Union[str, Path], seen_files: set[Path]) -> set[str]:
+    def _parse_internal(self, source: str | Path, seen_files: set[Path]) -> set[str]:
         """Parse requirements file and handle includes recursively."""
         packages: set[str] = set()
         base_dir = Path(source).parent if isinstance(source, Path) else Path(".")

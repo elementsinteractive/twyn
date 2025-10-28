@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel
 
 
@@ -49,7 +47,7 @@ class TyposquatCheckResults(BaseModel):
         """Check if this result collection contains any results."""
         return bool(self.results)
 
-    def get_results_from_source(self, source: str) -> Optional[TyposquatCheckResultFromSource]:
+    def get_results_from_source(self, source: str) -> TyposquatCheckResultFromSource | None:
         """Return results from a given source.
 
         Source is either the lock file that has been analyzed or `manual_input`.

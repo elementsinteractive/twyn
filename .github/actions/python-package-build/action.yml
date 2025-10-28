@@ -40,7 +40,7 @@ runs:
       id: build
       shell: bash
       run: |
-        uv build
+        uv build --python ${{ inputs.python-version }}
 
         # Set outputs
         WHEEL_FILE=$(ls dist/*.whl | head -1)
@@ -48,16 +48,11 @@ runs:
         echo "dist-path=dist" >> $GITHUB_OUTPUT
         echo "Built wheel: $WHEEL_FILE"
 
-    - name: Install the built wheel
-      shell: bash
-      run: |
-        uv venv
-        uv pip install "${{ steps.build.outputs.wheel-file }}"
-
     - name: Test package as CLI tool
       if: inputs.test-package == 'true'
       shell: bash
       run: |
+        uv venv --python ${{ inputs.python-version }}
         uv pip install "${{ steps.build.outputs.wheel-file }}[cli]"
         uv run ${{ inputs.cli-test-command }}
 

@@ -2,7 +2,7 @@ import logging
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 from tomlkit import TOMLDocument, dumps, load, table
 
@@ -38,15 +38,15 @@ class TwynConfiguration:
     """Method for selecting similar packages."""
     allowlist: set[str]
     """Set of package names to allow without checking."""
-    pypi_source: Optional[str]
+    pypi_source: str | None
     """Alternative PyPI source URL."""
-    npm_source: Optional[str]
+    npm_source: str | None
     """Alternative npm source URL."""
     use_cache: bool
     """Whether to use cached trusted packages."""
-    package_ecosystem: Optional[PackageEcosystems]
+    package_ecosystem: PackageEcosystems | None
     """Target package ecosystem for analysis."""
-    recursive: Optional[bool]
+    recursive: bool | None
     """Whether to recursively search for dependency files."""
 
 
@@ -54,39 +54,39 @@ class TwynConfiguration:
 class ReadTwynConfiguration:
     """Configuration for twyn as set by the user. It may have None values."""
 
-    dependency_files: Optional[set[str]] = field(default_factory=set)
+    dependency_files: set[str] | None = field(default_factory=set)
     """Optional set of dependency file paths to analyze."""
-    selector_method: Optional[str] = None
+    selector_method: str | None = None
     """Optional method for selecting similar packages."""
     allowlist: set[str] = field(default_factory=set)
     """Set of package names to allow without checking."""
-    pypi_source: Optional[str] = None
+    pypi_source: str | None = None
     """Optional alternative PyPI source URL."""
-    npm_source: Optional[str] = None
+    npm_source: str | None = None
     """Optional alternative npm source URL."""
-    use_cache: Optional[bool] = None
+    use_cache: bool | None = None
     """Optional setting for using cached trusted packages."""
-    package_ecosystem: Optional[PackageEcosystems] = None
+    package_ecosystem: PackageEcosystems | None = None
     """Optional target package ecosystem for analysis."""
-    recursive: Optional[bool] = None
+    recursive: bool | None = None
     """Optional setting for recursive dependency file search."""
 
 
 class ConfigHandler:
     """Manage reading and writing configurations for Twyn."""
 
-    def __init__(self, file_handler: Optional[FileHandler] = None) -> None:
+    def __init__(self, file_handler: FileHandler | None = None) -> None:
         self.file_handler = file_handler
 
     def resolve_config(  # noqa: C901, PLR0912
         self,
-        selector_method: Optional[str] = None,
-        dependency_files: Optional[set[str]] = None,
-        use_cache: Optional[bool] = None,
-        package_ecosystem: Optional[PackageEcosystems] = None,
-        recursive: Optional[bool] = None,
-        pypi_source: Optional[str] = None,
-        npm_source: Optional[str] = None,
+        selector_method: str | None = None,
+        dependency_files: set[str] | None = None,
+        use_cache: bool | None = None,
+        package_ecosystem: PackageEcosystems | None = None,
+        recursive: bool | None = None,
+        pypi_source: str | None = None,
+        npm_source: str | None = None,
     ) -> TwynConfiguration:
         """Resolve the configuration for Twyn.
 
@@ -244,10 +244,10 @@ class ConfigHandler:
         return DEFAULT_PROJECT_TOML_FILE
 
 
-def _serialize_config(x: Any) -> Union[Any, str, list[Any]]:
+def _serialize_config(x: Any) -> Any | str | list[Any]:
     """Serialize configuration values for TOML format."""
 
-    def _value_to_for_config(v: Any) -> Union[str, list[Any], Any]:
+    def _value_to_for_config(v: Any) -> str | list[Any] | Any:
         if isinstance(v, Enum):
             return v.name
         elif isinstance(v, set):

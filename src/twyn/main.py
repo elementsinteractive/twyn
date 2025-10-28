@@ -1,6 +1,5 @@
 import logging
 from collections.abc import Iterable
-from typing import Optional, Union
 
 from twyn.base.constants import (
     MANUAL_INPUT_SOURCE,
@@ -35,17 +34,17 @@ logger.addHandler(logging.NullHandler())
 
 
 def check_dependencies(
-    selector_method: Union[SelectorMethod, None] = None,
-    config_file: Optional[str] = None,
-    dependency_files: Optional[set[str]] = None,
-    dependencies: Optional[set[str]] = None,
-    use_cache: Optional[bool] = True,
+    selector_method: SelectorMethod | None = None,
+    config_file: str | None = None,
+    dependency_files: set[str] | None = None,
+    dependencies: set[str] | None = None,
+    use_cache: bool | None = True,
     show_progress_bar: bool = False,
     load_config_from_file: bool = False,
-    package_ecosystem: Optional[PackageEcosystems] = None,
-    recursive: Optional[bool] = None,
-    pypi_source: Optional[str] = None,
-    npm_source: Optional[str] = None,
+    package_ecosystem: PackageEcosystems | None = None,
+    recursive: bool | None = None,
+    pypi_source: str | None = None,
+    npm_source: str | None = None,
 ) -> TyposquatCheckResults:
     """
     Check if the provided dependencies are potential typosquats of trusted packages.
@@ -115,11 +114,11 @@ def check_dependencies(
 
 
 def _analyze_dependencies_from_input(
-    package_ecosystem: Optional[PackageEcosystems],
+    package_ecosystem: PackageEcosystems | None,
     selector_method: SelectorMethod,
-    pypi_source: Optional[str],
-    npm_source: Optional[str],
-    maybe_cache_handler: Optional[CacheHandler],
+    pypi_source: str | None,
+    npm_source: str | None,
+    maybe_cache_handler: CacheHandler | None,
     dependencies: set[str],
     allowlist: set[str],
     show_progress_bar: bool,
@@ -161,10 +160,10 @@ def _analyze_packages_from_source(
     allowlist: set[str],
     selector_method: SelectorMethod,
     show_progress_bar: bool,
-    dependency_files: Optional[set[str]],
-    pypi_source: Optional[str],
-    npm_source: Optional[str],
-    maybe_cache_handler: Optional[CacheHandler],
+    dependency_files: set[str] | None,
+    pypi_source: str | None,
+    npm_source: str | None,
+    maybe_cache_handler: CacheHandler | None,
 ) -> TyposquatCheckResults:
     """Analyze dependencies from a dependencies file.
 
@@ -205,7 +204,7 @@ def _analyze_dependencies(
     packages: set[str],
     allowlist: set[str],
     show_progress_bar: bool,
-    dependency_file: Optional[str] = None,
+    dependency_file: str | None = None,
 ) -> list[TyposquatCheckResultEntry]:
     """Analyze the set of given dependencies against the trusted packages' golden set.
 
@@ -228,7 +227,7 @@ def _analyze_dependencies(
 
 
 def _get_dependencies_list(
-    normalized_dependencies: set[str], show_progress_bar: bool, dependency_file: Optional[str] = None
+    normalized_dependencies: set[str], show_progress_bar: bool, dependency_file: str | None = None
 ) -> Iterable[str]:
     """Determine if the progress bar will be showed or not. It returns an iterable of all the dependencies to analyze."""
     try:
@@ -262,7 +261,7 @@ def _get_selector_method(selector_method: str) -> SelectorMethod:
 
 
 def _get_dependency_managers_and_parsers_mapping(
-    dependency_files: Optional[set[str]],
+    dependency_files: set[str] | None,
 ) -> dict[type[BaseDependencyManager], list[AbstractParser]]:
     """Return a dictionary, grouping all files to parse by their DependencyManager."""
     dependency_managers: dict[type[BaseDependencyManager], list[AbstractParser]] = {}
@@ -282,14 +281,14 @@ def _get_dependency_managers_and_parsers_mapping(
 
 def _get_config(
     load_config_from_file: bool,
-    config_file: Optional[str],
-    selector_method: Union[SelectorMethod, None],
-    dependency_files: Optional[set[str]],
-    use_cache: Optional[bool],
-    package_ecosystem: Optional[PackageEcosystems],
-    recursive: Optional[bool],
-    pypi_source: Optional[str],
-    npm_source: Optional[str],
+    config_file: str | None,
+    selector_method: SelectorMethod | None,
+    dependency_files: set[str] | None,
+    use_cache: bool | None,
+    package_ecosystem: PackageEcosystems | None,
+    recursive: bool | None,
+    pypi_source: str | None,
+    npm_source: str | None,
 ) -> TwynConfiguration:
     """Given the arguments passed to the main function and the configuration loaded from the config file (if any), return a config object."""
     if load_config_from_file:

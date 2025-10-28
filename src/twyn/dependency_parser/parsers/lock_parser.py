@@ -1,12 +1,7 @@
-import sys
+import tomlkit
 
 from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
 from twyn.dependency_parser.parsers.constants import POETRY_LOCK, UV_LOCK
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
 
 
 class TomlLockParser(AbstractParser):
@@ -14,8 +9,9 @@ class TomlLockParser(AbstractParser):
 
     def parse(self) -> set[str]:
         """Parse dependencies names and map them to a set."""
-        data = tomllib.loads(self.file_handler.read())
-        return {dependency["name"] for dependency in data["package"]}
+        data = tomlkit.parse(self.file_handler.read())
+        packages = data.get("package", [])
+        return {pkg["name"] for pkg in packages if isinstance(pkg, dict) and "name" in pkg}
 
 
 class PoetryLockParser(TomlLockParser):

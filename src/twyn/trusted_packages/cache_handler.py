@@ -4,7 +4,6 @@ import os
 from datetime import datetime
 from hashlib import md5
 from pathlib import Path
-from typing import Optional
 
 from pydantic import BaseModel, ValidationError, field_validator
 
@@ -46,7 +45,7 @@ class CacheHandler:
         file_handler.write(data.model_dump_json())
         logger.debug("Successfully wrote cache data to %s", file_handler.file_path)
 
-    def get_cache_entry(self, source: str) -> Optional[CacheEntry]:
+    def get_cache_entry(self, source: str) -> CacheEntry | None:
         """Retrieve cache entry from source-specific cache file."""
         file_handler = self._get_file_handler(source)
         if not file_handler.exists():
