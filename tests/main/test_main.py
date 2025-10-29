@@ -8,7 +8,7 @@ from tomlkit import dumps, parse
 from twyn.config.config_handler import ConfigHandler, TwynConfiguration
 from twyn.config.exceptions import InvalidSelectorMethodError
 from twyn.dependency_managers.exceptions import NoMatchingDependencyManagerError
-from twyn.dependency_managers.utils import (
+from twyn.dependency_managers.managers import (
     get_dependency_manager_from_file,
     get_dependency_manager_from_name,
 )
