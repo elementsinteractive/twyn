@@ -1382,6 +1382,7 @@ dev = [
 download = [
     { name = "click" },
     { name = "httpx" },
+    { name = "pydantic" },
     { name = "stamina" },
 ]
 local = [
@@ -1417,6 +1418,7 @@ dev = [
 download = [
     { name = "click", specifier = ">=8.1.8" },
     { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pydantic", specifier = ">=2.11.7,<3.0.0" },
     { name = "stamina", specifier = ">=25.1.0" },
 ]
 local = [
