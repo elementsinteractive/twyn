@@ -19,6 +19,12 @@ logging.basicConfig(
 )
 
 
+DEPENDENCIES_DIR = "dependencies"
+TOP_PYPI_SOURCE = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages.min.json"
+TOP_NPM_SOURCE = "https://packages.ecosyste.ms/api/v1/registries/npmjs.org/packages"
+TIMEOUT = 90
+
+
 def parse_npm(data: list[dict[str, Any]]) -> list[str]:
     return [x["name"] for x in data]
 
@@ -34,28 +40,25 @@ class ServerError(Exception):
 @dataclass(frozen=True)
 class Ecosystem:
     url: str
-    params: dict[str, Any] | None
-    pages: int | None
-    parser: Callable[[dict[str, Any]], list[str]]
+    parser: Callable[[Any], list[str]]
+    params: dict[str, Any] | None = None
+    pages: int | None = None
 
 
-@dataclass(frozen=True)
-class PypiEcosystem(Ecosystem):
-    url = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages.min.json"
-    params = None
-    pages = None
-    parser = parse_pypi
+pypi_ecosystem = Ecosystem(
+    url=TOP_PYPI_SOURCE,
+    parser=parse_pypi,
+)
+
+npm_ecosystem = Ecosystem(
+    url=TOP_NPM_SOURCE,
+    parser=parse_npm,
+    params={"per_page": 100, "sort": "downloads"},
+    pages=150,
+)
 
 
-@dataclass(frozen=True)
-class NpmEcosystem(Ecosystem):
-    url = "https://packages.ecosyste.ms/api/v1/registries/npmjs.org/packages"
-    params = {"per_page": 1000, "sort": "downloads"}
-    pages = 15
-    parser = parse_npm
-
-
-ECOSYSTEMS = {"pypi": PypiEcosystem, "npm": NpmEcosystem}
+ECOSYSTEMS = {"pypi": pypi_ecosystem, "npm": npm_ecosystem}
 
 
 @click.group()
@@ -72,39 +75,41 @@ def entry_point() -> None:
 def download(
     ecosystem: str,
 ) -> None:
+    if ecosystem not in ECOSYSTEMS:
+        raise click.BadParameter("Not a valid ecosystem")
+
     selected_ecosystem = ECOSYSTEMS[ecosystem]
+    all_packages: list[str] = []
 
-    if pages := selected_ecosystem.pages:
-        all_packages: list[str] = []
-
-        for page in range(1, pages + 1):
-            params = selected_ecosystem.params or {}
+    n_pages = selected_ecosystem.pages or 1
+    for page in range(1, n_pages + 1):
+        params = selected_ecosystem.params or {}
+        if selected_ecosystem.pages:
             params["page"] = page
-            all_packages.extend(get_packages(selected_ecosystem.url, selected_ecosystem.parser, params))
-    else:
-        all_packages = get_packages(selected_ecosystem.url, selected_ecosystem.parser, selected_ecosystem.params)
 
-    fpath = Path("dependencies") / f"{ecosystem}.json"
+        all_packages.extend(get_packages(selected_ecosystem.url, selected_ecosystem.parser, selected_ecosystem.params))
+
+    fpath = Path(DEPENDENCIES_DIR) / f"{ecosystem}.json"
     save_data_to_file(all_packages, fpath)
 
 
+@stamina.retry(
+    on=(httpx.TransportError, httpx.TimeoutException, ServerError),
+    attempts=10,
+    wait_jitter=1,
+    wait_exp_base=2,
+    wait_max=8,
+)
 def get_packages(
     base_url: str, parser: Callable[[dict[str, Any]], list[str]], params: dict[str, Any] | None = None
 ) -> list[str]:
-    for attempt in stamina.retry_context(
-        on=(httpx.TransportError, httpx.TimeoutException, ServerError),
-        attempts=5,
-        wait_jitter=1,
-        wait_exp_base=2,
-        wait_max=8,
-    ):
-        with attempt, httpx.Client(timeout=30) as client:
-            response = client.get(str(base_url), params=params)
-            try:
-                response.raise_for_status()
-            except httpx.HTTPStatusError as e:
-                if e.response.is_server_error:
-                    raise ServerError from e
+    with httpx.Client(timeout=TIMEOUT) as client:
+        response = client.get(str(base_url), params=params)
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            if e.response.is_server_error:
+                raise ServerError from e
     return parser(response.json())
 
 
@@ -113,7 +118,7 @@ def save_data_to_file(all_packages: list[str], fpath: Path) -> None:
     with open(str(fpath), "w") as fp:
         json.dump(data, fp)
 
-    logger.info("Saved %d packages to `%s` file.", len(set(all_packages)), fpath)
+    logger.info("Saved %d packages to `%s` file.", len(all_packages), fpath)
 
 
 if __name__ == "__main__":
