@@ -9,8 +9,7 @@ from twyn.base.constants import (
 )
 from twyn.config.config_handler import ConfigHandler, TwynConfiguration
 from twyn.config.exceptions import InvalidSelectorMethodError
-from twyn.dependency_managers.managers.base import BaseDependencyManager
-from twyn.dependency_managers.utils import (
+from twyn.dependency_managers.managers import (
     PACKAGE_ECOSYSTEMS,
     get_dependency_manager_from_file,
     get_dependency_manager_from_name,
@@ -172,9 +171,10 @@ def _analyze_packages_from_source(
     typos_by_file = TyposquatCheckResults()
 
     dependency_managers = _get_dependency_managers_and_parsers_mapping(dependency_files)
-    for dependency_manager, parsers in dependency_managers.items():
-        source = dependency_manager.get_alternative_source({"pypi": pypi_source, "npm": npm_source})
-        top_package_reference = dependency_manager.trusted_packages_source(source, maybe_cache_handler)
+    for ecosystem_name, parsers in dependency_managers.items():
+        manager = get_dependency_manager_from_name(ecosystem_name)
+        source = manager.get_alternative_source({"pypi": pypi_source, "npm": npm_source})
+        top_package_reference = manager.trusted_packages_source(source, maybe_cache_handler)
 
         packages_from_source = top_package_reference.get_packages()
         trusted_packages = TrustedPackages(
@@ -262,9 +262,9 @@ def _get_selector_method(selector_method: str) -> SelectorMethod:
 
 def _get_dependency_managers_and_parsers_mapping(
     dependency_files: set[str] | None,
-) -> dict[type[BaseDependencyManager], list[AbstractParser]]:
+) -> dict[str, list[AbstractParser]]:
     """Return a dictionary, grouping all files to parse by their DependencyManager."""
-    dependency_managers: dict[type[BaseDependencyManager], list[AbstractParser]] = {}
+    dependency_managers: dict[str, list[AbstractParser]] = {}
 
     # No dependencies introduced via the CLI, so the dependecy file was either given or will be auto-detected
     dependency_selector = DependencySelector(dependency_files)
@@ -273,9 +273,9 @@ def _get_dependency_managers_and_parsers_mapping(
     for parser in dependency_parsers:
         manager = get_dependency_manager_from_file(parser.file_path)
 
-        if manager not in dependency_managers:
-            dependency_managers[manager] = []
-        dependency_managers[manager].append(parser)
+        if manager.name not in dependency_managers:
+            dependency_managers[manager.name] = []
+        dependency_managers[manager.name].append(parser)
     return dependency_managers
 
 
