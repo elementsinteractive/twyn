@@ -9,6 +9,9 @@ from twyn.dependency_parser.parsers.constants import (
     UV_LOCK,
     YARN_LOCK,
 )
+from twyn.trusted_packages.managers.base import TrustedPackagesProtocol
+from twyn.trusted_packages.managers.trusted_npm_packages_manager import TrustedNpmPackageManager
+from twyn.trusted_packages.managers.trusted_pypi_packages_manager import TrustedPackages
 from twyn.trusted_packages.references.base import AbstractPackageReference
 from twyn.trusted_packages.references.top_npm_reference import TopNpmReference
 from twyn.trusted_packages.references.top_pypi_reference import TopPyPiReference
@@ -30,6 +33,9 @@ class DependencyManager:
     dependency_files: set[str]
     """Set of supported dependency file names."""
 
+    trusted_packages_manager: type[TrustedPackagesProtocol]
+    """TrustedPackages class that will determine if there's a typo or not."""
+
     def matches_dependency_file(self, dependency_file: str) -> bool:
         """Check if this manager can handle the given dependency file."""
         return Path(dependency_file).name in self.dependency_files
@@ -43,12 +49,15 @@ npm_dependency_manager = DependencyManager(
     name="npm",
     trusted_packages_source=TopNpmReference,
     dependency_files={PACKAGE_LOCK_JSON, YARN_LOCK},
+    trusted_packages_manager=TrustedNpmPackageManager,
 )
 pypi_dependency_manager = DependencyManager(
     name="pypi",
     trusted_packages_source=TopPyPiReference,
     dependency_files={UV_LOCK, POETRY_LOCK, REQUIREMENTS_TXT},
+    trusted_packages_manager=TrustedPackages,
 )
+
 
 DEPENDENCY_MANAGERS: list[DependencyManager] = [pypi_dependency_manager, npm_dependency_manager]
 """List of available dependency manager classes."""

@@ -20,13 +20,13 @@ from twyn.file_handler.file_handler import FileHandler
 from twyn.similarity.algorithm import EditDistance, SimilarityThreshold
 from twyn.trusted_packages.cache_handler import CacheHandler
 from twyn.trusted_packages.exceptions import InvalidArgumentsError
+from twyn.trusted_packages.managers.base import TrustedPackagesProtocol
 from twyn.trusted_packages.models import (
     TyposquatCheckResultEntry,
     TyposquatCheckResultFromSource,
     TyposquatCheckResults,
 )
 from twyn.trusted_packages.references.base import AbstractPackageReference
-from twyn.trusted_packages.trusted_packages import TrustedPackages
 
 logger = logging.getLogger("twyn")
 logger.addHandler(logging.NullHandler())
@@ -134,7 +134,7 @@ def _analyze_dependencies_from_input(
     dependency_manager = get_dependency_manager_from_name(package_ecosystem)
     source = dependency_manager.get_alternative_source({"pypi": pypi_source, "npm": npm_source})
     top_package_reference = dependency_manager.trusted_packages_source(source, maybe_cache_handler)
-    trusted_packages = TrustedPackages(
+    trusted_packages = dependency_manager.trusted_packages_manager(
         names=top_package_reference.get_packages(),
         algorithm=EditDistance(),
         selector=selector_method,
@@ -177,7 +177,7 @@ def _analyze_packages_from_source(
         top_package_reference = manager.trusted_packages_source(source, maybe_cache_handler)
 
         packages_from_source = top_package_reference.get_packages()
-        trusted_packages = TrustedPackages(
+        trusted_packages = manager.trusted_packages_manager(
             names=packages_from_source,
             algorithm=EditDistance(),
             selector=selector_method,
@@ -200,7 +200,7 @@ def _analyze_packages_from_source(
 
 def _analyze_dependencies(
     top_package_reference: AbstractPackageReference,
-    trusted_packages: TrustedPackages,
+    trusted_packages: TrustedPackagesProtocol,
     packages: set[str],
     allowlist: set[str],
     show_progress_bar: bool,

@@ -5,13 +5,13 @@ from twyn.similarity.algorithm import (
     EditDistance,
     SimilarityThreshold,
 )
+from twyn.trusted_packages.managers.trusted_pypi_packages_manager import (
+    TrustedPackages,
+    TyposquatCheckResultEntry,
+)
 from twyn.trusted_packages.selectors import (
     FirstLetterExact,
     FirstLetterNearbyInKeyboard,
-)
-from twyn.trusted_packages.trusted_packages import (
-    TrustedPackages,
-    TyposquatCheckResultEntry,
 )
 
 

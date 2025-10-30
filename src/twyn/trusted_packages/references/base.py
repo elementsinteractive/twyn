@@ -1,5 +1,7 @@
 import logging
 from abc import abstractmethod
+from collections.abc import Iterator
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
@@ -12,6 +14,35 @@ from twyn.trusted_packages.exceptions import (
 )
 
 logger = logging.getLogger("twyn")
+
+
+@dataclass
+class NormalizedPackages:
+    packages: set[str]
+    namespaces: dict[str, set[str]] | None = None
+    _raw_namespaces: set[str] = field(default_factory=set)
+
+    def __post__init__(self) -> None:
+        if self.namespaces:
+            for namespace in self.namespaces:
+                for package_name in self.namespaces[namespace]:
+                    self._raw_namespaces.add(f"{namespace}/{package_name}")
+
+    def __iter__(self) -> Iterator[str]:
+        yield from self.packages
+
+        if not self.namespaces:
+            return
+
+        for namespace in self.namespaces:
+            for package_name in self.namespaces[namespace]:
+                yield f"{namespace}/{package_name}"
+
+    def __contains__(self, value: str) -> bool:
+        if not isinstance(value, str):
+            return False
+
+        return value in self.packages or value in self._raw_namespaces
 
 
 class AbstractPackageReference:
@@ -32,7 +63,7 @@ class AbstractPackageReference:
 
     @staticmethod
     @abstractmethod
-    def normalize_packages(packages: set[str]) -> set[str]:
+    def normalize_packages(packages: set[str]) -> NormalizedPackages:
         """Normalize package names to make sure they're valid within the package manager context."""
 
     def _download(self) -> dict[str, Any]:
@@ -64,7 +95,7 @@ class AbstractPackageReference:
 
         return cache_entry.packages
 
-    def get_packages(self) -> set[str]:
+    def get_packages(self) -> NormalizedPackages:
         """Download and parse online source of top packages from the package ecosystem."""
         packages = self._get_packages_from_cache_if_enabled()
         # we don't save the cache here, we keep it as it is so the date remains the original one.
@@ -84,5 +115,4 @@ class AbstractPackageReference:
             # New packages were downloaded, we create a new entry updating all values.
             self._save_trusted_packages_to_cache_if_enabled(packages)
 
-        normalized_packages = self.normalize_packages(packages)
-        return normalized_packages
+        return self.normalize_packages(packages)

@@ -183,6 +183,31 @@ class TestCheckDependencies:
             ]
         )
 
+    @patch("twyn.trusted_packages.TopNpmReference.get_packages")
+    def test_check_dependencies_detects_namespace_typosquats_from_file(
+        self, mock_get_packages: Mock, package_lock_json_file_with_namespace_typo: Path
+    ) -> None:
+        """Check that both namespace and regular package typosquats are detected when reading dependencies from file."""
+        mock_get_packages.return_value = {"@aws/sdk", "lodash"}
+
+        error = check_dependencies(
+            dependency_files={str(package_lock_json_file_with_namespace_typo)},
+            use_cache=False,
+        )
+
+        assert mock_get_packages.call_count == 1
+        assert error == TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[
+                        TyposquatCheckResultEntry(dependency="lodas", similars=["lodash"]),
+                        TyposquatCheckResultEntry(dependency="@awz/sdk", similars=["@aws/sdk"]),
+                    ],
+                    source=str(package_lock_json_file_with_namespace_typo),
+                )
+            ]
+        )
+
     @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     @patch("twyn.main._get_config")
     @patch("twyn.dependency_parser.parsers.abstract_parser.Path")
@@ -269,6 +294,35 @@ class TestCheckDependencies:
             results=[
                 TyposquatCheckResultFromSource(
                     errors=[TyposquatCheckResultEntry(dependency="my-package", similars=["mypackage"])],
+                    source="manual_input",
+                )
+            ]
+        )
+
+    @patch("twyn.trusted_packages.TopNpmReference._get_packages_from_cache_if_enabled")
+    def test_check_dependencies_with_input_from_cli_detects_typosquats_on_namespace_packages(
+        self, mock_get_packages_from_cache: Mock
+    ) -> None:
+        """Test that typosquats can be detected on npm packages with namespaces (@scope/package format)."""
+        mock_get_packages_from_cache.return_value = {"@aws/sdk", "@react/core", "lodash"}
+        error = check_dependencies(
+            dependencies={
+                "@awz/sdk",  # Typosquat of @aws/sdk
+                "@aws/sdk",  # not a typo
+                "@aws/zdk",  # Not a typo, since namespace is a trusted one
+                "@awz/zdk",  # Not a typo, even if namespace is similar to a trusted one, the package is not similiar to any known one.
+                "lodas",
+            },
+            package_ecosystem="npm",
+        )
+
+        assert error == TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[
+                        TyposquatCheckResultEntry(dependency="lodas", similars=["lodash"]),
+                        TyposquatCheckResultEntry(dependency="@awz/sdk", similars=["@aws/sdk"]),
+                    ],
                     source="manual_input",
                 )
             ]

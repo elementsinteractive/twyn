@@ -5,11 +5,9 @@ from twyn.similarity.algorithm import (
     AbstractSimilarityAlgorithm,
     SimilarityThreshold,
 )
+from twyn.trusted_packages.managers.base import OrderedPackages
 from twyn.trusted_packages.models import TyposquatCheckResultEntry
 from twyn.trusted_packages.selectors import AbstractSelector
-
-_PackageNames = defaultdict[str, set[str]]
-"""Type alias for mapping package names by ecosystem."""
 
 
 class TrustedPackages:
@@ -22,7 +20,7 @@ class TrustedPackages:
         selector: AbstractSelector,
         threshold_class: type[SimilarityThreshold],
     ) -> None:
-        self.names: _PackageNames = self._create_names_dictionary(names)
+        self.names = self._create_names_dictionary(names)
         self.threshold_class = threshold_class
         self.selector = selector
         self.algorithm = algorithm
@@ -34,17 +32,14 @@ class TrustedPackages:
         return False
 
     @staticmethod
-    def _create_names_dictionary(names: set[str]) -> _PackageNames:
+    def _create_names_dictionary(names: set[str]) -> OrderedPackages:
         """Create a dictionary which will group all packages that start with the same letter under the same key."""
         first_letter_names = defaultdict(set)
         for name in names:
             first_letter_names[name[0]].add(name)
         return first_letter_names
 
-    def get_typosquat(
-        self,
-        package_name: str,
-    ) -> TyposquatCheckResultEntry:
+    def get_typosquat(self, package_name: str) -> TyposquatCheckResultEntry:
         """Check if a given package name is similar to any trusted package and returns it.
 
         Only if there is a match on the first letter can a package name be

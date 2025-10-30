@@ -452,6 +452,52 @@ def yarn_lock_file_v2(tmp_path: Path) -> Iterator[Path]:
         yield tmp_file
 
 
+@pytest.fixture
+def package_lock_json_file_with_namespace_typo(tmp_path: Path) -> Iterator[Path]:
+    """NPM package-lock.json file with both namespace and regular package typos."""
+    package_lock_file = tmp_path / "package-lock.json"
+    data = """{
+        "name": "test-project",
+        "version": "1.0.0",
+        "lockfileVersion": 3,
+        "requires": true,
+        "packages": {
+            "": {
+                "name": "test-project",
+                "version": "1.0.0",
+                "dependencies": {
+                    "@awz/sdk": "3.450.0",
+                    "@aws/sdk": "3.450.0",
+                    "@awz/zdk": "1.2.3",
+                    "lodas": "1.2.3"
+                }
+            },
+            "node_modules/@awz/sdk": {
+                "version": "3.450.0",
+                "resolved": "https://registry.npmjs.org/@awz/sdk/-/sdk-3.450.0.tgz",
+                "integrity": "sha512-fake-integrity-hash"
+            },
+            "node_modules/@aws/sdk": {
+                "version": "3.450.0",
+                "resolved": "https://registry.npmjs.org/@awz/sdk/-/sdk-3.450.0.tgz",
+                "integrity": "sha512-fake-integrity-hash"
+            },
+            "node_modules/@awz/zdk": {
+                "version": "3.450.0",
+                "resolved": "https://registry.npmjs.org/@awz/sdk/-/sdk-3.450.0.tgz",
+                "integrity": "sha512-fake-integrity-hash"
+            },
+            "node_modules/lodas": {
+                "version": "4.17.21",
+                "resolved": "https://registry.npmjs.org/lodas/-/lodas-4.17.21.tgz",
+                "integrity": "sha512-another-fake-hash"
+            }
+        }
+    }"""
+    with create_tmp_file(package_lock_file, data) as tmp_file:
+        yield tmp_file
+
+
 @pytest.fixture(autouse=True)
 def fail_on_requests_get(request) -> Generator[None, Any, None]:
     with mock.patch("requests.get") as m_get:
