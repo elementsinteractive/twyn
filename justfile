@@ -32,8 +32,11 @@ clean:
 
 # Runs the tests with the specified arguments (any path or pytest argument).
 test *test-args='': venv
-    {{ run }}  pytest {{ test-args }} --no-cov 
+    {{ run }}  pytest tests {{ test-args }} 
 
+# Runs the "download" tests with the specified arguments (any path or pytest argument).
+test-download *test-args='': venv
+    {{ run }}  pytest dependencies/tests {{ test-args }} 
 
 # Format all code in the project.
 format:  venv
