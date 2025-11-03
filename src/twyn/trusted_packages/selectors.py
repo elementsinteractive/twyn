@@ -10,14 +10,14 @@ from twyn.trusted_packages.exceptions import CharacterNotInMatrixError
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from twyn.trusted_packages.trusted_packages import _PackageNames
+    from twyn.trusted_packages.managers.trusted_pypi_packages_manager import OrderedPackages
 
 logger = logging.getLogger("twyn")
 
 
 class AbstractSelector(ABC):
     @abstractmethod
-    def select_similar_names(self, names: _PackageNames, name: str) -> Iterable[str]:
+    def select_similar_names(self, names: OrderedPackages, name: str) -> Iterable[str]:
         """Override this to select names that are similar to the provided one."""
 
     def __str__(self) -> str:
@@ -28,7 +28,7 @@ class AbstractSelector(ABC):
 class FirstLetterNearbyInKeyboard(AbstractSelector):
     """Selects names that start with a letter that is nearby in an English Keyboard."""
 
-    def select_similar_names(self, names: _PackageNames, name: str) -> Iterable[str]:
+    def select_similar_names(self, names: OrderedPackages, name: str) -> Iterable[str]:
         """Select package names with first letters nearby on keyboard."""
         candidate_characters = self._get_candidate_characters(name[0])
         for letter in candidate_characters:
@@ -46,7 +46,7 @@ class FirstLetterNearbyInKeyboard(AbstractSelector):
 class FirstLetterExact(AbstractSelector):
     """Selects names that share the same first letter."""
 
-    def select_similar_names(self, names: _PackageNames, name: str) -> Iterable[str]:
+    def select_similar_names(self, names: OrderedPackages, name: str) -> Iterable[str]:
         """Select package names that start with the same letter."""
         yield from names[name[0]]
 
@@ -54,7 +54,7 @@ class FirstLetterExact(AbstractSelector):
 class AllSimilar(AbstractSelector):
     """Consider all names to be similar."""
 
-    def select_similar_names(self, names: _PackageNames, name: str) -> Iterable[str]:
+    def select_similar_names(self, names: OrderedPackages, name: str) -> Iterable[str]:
         """Return all available package names as candidates."""
-        for candidates in names.values():
-            yield from candidates
+        for candidates in names:
+            yield from names[candidates]

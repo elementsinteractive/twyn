@@ -3,7 +3,10 @@ from unittest.mock import Mock
 from twyn.dependency_managers.managers import DependencyManager
 
 manager = DependencyManager(
-    name="pypi", trusted_packages_source=Mock(), dependency_files={"requirements.txt", "poetry.lock"}
+    name="pypi",
+    trusted_packages_source=Mock(),
+    dependency_files={"requirements.txt", "poetry.lock"},
+    trusted_packages_manager=Mock(),
 )
 
 
