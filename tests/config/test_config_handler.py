@@ -216,21 +216,17 @@ class TestAllowlistConfigHandler:
         assert not mock_write_toml.called
 
     @pytest.mark.parametrize("valid_selector", ["first-letter", "nearby-letter", "all"])
-    def test_valid_selector_methods_accepted(self, valid_selector: str, tmp_path: Path) -> None:
+    def test_valid_selector_methods_accepted(self, valid_selector: str, pyproject_toml_file: Path) -> None:
         """Test that all valid selector methods are accepted."""
-        pyproject_toml = tmp_path / "pyproject.toml"
-        pyproject_toml.write_text("")
-        config = ConfigHandler(FileHandler(str(pyproject_toml)))
+        config = ConfigHandler(FileHandler(str(pyproject_toml_file)))
 
         # Should not raise any exception
         resolved_config = config.resolve_config(selector_method=valid_selector)
         assert resolved_config.selector_method == valid_selector
 
-    def test_invalid_selector_method_rejected(self, tmp_path: Path) -> None:
+    def test_invalid_selector_method_rejected(self, pyproject_toml_file: Path) -> None:
         """Test that invalid selector methods are rejected with appropriate error."""
-        pyproject_toml = tmp_path / "pyproject.toml"
-        pyproject_toml.write_text("")
-        config = ConfigHandler(FileHandler(str(pyproject_toml)))
+        config = ConfigHandler(FileHandler(str(pyproject_toml_file)))
 
         with pytest.raises(InvalidSelectorMethodError) as exc_info:
             config.resolve_config(selector_method="random-selector")

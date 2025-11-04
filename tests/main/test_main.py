@@ -655,3 +655,23 @@ class TestCheckDependencies:
 
         assert len(error.results) == 1
         assert error.get_results_from_source(str(req_file)) is not None
+
+    @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
+    def test_check_dependencies_continues_execution_with_empty_file_mixed_with_content_file(
+        self, mock_get_packages: Mock, tmp_path: Path, uv_lock_file_with_typo: Path
+    ) -> None:
+        """Test that execution continues when one file is empty and another contains dependencies."""
+        mock_get_packages.return_value = {"requests"}
+
+        empty_file = tmp_path / "requirements.txt"
+        with create_tmp_file(empty_file, ""):
+            error = check_dependencies(
+                dependency_files={str(empty_file), str(uv_lock_file_with_typo)},
+                use_cache=False,
+            )
+
+        assert len(error.results) == 1
+        assert error.results[0].source == str(uv_lock_file_with_typo)
+        assert error.results[0].errors == [TyposquatCheckResultEntry(dependency="reqests", similars=["requests"])]
+
+        assert error.get_results_from_source(str(empty_file)) is None

@@ -16,6 +16,8 @@ from twyn.dependency_managers.managers import (
 )
 from twyn.dependency_parser.dependency_selector import DependencySelector
 from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
+from twyn.dependency_parser.parsers.exceptions import InvalidFileFormatError
+from twyn.file_handler.exceptions import EmptyFileError
 from twyn.file_handler.file_handler import FileHandler
 from twyn.similarity.algorithm import EditDistance, SimilarityThreshold
 from twyn.trusted_packages.cache_handler import CacheHandler
@@ -185,8 +187,23 @@ def _analyze_packages_from_source(
         )
         results: list[TyposquatCheckResultFromSource] = []
         for parser in parsers:
+            try:
+                parsed_content = parser.parse()
+            except (InvalidFileFormatError, EmptyFileError) as e:
+                logger.warning("Could not parse %s. %s", parser.file_path, e)
+                continue
+
+            if not parsed_content:
+                logger.warning("No packages found in %s. Skipping...", parser.file_path)
+                continue
+
             analyzed_dependencies = _analyze_dependencies(
-                top_package_reference, trusted_packages, parser.parse(), allowlist, show_progress_bar, parser.file_path
+                top_package_reference,
+                trusted_packages,
+                parsed_content,
+                allowlist,
+                show_progress_bar,
+                parser.file_path,
             )
 
             if analyzed_dependencies:

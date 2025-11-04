@@ -11,7 +11,6 @@ from twyn.dependency_parser import (
 )
 from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
 from twyn.dependency_parser.parsers.yarn_lock_parser import YarnLockParser
-from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
 
 
 class TestAbstractParser:
@@ -22,25 +21,46 @@ class TestAbstractParser:
             self._read()
             return set()
 
+    @patch("pathlib.Path.stat")
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.is_file")
-    def test_file_exists(self, mock_exists: Mock, mock_is_file: Mock) -> None:
+    def test_file_exists(self, mock_is_file: Mock, mock_exists: Mock, mock_stat: Mock) -> None:
         mock_exists.return_value = True
         mock_is_file.return_value = True
+
+        mock_stat_result = Mock()
+        mock_stat_result.st_size = 100
+        mock_stat.return_value = mock_stat_result
+
         parser = self.TemporaryParser("fake_path.txt")
         assert parser.file_exists() is True
 
+    @patch("pathlib.Path.stat")
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.is_file")
     @pytest.mark.parametrize(
-        ("file_exists", "is_file", "exception"),
-        [(False, False, PathNotFoundError), (True, False, PathIsNotFileError)],
+        ("file_exists", "is_file", "file_size"),
+        [
+            (False, False, 100),
+            (True, False, 100),
+            (True, True, 0),
+        ],
     )
     def test_raise_for_valid_file(
-        self, mock_is_file: Mock, mock_exists: Mock, file_exists: Mock, is_file, exception: Mock
+        self,
+        mock_is_file: Mock,
+        mock_exists: Mock,
+        mock_stat: Mock,
+        file_exists: bool,
+        is_file: bool,
+        file_size: int,
     ) -> None:
         mock_exists.return_value = file_exists
         mock_is_file.return_value = is_file
+
+        mock_stat_result = Mock()
+        mock_stat_result.st_size = file_size
+        mock_stat.return_value = mock_stat_result
 
         parser = self.TemporaryParser("fake_path.txt")
         assert parser.file_exists() is False

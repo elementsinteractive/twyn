@@ -27,7 +27,7 @@ class YarnLockParser(AbstractParser):
 
                 if "__metadata:" in line:
                     return self._parse_v2(fp)
-        raise InvalidFileFormatError
+        raise InvalidFileFormatError("Unkown file format.")
 
     def _parse_v1(self, fp: TextIO) -> set[str]:
         """Parse a yarn.lock file (v1) and return all the dependencies in it."""
