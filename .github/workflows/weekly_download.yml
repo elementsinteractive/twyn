@@ -2,42 +2,46 @@ name: Weekly download
 
 on:
   schedule:
-    - cron: "0 0 * * 1"  # every Monday at 00:00 UTC
+    - cron: "0 0 * * 1" # every Monday at 00:00 UTC
   workflow_dispatch:
-
 
 jobs:
   download:
     runs-on: ubuntu-latest
     steps:
-        - uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
-          id: app-token
-          with:
-            app-id: ${{ vars.ELEMENTSINTERACTIVE_BOT_APP_ID }}
-            private-key: ${{ secrets.ELEMENTSINTERACTIVE_BOT_PRIVATE_KEY }}
-        - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-          with:
-            fetch-depth: 0
-            token: ${{ steps.app-token.outputs.token }}
-            ref: ${{ github.head_ref }}
-        - name: Install uv
-          uses: astral-sh/setup-uv@85856786d1ce8acfbcc2f13a5f3fbd6b938f9f41 # v7.1.2
+      - uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
+        id: app-token
+        with:
+          app-id: ${{ vars.ELEMENTSINTERACTIVE_BOT_APP_ID }}
+          private-key: ${{ secrets.ELEMENTSINTERACTIVE_BOT_PRIVATE_KEY }}
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+          ref: ${{ github.head_ref }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@85856786d1ce8acfbcc2f13a5f3fbd6b938f9f41 # v7.1.2
 
-        - name: Install the project
-          run: uv sync --locked --only-group download
+      - name: Install the project
+        run: uv sync --locked --only-group download --python 3.14
 
-        - name: Download packages from trusted sources
-          run: |
-            uv run --no-project dependencies/scripts/download_packages.py download pypi || echo 'Failed to download trusted pypi packages'
-            uv run --no-project dependencies/scripts/download_packages.py download npm || echo 'Failed to download trusted npm packages'
-        
-        - name: Configure git
-          run: |
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
- 
-        - name: Push changes to repo
-          run: |
-            git add .
-            git commit -m "chore: Weekly update of trusted packages"
-            git push origin HEAD:main
+      - name: Download Pypi packages
+        continue-on-error: true
+        run: |
+          uv run --no-project dependencies/scripts/download_packages.py download pypi
+
+      - name: Download NPM packages
+        continue-on-error: true
+        run: |
+          uv run --no-project dependencies/scripts/download_packages.py download npm
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Push changes to repo
+        run: |
+          git add .
+          git commit -m "chore: Weekly update of trusted packages"
+          git push origin HEAD:main
