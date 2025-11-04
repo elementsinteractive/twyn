@@ -4,6 +4,7 @@ from pathlib import Path
 from twyn.dependency_managers.exceptions import NoMatchingDependencyManagerError
 from twyn.dependency_parser.parsers.constants import (
     PACKAGE_LOCK_JSON,
+    PNPM_LOCK_YAML,
     POETRY_LOCK,
     REQUIREMENTS_TXT,
     UV_LOCK,
@@ -48,7 +49,7 @@ class DependencyManager:
 npm_dependency_manager = DependencyManager(
     name="npm",
     trusted_packages_source=TopNpmReference,
-    dependency_files={PACKAGE_LOCK_JSON, YARN_LOCK},
+    dependency_files={PACKAGE_LOCK_JSON, YARN_LOCK, PNPM_LOCK_YAML},
     trusted_packages_manager=TrustedNpmPackageManager,
 )
 pypi_dependency_manager = DependencyManager(

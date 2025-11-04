@@ -165,10 +165,11 @@ twyn run --dependency-file <file path>
 The following dependency file formats are supported:
 
 - `requirements.txt`
-- `poetry.lock`
+- `poetry.lock` (<1.5, >=1.5)
 - `uv.lock`
 - `package-lock.json` (v1, v2, v3)
 - `yarn.lock` (v1, v2)
+- `pnpm-lock.yaml` (v9)
 
 ### Check dependencies introduced through the CLI
 
