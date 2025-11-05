@@ -4,6 +4,9 @@ UV_LOCK = "uv.lock"
 PACKAGE_LOCK_JSON = "package-lock.json"
 """Filename for npm package lock files."""
 
+PNPM_LOCK_YAML = "pnpm-lock.yaml"
+"""Filename for pnpm lock files."""
+
 POETRY_LOCK = "poetry.lock"
 """Filename for Poetry dependency lock files."""
 

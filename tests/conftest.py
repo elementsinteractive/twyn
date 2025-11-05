@@ -453,6 +453,91 @@ def yarn_lock_file_v2(tmp_path: Path) -> Iterator[Path]:
 
 
 @pytest.fixture
+def pnpm_lock_file_v9(tmp_path: Path) -> Iterator[Path]:
+    """PNPM lock file v9 with comprehensive structure."""
+    pnpm_lock_file = tmp_path / "pnpm-lock.yaml"
+    data = """
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+  .:
+    dependencies:
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.2.0(react@18.2.0)
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
+    devDependencies:
+      '@babel/core':
+        specifier: ^7.20.0
+        version: 7.20.12
+      '@types/node':
+        specifier: ^18.0.0
+        version: 18.11.18
+      typescript:
+        specifier: ^4.9.0
+        version: 4.9.5
+
+  packages/workspace-a:
+    dependencies:
+      express:
+        specifier: ^4.18.2
+        version: 4.18.2
+    devDependencies:
+      debug:
+        specifier: ^4.3.4
+        version: 4.3.4
+
+packages:
+  'react@18.2.0':
+    resolution: {integrity: sha512-react-hash}
+    engines: {node: '>=0.10.0'}
+
+  'react-dom@18.2.0':
+    resolution: {integrity: sha512-react-dom-hash}
+    peerDependencies:
+      react: ^18.2.0
+
+  'lodash@4.17.21':
+    resolution: {integrity: sha512-lodash-hash}
+
+  '@babel/core@7.20.12':
+    resolution: {integrity: sha512-babel-core-hash}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/helper-plugin-utils@7.20.2':
+    resolution: {integrity: sha512-babel-helper-hash}
+    engines: {node: '>=6.9.0'}
+
+  '@types/node@18.11.18':
+    resolution: {integrity: sha512-types-node-hash}
+
+  'typescript@4.9.5':
+    resolution: {integrity: sha512-typescript-hash}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+
+  'express@4.18.2':
+    resolution: {integrity: sha512-express-hash}
+    engines: {node: '>= 0.10.0'}
+
+  'debug@4.3.4':
+    resolution: {integrity: sha512-debug-hash}
+    engines: {node: '>=6.0'}
+    """
+    with create_tmp_file(pnpm_lock_file, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
 def package_lock_json_file_with_namespace_typo(tmp_path: Path) -> Iterator[Path]:
     """NPM package-lock.json file with both namespace and regular package typos."""
     package_lock_file = tmp_path / "package-lock.json"

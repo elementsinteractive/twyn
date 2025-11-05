@@ -2,7 +2,13 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-from twyn.dependency_parser import PackageLockJsonParser, PoetryLockParser, RequirementsTxtParser, UvLockParser
+from twyn.dependency_parser import (
+    PackageLockJsonParser,
+    PnpmLockParser,
+    PoetryLockParser,
+    RequirementsTxtParser,
+    UvLockParser,
+)
 from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
 from twyn.dependency_parser.parsers.yarn_lock_parser import YarnLockParser
 from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
@@ -32,7 +38,7 @@ class TestAbstractParser:
     )
     def test_raise_for_valid_file(
         self, mock_is_file: Mock, mock_exists: Mock, file_exists: Mock, is_file, exception: Mock
-    ):
+    ) -> None:
         mock_exists.return_value = file_exists
         mock_is_file.return_value = is_file
 
@@ -102,3 +108,27 @@ class TestYarnLockParser:
         parser = YarnLockParser(file_path=str(yarn_lock_file_v2))
 
         assert parser.parse() == {"dependencies", "react-dom", "lodash", "version", "cacheKey", "resolution", "react"}
+
+
+class TestPnpmLockParser:
+    def test_parse_pnpm_lock_v9(self, pnpm_lock_file_v9: Path) -> None:
+        parser = PnpmLockParser(file_path=str(pnpm_lock_file_v9))
+        result = parser.parse()
+
+        # Should find all dependencies from the v9 fixture
+        expected_packages = {
+            "react",
+            "react-dom",
+            "lodash",
+            "@babel/core",
+            "@babel/helper-plugin-utils",
+            "express",
+            "debug",
+            "typescript",
+            "@types/node",
+        }
+        assert expected_packages == result
+
+        # Should not include workspace projects
+        assert "test-project" not in result
+        assert "my-workspace" not in result
