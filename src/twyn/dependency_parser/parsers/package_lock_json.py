@@ -3,6 +3,7 @@ from typing import Any
 
 from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
 from twyn.dependency_parser.parsers.constants import PACKAGE_LOCK_JSON
+from twyn.dependency_parser.parsers.exceptions import InvalidFileFormatError
 
 
 class PackageLockJsonParser(AbstractParser):
@@ -14,7 +15,11 @@ class PackageLockJsonParser(AbstractParser):
 
         It supports v1, v2 and v3.
         """
-        data = json.loads(self.file_handler.read())
+        try:
+            data = json.loads(self.file_handler.read())
+        except json.JSONDecodeError as e:
+            raise InvalidFileFormatError("Invalid JSON format.") from e
+
         result: set[str] = set()
 
         # Handle v1 & v2
@@ -34,7 +39,7 @@ class PackageLockJsonParser(AbstractParser):
 
         return result
 
-    def _collect_deps(self, dep_tree: dict[str, Any], collected: set[str]):
+    def _collect_deps(self, dep_tree: dict[str, Any], collected: set[str]) -> None:
         """Recursively collect dependencies from dependency tree."""
         for name, info in dep_tree.items():
             collected.add(name)

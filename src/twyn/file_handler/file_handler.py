@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import TextIO
 
-from twyn.file_handler.exceptions import PathIsNotFileError, PathNotFoundError
+from twyn.file_handler.exceptions import EmptyFileError, PathIsNotFileError, PathNotFoundError
 
 logger = logging.getLogger("twyn")
 
@@ -42,7 +42,7 @@ class FileHandler:
         """Check if file exists and is a valid file."""
         try:
             self._raise_for_file_exists()
-        except (PathNotFoundError, PathIsNotFileError):
+        except (PathNotFoundError, PathIsNotFileError, EmptyFileError):
             return False
         return True
 
@@ -53,6 +53,9 @@ class FileHandler:
 
         if not self.file_path.is_file():
             raise PathIsNotFileError
+
+        if self.file_path.stat().st_size == 0:
+            raise EmptyFileError
 
     def write(self, data: str) -> None:
         """Write data to file."""
