@@ -1,5 +1,6 @@
 import logging
 import sys
+from typing import NoReturn
 
 from twyn.__version__ import __version__
 from twyn.base.constants import (
@@ -13,11 +14,13 @@ from twyn.file_handler.file_handler import FileHandler
 from twyn.main import check_dependencies
 from twyn.trusted_packages.cache_handler import CacheHandler
 from twyn.trusted_packages.constants import CACHE_DIR
+from twyn.trusted_packages.models import TyposquatCheckResults
 
 try:
     import click
     from rich.console import Console
     from rich.logging import RichHandler
+    from rich.table import Table
 
     from twyn.base.exceptions import CliError
 except ImportError:
@@ -105,6 +108,12 @@ def entry_point() -> None:
     help="Display the results in json format. It implies --no-track.",
 )
 @click.option(
+    "--table",
+    is_flag=True,
+    default=False,
+    help="Display the results in a table format. It implies --no-track.",
+)
+@click.option(
     "-r",
     "--recursive",
     is_flag=True,
@@ -131,47 +140,58 @@ def run(  # noqa: C901
     no_cache: bool | None,
     no_track: bool,
     json: bool,
+    table: bool,
     package_ecosystem: str | None,
     recursive: bool,
     pypi_source: str | None,
     npm_source: str | None,
-) -> int:
-    if vv:
-        logger.setLevel(logging.DEBUG)
-    elif v:
-        logger.setLevel(logging.INFO)
+) -> NoReturn:
+    set_logging_level(v=v, vv=vv)
+    check_args(
+        dependency_file=dependency_file,
+        dependency=dependency,
+        json=json,
+        table=table,
+    )
 
-    if dependency and dependency_file:
-        raise click.UsageError(
-            "Only one of --dependency or --dependency-file can be set at a time.", ctx=click.get_current_context()
-        )
+    possible_typos = get_typos(
+        config=config,
+        dependency_file=dependency_file,
+        dependency=dependency,
+        selector_method=selector_method,
+        no_cache=no_cache,
+        no_track=no_track,
+        json=json,
+        table=table,
+        package_ecosystem=package_ecosystem,
+        recursive=recursive,
+        pypi_source=pypi_source,
+        npm_source=npm_source,
+    )
+    display_output_and_exit(json=json, table=table, possible_typos=possible_typos)
 
-    for dep_file in dependency_file:
-        if dep_file and not any(dep_file.endswith(key) for key in DEPENDENCY_FILE_MAPPING):
-            raise click.UsageError(f"Dependency file name {dep_file} not supported.", ctx=click.get_current_context())
 
-    try:
-        possible_typos = check_dependencies(
-            selector_method=selector_method,
-            dependencies=set(dependency) or None,
-            config_file=config,
-            dependency_files=set(dependency_file) or None,
-            use_cache=not no_cache if no_cache is not None else no_cache,
-            show_progress_bar=False if json else not no_track,
-            load_config_from_file=True,
-            package_ecosystem=package_ecosystem,
-            recursive=recursive,
-            pypi_source=pypi_source,
-            npm_source=npm_source,
-        )
-    except TwynError as e:
-        raise CliError(str(e)) from e
-    except Exception as e:
-        raise CliError("Unhandled exception occured.") from e
-
+def display_output_and_exit(json: bool, table: bool, possible_typos: TyposquatCheckResults) -> NoReturn:
     if json:
         click.echo(possible_typos.model_dump_json())
         sys.exit(int(bool(possible_typos)))
+    elif table:
+        if not possible_typos:
+            click.echo("✅ No typosquats detected")
+            sys.exit(0)
+
+        console = Console()
+        table_obj = Table(title="❌ Twyn Detection Results")
+        table_obj.add_column("Source")
+        table_obj.add_column("Dependency")
+        table_obj.add_column("Similar trusted packages")
+
+        for possible_typosquats in possible_typos.results:
+            for error in possible_typosquats.errors:
+                table_obj.add_row(str(possible_typosquats.source), error.dependency, ", ".join(error.similars))
+
+        console.print(table_obj)
+        sys.exit(1)
     elif possible_typos:
         for possible_typosquats in possible_typos.results:
             for error in possible_typosquats.errors:
@@ -184,6 +204,61 @@ def run(  # noqa: C901
     else:
         click.echo(click.style("No typosquats detected", fg="green"), color=True)
         sys.exit(0)
+
+
+def get_typos(
+    config: str,
+    dependency_file: tuple[str],
+    dependency: tuple[str],
+    selector_method: str,
+    no_cache: bool | None,
+    no_track: bool,
+    json: bool,
+    table: bool,
+    package_ecosystem: str | None,
+    recursive: bool,
+    pypi_source: str | None,
+    npm_source: str | None,
+) -> TyposquatCheckResults:
+    try:
+        return check_dependencies(
+            selector_method=selector_method,
+            dependencies=set(dependency) or None,
+            config_file=config,
+            dependency_files=set(dependency_file) or None,
+            use_cache=not no_cache if no_cache is not None else no_cache,
+            show_progress_bar=False if json or table else not no_track,
+            load_config_from_file=True,
+            package_ecosystem=package_ecosystem,
+            recursive=recursive,
+            pypi_source=pypi_source,
+            npm_source=npm_source,
+        )
+    except TwynError as e:
+        raise CliError(str(e)) from e
+    except Exception as e:
+        raise CliError("Unhandled exception occured.") from e
+
+
+def set_logging_level(v: bool, vv: bool) -> None:
+    if vv:
+        logger.setLevel(logging.DEBUG)
+    elif v:
+        logger.setLevel(logging.INFO)
+
+
+def check_args(dependency_file: tuple[str], dependency: tuple[str], json: bool, table: bool) -> None:
+    if dependency and dependency_file:
+        raise click.UsageError(
+            "Only one of --dependency or --dependency-file can be set at a time.", ctx=click.get_current_context()
+        )
+
+    if json and table:
+        raise click.UsageError("`--json` and `--table` are mutually exclusive. Select only one.")
+
+    for dep_file in dependency_file:
+        if dep_file and not any(dep_file.endswith(key) for key in DEPENDENCY_FILE_MAPPING):
+            raise click.UsageError(f"Dependency file name {dep_file} not supported.", ctx=click.get_current_context())
 
 
 @entry_point.group()
@@ -226,4 +301,4 @@ def clear() -> None:
 
 
 if __name__ == "__main__":
-    sys.exit(entry_point())
+    entry_point()

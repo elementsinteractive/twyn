@@ -288,6 +288,18 @@ class TestCli:
         assert result.exit_code == 1
         assert "did you mean any of [mypackage]" in result.output
 
+    def test_table_and_json_mutually_exclusive(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(
+            cli.run,
+            [
+                "--json",
+                "--table",
+            ],
+        )
+        assert result.exit_code != 0
+        assert "`--json` and `--table` are mutually exclusive. Select only one." in result.output
+
     @patch("twyn.cli.check_dependencies")
     def test_json_typo_detected(self, mock_check_dependencies: Mock) -> None:
         mock_check_dependencies.return_value = TyposquatCheckResults(
@@ -311,6 +323,42 @@ class TestCli:
             result.output
             == '{"results":[{"errors":[{"dependency":"my-package","similars":["mypackage"]}],"source":"manual_input"}]}\n'
         )
+
+    @patch("twyn.cli.check_dependencies")
+    def test_table_typo_detected(self, mock_check_dependencies: Mock) -> None:
+        mock_check_dependencies.return_value = TyposquatCheckResults(
+            results=[
+                TyposquatCheckResultFromSource(
+                    errors=[TyposquatCheckResultEntry(dependency="my-package", similars=["mypackage"])],
+                    source="manual_input",
+                )
+            ]
+        )
+        runner = CliRunner()
+        result = runner.invoke(
+            cli.run,
+            [
+                "--table",
+            ],
+        )
+
+        assert result.exit_code == 1
+        assert "my-package" in result.output
+        assert "mypackage" in result.output
+
+    @patch("twyn.cli.check_dependencies")
+    def test_table_no_typo_detected(self, mock_check_dependencies: Mock) -> None:
+        mock_check_dependencies.return_value = TyposquatCheckResults(results=[])
+        runner = CliRunner()
+        result = runner.invoke(
+            cli.run,
+            [
+                "--table",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "✅ No typosquats detected" in result.output
 
     @patch("twyn.cli.check_dependencies")
     def test_json_no_typo(self, mock_check_dependencies: Mock) -> None:
