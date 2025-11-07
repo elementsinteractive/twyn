@@ -64,6 +64,12 @@ runs:
       uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
       with:
         images: ${{ inputs['image-name'] }}
+        tags: |
+          type=semver,enable=true,pattern={{raw}}
+          type=semver,enable=true,pattern={{major}},prefix=v
+          type=ref,event=pr,prefix=pr-,enable=true
+          type=ref,event=branch,branch=main,pattern={{raw}}
+          type=ref,event=branch,branch=main,pattern={{major}},prefix=v
 
     - name: Build Docker image
       uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
