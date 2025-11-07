@@ -1,3 +1,52 @@
+## v6.0.0 (2025-11-07)
+
+### Feat
+
+- add --table option (#393)
+- Add pnpm-lock.yaml parser (#382)
+- treat namespaces as a special case when checking for typos (#378)
+
+### Fix
+
+- do not display unnecesary info with --json (#386)
+- do not error on empty files (#383)
+
+### Refactor
+
+- make DependencyManagers objects of base class (#377)
+
+### CI
+
+- periodically run OSV scanner (#390)
+- Improve weekly download flow (#381)
+- improve NPM download parameters (#380)
+- Improve cache when publishing (#360)
+
+### Docs
+
+- Update Python badge (#391)
+
+### Technical
+
+- add tag with major version (#389)
+- use gemini-2.5-pro in lgtm (#385)
+- Weekly update of trusted packages
+- Weekly update of trusted packages
+- Weekly update of trusted packages
+- bump actions/upload-artifact from 4.6.2 to 5.0.0 (#372)
+- bump actions/download-artifact from 5.0.0 to 6.0.0 (#373)
+- bump astral-sh/setup-uv from 7.1.1 to 7.1.2 in the patch-updates group (#374)
+- Use Python 3.14 in Docker image and drop 3.9 support (#371)
+- bump actions/download-artifact from 4.1.8 to 5.0.0 (#364)
+- bump actions/upload-artifact from 4.4.0 to 4.6.2 (#367)
+- bump softprops/action-gh-release from 2.3.3 to 2.4.1 (#368)
+- bump astral-sh/setup-uv from 6.7.0 to 7.1.1 (#369)
+- Weekly update of trusted packages
+- Weekly update of trusted packages
+- Weekly update of trusted packages
+- Weekly update of trusted packages
+- refactor Dockerfile (#361)
+
 ## v5.0.0 (2025-10-02)
 
 ### Feat
