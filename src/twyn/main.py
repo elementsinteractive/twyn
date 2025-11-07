@@ -246,7 +246,10 @@ def _analyze_dependencies(
 def _get_dependencies_list(
     normalized_dependencies: set[str], show_progress_bar: bool, dependency_file: str | None = None
 ) -> Iterable[str]:
-    """Determine if the progress bar will be showed or not. It returns an iterable of all the dependencies to analyze."""
+    """Return an iterable of dependencies, optionally with progress tracking."""
+    if not show_progress_bar:
+        return normalized_dependencies
+
     try:
         from rich.progress import track  # noqa: PLC0415
 
@@ -254,19 +257,15 @@ def _get_dependencies_list(
             from click import echo, style  # noqa: PLC0415
 
             echo(style(f"Reading file {dependency_file}", fg="green"), color=True)
-        return (
-            track(normalized_dependencies, description="Processing...")
-            if show_progress_bar
-            else normalized_dependencies
-        )
+
+        return track(normalized_dependencies, description="Processing...")
+
     except ModuleNotFoundError as e:
-        if show_progress_bar:
-            raise InvalidArgumentsError(
-                "Cannot show progress bar because `rich` and `click` dependencies are not installed. "
-                "It is only meant to be shown when running `twyn` as a cli tool. "
-                "If this is you case, install all the dependencies with `pip install twyn[cli]`. "
-            ) from e
-        return normalized_dependencies
+        raise InvalidArgumentsError(
+            "Cannot show progress bar because `rich` and `click` dependencies are not installed. "
+            "It is only meant to be shown when running `twyn` as a cli tool. "
+            "If this is you case, install all the dependencies with `pip install twyn[cli]`. "
+        ) from e
 
 
 def _get_selector_method(selector_method: str) -> SelectorMethod:
