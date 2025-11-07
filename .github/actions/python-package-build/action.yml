@@ -19,6 +19,9 @@ inputs:
     description: "Version of uv to use"
     required: false
     default: "latest"
+  python-version:
+    description: "Python version to use during the build"
+    required: true
 
 outputs:
   wheel-file:
