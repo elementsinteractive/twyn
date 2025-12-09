@@ -182,7 +182,7 @@ def display_output_and_exit(json: bool, table: bool, possible_typos: TyposquatCh
 
         console = Console()
         table_obj = Table(title="❌ Twyn Detection Results")
-        table_obj.add_column("Source")
+        table_obj.add_column("Source", no_wrap=True, overflow="ignore")
         table_obj.add_column("Dependency")
         table_obj.add_column("Similar trusted packages")
 
