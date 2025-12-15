@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     if: "!startsWith(github.event.head_commit.message, 'bump:')"
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Install uv
-        uses: astral-sh/setup-uv@1e862dfacbd1d6d858c55d9b792c756523627244 # v7.1.4
+        uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867 # v7.1.6
 
       - name: Install the project
         run: uv sync --locked --group dev --python 3.10
@@ -43,7 +43,7 @@ jobs:
       image: commitizen/commitizen:4.8.3@sha256:08a078c52b368f85f34257a66e10645ee74d8cbe9b471930b80b2b4e95a9bd4a
     steps:
       - name: Check out
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Check commit message
         run: |
           git config --global --add safe.directory /__w/twyn/twyn
