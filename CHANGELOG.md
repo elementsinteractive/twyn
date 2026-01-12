@@ -1,3 +1,33 @@
+## v6.0.1 (2026-01-12)
+
+### Fix
+
+- build package with specified Python version (#395)
+
+### Technical
+
+- bump actions/cache from 4.3.0 to 5.0.1 (#403)
+- bump actions/upload-artifact from 5.0.0 to 6.0.0 (#404)
+- bump actions/download-artifact from 6.0.0 to 7.0.0 (#405)
+- bump dependencies (#406)
+- Weekly update of trusted packages
+- Weekly update of trusted packages
+- Weekly update of trusted packages
+- Weekly update of trusted packages
+- bump the patch-updates group with 3 updates (#401)
+- Weekly update of trusted packages
+- bump dependencies (#402)
+- Weekly update of trusted packages
+- bump softprops/action-gh-release from 2.4.2 to 2.5.0 (#400)
+- Weekly update of trusted packages
+- bump actions/checkout from 5.0.0 to 6.0.0 (#398)
+- bump actions/create-github-app-token from 2.1.4 to 2.2.0 (#399)
+- bump astral-sh/setup-uv from 7.1.2 to 7.1.4 in the patch-updates group (#397)
+- Weekly update of trusted packages
+- Weekly update of trusted packages
+- bump softprops/action-gh-release from 2.4.1 to 2.4.2 in the patch-updates group (#396)
+- Weekly update of trusted packages
+
 ## v6.0.0 (2025-11-07)
 
 ### Feat
