@@ -1,3 +1,10 @@
+## v6.0.2 (2026-01-13)
+
+### Technical
+
+- bump astral-sh/setup-uv from 7.1.6 to 7.2.0 (#409)
+- bump dependabot/fetch-metadata from 2.4.0 to 2.5.0 (#408)
+
 ## v6.0.1 (2026-01-12)
 
 ### Fix
