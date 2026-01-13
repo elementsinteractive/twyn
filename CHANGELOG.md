@@ -1,3 +1,9 @@
+## v6.0.3 (2026-01-13)
+
+### Fix
+
+- do not persist credentials in checkout action (#410)
+
 ## v6.0.2 (2026-01-13)
 
 ### Technical
