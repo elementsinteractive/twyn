@@ -15,7 +15,7 @@ jobs:
     container:
       image: ghcr.io/google/osv-scanner:v2.1.0@sha256:9a1ba57d2a1506c9e9d0dfbeaf46346507e829745b70d47d77e12c38e66de8d7
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Run OSV Scanner
         run: |
           /osv-scanner --format table -r .
@@ -26,7 +26,7 @@ jobs:
     container:
       image: returntocorp/semgrep:1.128.1@sha256:144d315f7354c2b2c53021a76165a500f67252c47464be75e951b67050f54a9e
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Run Semgrep
         run: |
           semgrep scan --config auto
@@ -35,7 +35,7 @@ jobs:
     if: github.event_name != 'schedule' && !startsWith(github.event.head_commit.message, 'bump:')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Install uv
         uses: astral-sh/setup-uv@61cb8a9741eeb8a550a1b8544337180c0fc8476b # v7.2.0
