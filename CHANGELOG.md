@@ -1,3 +1,21 @@
+## v6.0.4 (2026-02-25)
+
+### Technical
+
+- bump dependencies (#416)
+- Weekly update of trusted packages
+- Weekly update of trusted packages
+- bump astral-sh/setup-uv from 7.2.1 to 7.3.0 (#415)
+- Weekly update of trusted packages
+- bump docker/login-action from 3.6.0 to 3.7.0 (#414)
+- bump the patch-updates group with 2 updates (#413)
+- Weekly update of trusted packages
+- bump actions/checkout from 6.0.1 to 6.0.2 in the patch-updates group (#412)
+- bump actions/checkout in the patch-updates group
+- Weekly update of trusted packages
+- bump actions/cache from 5.0.1 to 5.0.2 in the patch-updates group (#411)
+- Weekly update of trusted packages
+
 ## v6.0.3 (2026-01-13)
 
 ### Fix
