@@ -51,20 +51,6 @@ runs:
         echo "dist-path=dist" >> $GITHUB_OUTPUT
         echo "Built wheel: $WHEEL_FILE"
 
-    - name: Test package as CLI tool
-      if: inputs.test-package == 'true'
-      shell: bash
-      run: |
-        uv venv --python ${{ inputs.python-version }}
-        uv pip install "${{ steps.build.outputs.wheel-file }}[cli]"
-        uv run ${{ inputs.cli-test-command }}
-
-    - name: Publish package
-      if: inputs.publish == 'true'
-      shell: bash
-      run: |
-        uv publish
-
 branding:
   icon: "package"
   color: "blue"

@@ -103,7 +103,7 @@ def check_dependencies(
             "`--recursive` has been set together with `--dependency-file`. `--dependency-file` will take precedence."
         )
 
-    return _analyze_packages_from_source(
+    return _analyze_dependencies_from_source(
         selector_method=selector_method_obj,
         pypi_source=config.pypi_source,
         npm_source=config.npm_source,
@@ -157,7 +157,7 @@ def _analyze_dependencies_from_input(
     return TyposquatCheckResults()
 
 
-def _analyze_packages_from_source(
+def _analyze_dependencies_from_source(
     allowlist: set[str],
     selector_method: SelectorMethod,
     show_progress_bar: bool,
