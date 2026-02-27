@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from unittest.mock import Mock, call, patch
 
@@ -319,10 +320,9 @@ class TestCli:
         )
 
         assert result.exit_code == 1
-        assert (
-            result.output
-            == '{"results":[{"errors":[{"dependency":"my-package","similars":["mypackage"]}],"source":"manual_input"}]}\n'
-        )
+        assert json.loads(result.output) == {
+            "results": [{"errors": [{"dependency": "my-package", "similars": ["mypackage"]}], "source": "manual_input"}]
+        }
 
     @patch("twyn.cli.check_dependencies")
     def test_table_typo_detected(self, mock_check_dependencies: Mock) -> None:
@@ -372,7 +372,7 @@ class TestCli:
         )
 
         assert result.exit_code == 0
-        assert result.output == '{"results":[]}\n'
+        assert json.loads(result.output) == {"results": []}
 
     @patch("twyn.cli.check_dependencies")
     def test_return_code_0(self, mock_check_dependencies: Mock) -> None:
