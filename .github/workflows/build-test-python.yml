@@ -5,23 +5,62 @@ name: Build and Test Python Package
 on:
   pull_request:
     branches: ["main"]
-  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+env:
+  PYTHON_VERSION: "3.10"
 
 jobs:
-  test-build-package:
-    name: Test package build
+  test-build-package-extras:
+    name: Test package build ${{ matrix.name}}
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
+    strategy:
+      matrix:
+        include:
+          - name: cli
+            test-args: "twyn --version"
+          - name: mcp
+            test-args: |
+              cat <<EOF > init_msg.json
+              {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}
+              EOF
+              cat init_msg.json | uv run python src/twyn/mcp/main.py | grep -q "capabilities"
     steps:
       - name: Check out the repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Test build package
+      - name: Build package
         uses: ./.github/actions/python-package-build
+        id: build
         with:
-          test-package: "true"
           uv-version: "0.8.22"
-          cli-test-command: "twyn --version"
-          python-version: "3.10"
+          python-version: "$PYTHON_VERSION"
+      - name: Test package
+        run: |
+          uv venv --python $PYTHON_VERSION
+          uv pip install "${{ steps.build.outputs.wheel-file }}[${{ matrix.name }}]"
+          uv run ${{ matrix.test-args }}
+
+  test-build-package:
+    name: Test package build no extras
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Build package
+        uses: ./.github/actions/python-package-build
+        id: build
+        with:
+          uv-version: "0.8.22"
+          python-version: "$PYTHON_VERSION"
+      - name: Test package
+        run: |
+          uv venv --python $PYTHON_VERSION
+          uv pip install "${{ steps.build.outputs.wheel-file }}"
+          uv run python -c 'import twyn; twyn.check_dependencies()'
