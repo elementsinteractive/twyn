@@ -8,6 +8,12 @@ on:
 jobs:
   download:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: pypi
+          - name: npm
+          - name: dockerhub
     steps:
       - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         id: app-token
@@ -25,15 +31,10 @@ jobs:
       - name: Install the project
         run: uv sync --locked --only-group download --python 3.14
 
-      - name: Download Pypi packages
+      - name: Download ${{ matrix.name }} packages
         continue-on-error: true
         run: |
-          uv run --no-project dependencies/scripts/download_packages.py download pypi
-
-      - name: Download NPM packages
-        continue-on-error: true
-        run: |
-          uv run --no-project dependencies/scripts/download_packages.py download npm
+          PYTHONPATH=dependencies/ uv run --no-project dependencies/scripts/download_packages.py download ${{ matrix.name }}
 
       - name: Configure git
         run: |
@@ -43,5 +44,5 @@ jobs:
       - name: Push changes to repo
         run: |
           git add .
-          git commit -m "chore: Weekly update of trusted packages"
+          git commit -m "chore: Weekly update of `${{ matrix.name }}` trusted packages"
           git push origin HEAD:main
