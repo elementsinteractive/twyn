@@ -13,13 +13,16 @@ from scripts.download_packages import (  # noqa: E402
     DEPENDENCIES_DIR,
     ECOSYSTEMS,
     RETRY_ATTEMPTS,
-    Ecosystem,
     InvalidJSONError,
     ServerError,
     _run,
     download,
+)
+from scripts.utils import (
+    Ecosystem,
+    dockerhub_ecosystem,
     npm_ecosystem,
-    parse_npm,
+    parse_packages_ecosystems_source,
     parse_pypi,
 )
 
@@ -65,6 +68,18 @@ def patch_npm_ecosystem(data: dict[str, Any]) -> Iterator[None]:
         patch.dict(
             ECOSYSTEMS,
             {"npm": Ecosystem(**npm_ecosystem.__dict__ | data)},
+        ),
+    ):
+        yield
+
+
+@contextmanager
+def patch_dockerhub_ecosystem(data: dict[str, Any]) -> Iterator[None]:
+    """Context manager that temporarily modifies the npm ecosystem configuration for testing."""
+    with (
+        patch.dict(
+            ECOSYSTEMS,
+            {"dockerhub": Ecosystem(**dockerhub_ecosystem.__dict__ | data)},
         ),
     ):
         yield
@@ -141,7 +156,7 @@ class TestDownload:
     def test_invalid_npm_json_format(self) -> None:
         """Test that InvalidJSONError is raised when npm JSON data has invalid format."""
         with pytest.raises(InvalidJSONError):
-            parse_npm([{"key": "val"}])
+            parse_packages_ecosystems_source([{"key": "val"}])
 
     def test_invalid_downloaded_json(self) -> None:
         """Test that InvalidJSONError is raised when downloaded JSON cannot be parsed."""
@@ -217,6 +232,56 @@ class TestDownload:
         assert m_save.call_count == 1
         assert m_save.call_args[0][0]["date"] == "2025-01-01T00:00:00+00:00"
         assert set(m_save.call_args[0][0]["packages"]) == {"lodash", "@aws/sdk", "react", "express"}
+        assert m_save.call_args[0][1] == m_open().__enter__()
+
+    def test_dockerhub_download_with_multiple_pages(self) -> None:
+        """Test that the script will iterate through pages if provided."""
+        page1_data = [
+            {"name": "sundeepm1/weatherapi", "downloads": 12345},
+            {"name": "hitesh25/jenkins_argo", "downloads": 98765},
+        ]
+        page2_data = [
+            {"name": "jchensg/sg-support-integration", "downloads": 87654},
+        ]
+
+        with (
+            patch_client(None) as m_client,  # We'll configure the side_effect below
+            patch_save_to_file() as m_save,
+            patch_open_file() as m_open,
+            patch_dockerhub_ecosystem({"pages": 2}),
+        ):
+            # Configure the mock to return different data for each call
+            mock_responses = []
+            for data in [page1_data, page2_data]:
+                mock_response = Mock()
+                mock_response.json.return_value = data
+                mock_responses.append(mock_response)
+
+            m_client.side_effect = mock_responses
+
+            _run("dockerhub")
+
+        assert m_client.call_count == 2
+
+        assert m_client.call_args_list == [
+            call(
+                "https://packages.ecosyste.ms/api/v1/registries/hub.docker.com/packages",
+                params={"per_page": 100, "sort": "downloads", "page": 1},
+            ),
+            call(
+                "https://packages.ecosyste.ms/api/v1/registries/hub.docker.com/packages",
+                params={"per_page": 100, "sort": "downloads", "page": 2},
+            ),
+        ]
+
+        # Verify that all packages from all pages were collected
+        assert m_save.call_count == 1
+        assert m_save.call_args[0][0]["date"] == "2025-01-01T00:00:00+00:00"
+        assert set(m_save.call_args[0][0]["packages"]) == {
+            "sundeepm1/weatherapi",
+            "hitesh25/jenkins_argo",
+            "jchensg/sg-support-integration",
+        }
         assert m_save.call_args[0][1] == m_open().__enter__()
 
 
