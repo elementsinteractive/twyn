@@ -3,6 +3,7 @@ from pathlib import Path
 
 from twyn.dependency_managers.exceptions import NoMatchingDependencyManagerError
 from twyn.dependency_parser.parsers.constants import (
+    DOCKERFILE,
     PACKAGE_LOCK_JSON,
     PNPM_LOCK_YAML,
     POETRY_LOCK,
@@ -11,9 +12,11 @@ from twyn.dependency_parser.parsers.constants import (
     YARN_LOCK,
 )
 from twyn.trusted_packages.managers.base import TrustedPackagesProtocol
+from twyn.trusted_packages.managers.trusted_dockerhub_packages_manager import TrustedDockerHubPackageManager
 from twyn.trusted_packages.managers.trusted_npm_packages_manager import TrustedNpmPackageManager
 from twyn.trusted_packages.managers.trusted_pypi_packages_manager import TrustedPackages
 from twyn.trusted_packages.references.base import AbstractPackageReference
+from twyn.trusted_packages.references.top_dockerhub_reference import TopDockerHubReference
 from twyn.trusted_packages.references.top_npm_reference import TopNpmReference
 from twyn.trusted_packages.references.top_pypi_reference import TopPyPiReference
 
@@ -52,6 +55,7 @@ npm_dependency_manager = DependencyManager(
     dependency_files={PACKAGE_LOCK_JSON, YARN_LOCK, PNPM_LOCK_YAML},
     trusted_packages_manager=TrustedNpmPackageManager,
 )
+
 pypi_dependency_manager = DependencyManager(
     name="pypi",
     trusted_packages_source=TopPyPiReference,
@@ -59,8 +63,19 @@ pypi_dependency_manager = DependencyManager(
     trusted_packages_manager=TrustedPackages,
 )
 
+dockerhub_dependency_manager = DependencyManager(
+    name="dockerhub",
+    trusted_packages_source=TopDockerHubReference,
+    dependency_files={DOCKERFILE},
+    trusted_packages_manager=TrustedDockerHubPackageManager,
+)
 
-DEPENDENCY_MANAGERS: list[DependencyManager] = [pypi_dependency_manager, npm_dependency_manager]
+
+DEPENDENCY_MANAGERS: list[DependencyManager] = [
+    pypi_dependency_manager,
+    npm_dependency_manager,
+    dockerhub_dependency_manager,
+]
 """List of available dependency manager classes."""
 
 PACKAGE_ECOSYSTEMS = {x.name for x in DEPENDENCY_MANAGERS}

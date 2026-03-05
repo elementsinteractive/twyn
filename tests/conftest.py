@@ -40,6 +40,19 @@ def patch_npm_packages_download(packages: list[str]) -> Iterator[mock.Mock]:
         yield mock_download
 
 
+@contextmanager
+def patch_dockerhub_images_download(packages: list[str]) -> Iterator[mock.Mock]:
+    """Patcher of `requests.get` for Top DockerHub list.
+
+    Replaces call with the output you would get from downloading the top Npm packages list.
+    """
+    json_response = {"packages": packages, "date": datetime.datetime.now().isoformat()}
+
+    with mock.patch("twyn.trusted_packages.TopDockerHubReference._download") as mock_download:
+        mock_download.return_value = json_response
+        yield mock_download
+
+
 @pytest.fixture
 def requirements_txt_file(tmp_path: Path) -> Iterator[Path]:
     requirements_txt_file = tmp_path / "requirements.txt"
@@ -305,6 +318,64 @@ def package_lock_json_file_v2(tmp_path: Path) -> Iterator[Path]:
         }
         """
     with create_tmp_file(package_lock_file, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
+def dockerfile(tmp_path: Path) -> Iterator[Path]:
+    """Dockerfile file."""
+    dockerfile = tmp_path / "Dockerfile"
+    data = """# --- GLOBAL CONTEXT ---
+ARG REPO=my-registry.io
+ARG APP=my-app
+
+# Composed Variables
+ARG TAG=v1.0
+ARG FULL_IMAGE=${REPO}/${APP}:${TAG}
+FROM ${FULL_IMAGE}
+
+# Official registry image
+FROM nginx
+
+# Nested Variables with Defaults
+# (VERSION is missing, should fallback to 20)
+ARG IMAGE_NAME=my-registry/node
+FROM ${IMAGE_NAME}:${VERSION:-20}-alpine
+
+# Deeply Nested & Composed
+ARG STAGE=prod
+ARG OS=alpine
+ARG FINAL_BASE=${STAGE}-${OS}
+FROM ${FINAL_BASE}:latest
+
+ARG FALLBACK_REG=docker.io
+ARG PRIMARY_REG=internal-registry.company.com
+ARG TARGET_REGISTRY=${CUSTOM_REG:-${PRIMARY_REG:-${FALLBACK_REG}}}
+ARG DEFAULT_ORG=backend-team
+ARG TARGET_ORG=${CUSTOM_ORG:-${DEFAULT_ORG}}
+ARG BASE_SYSTEM=alpine
+ARG FULL_IMAGE_NAME=${TARGET_REGISTRY}/${TARGET_ORG}/${BASE_SYSTEM}
+FROM ${FULL_IMAGE_NAME}:latest
+
+# Shadowing & Multi-line
+# Here we redefine REPO and TAG to ensure the parser updates its "state"
+ARG REPO=internal-repo.loc
+ARG IMAGE=python
+ARG TAG=3.11
+FROM \\
+    --platform=linux/amd64 \\
+    ${REPO}/${IMAGE}:${TAG}-slim \\
+    AS \\
+    builder
+
+# Defining sha
+ARG FINAL_IMAGE=my-registry/nginx:stable-alpine
+FROM ${FINAL_IMAGE}@sha256:23q5345423
+
+
+
+"""
+    with create_tmp_file(dockerfile, data) as tmp_file:
         yield tmp_file
 
 

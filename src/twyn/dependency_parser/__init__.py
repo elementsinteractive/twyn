@@ -1,5 +1,6 @@
 """Dependency parsers."""
 
+from twyn.dependency_parser.parsers.dockerfile_parser import DockerfileParser
 from twyn.dependency_parser.parsers.lock_parser import PoetryLockParser, UvLockParser
 from twyn.dependency_parser.parsers.package_lock_json import PackageLockJsonParser
 from twyn.dependency_parser.parsers.pnpm_lock_parser import PnpmLockParser
@@ -13,4 +14,5 @@ __all__ = [
     "PackageLockJsonParser",
     "YarnLockParser",
     "PnpmLockParser",
+    "DockerfileParser",
 ]

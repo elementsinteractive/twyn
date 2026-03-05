@@ -40,6 +40,7 @@ class TestConfigHandler:
             use_cache=True,
             package_ecosystem=None,
             recursive=False,
+            dockerhub_source=None,
         )
 
     def test_config_raises_for_unknown_file(self) -> None:

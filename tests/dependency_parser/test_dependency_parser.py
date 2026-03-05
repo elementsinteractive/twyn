@@ -10,6 +10,7 @@ from twyn.dependency_parser import (
     UvLockParser,
 )
 from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
+from twyn.dependency_parser.parsers.dockerfile_parser import DockerfileParser
 from twyn.dependency_parser.parsers.yarn_lock_parser import YarnLockParser
 
 
@@ -152,3 +153,17 @@ class TestPnpmLockParser:
         # Should not include workspace projects
         assert "test-project" not in result
         assert "my-workspace" not in result
+
+
+class TestDockerfileParser:
+    def test_dockefile_parser(self, dockerfile: Path) -> None:
+        parser = DockerfileParser(file_path=str(dockerfile))
+        assert parser.parse() == {
+            "internal-registry.company.com/backend-team/alpine",
+            "my-registry.io/my-app",
+            "my-registry/node",
+            "prod-alpine",
+            "internal-repo.loc/python",
+            "my-registry/nginx",
+            "nginx",
+        }
