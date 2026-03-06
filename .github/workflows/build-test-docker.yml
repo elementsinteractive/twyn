@@ -1,44 +1,16 @@
 name: Build and Test Docker Image
 
 on:
-  pull_request:
-    branches: ["main"]
-  push:
-    branches: ["main"]
+  workflow_call:
+    inputs:
+      image-tag:
+        type: string
+        required: true
 
 jobs:
-  should-test-docker-build:
-    permissions:
-      contents: read
-      pull-requests: read
-    name: Check if should `test_docker_build` run
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-
-      - name: Check if Dockerfile changed
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
-        id: docker-changes
-        with:
-          filters: |
-            docker:
-              - 'Dockerfile'
-              - '.dockerignore'
-            workflow:
-              - ./.github/actions/docker-build/action.yml
-              - ./.github/workflows/build-test-docker.yml
-    outputs:
-      docker: ${{ steps.docker-changes.outputs.docker }}
-      workflow: ${{ steps.docker-changes.outputs.workflow }}
-
   test-docker-build:
-    needs: [should-test-docker-build]
     name: Test Docker build ${{ matrix.arch }}
     runs-on: ubuntu-latest
-    if: (needs.should-test-docker-build.outputs.workflow == 'true' || needs.should-test-docker-build.outputs.docker == 'true') || (github.ref_name == github.event.repository.default_branch)
     permissions:
       contents: read
       packages: read
@@ -78,4 +50,4 @@ jobs:
 
       - name: Test
         run: |
-          docker run --platform ${{ matrix.platform }} --rm ${{ matrix.image-name }}:pr-${{ github.event.pull_request.number }} --version
+          docker run --platform ${{ matrix.platform }} --rm ${{ matrix.image-name }}:${{ inputs.image-tag }} --version
