@@ -24,7 +24,7 @@ from twyn.trusted_packages.models import (
     TyposquatCheckResults,
 )
 
-from tests.conftest import create_tmp_file, patch_npm_packages_download
+from tests.conftest import create_tmp_file, patch_dockerhub_images_download, patch_npm_packages_download
 
 
 @pytest.mark.usefixtures("disable_track")
@@ -61,6 +61,7 @@ class TestCheckDependencies:
                     use_cache=True,
                     package_ecosystem="pypi",
                     recursive=True,
+                    dockerhub_source=None,
                 ),
             ),  # CLI args take precedence over config from file
             (
@@ -84,6 +85,7 @@ class TestCheckDependencies:
                     use_cache=False,
                     package_ecosystem="pypi",
                     recursive=True,
+                    dockerhub_source=None,
                 ),
             ),  # Config from file takes precendence over fallback values
             (
@@ -95,6 +97,7 @@ class TestCheckDependencies:
                     allowlist=set(),
                     pypi_source=None,
                     npm_source=None,
+                    dockerhub_source=None,
                     use_cache=True,
                     package_ecosystem=None,
                     recursive=False,
@@ -229,6 +232,7 @@ class TestCheckDependencies:
             use_cache=False,
             package_ecosystem=None,
             recursive=False,
+            dockerhub_source=None,
         )
         mock_fpath.return_value = uv_lock_file_with_typo
         error = check_dependencies()
@@ -265,6 +269,7 @@ class TestCheckDependencies:
             use_cache=False,
             package_ecosystem="pypi",
             recursive=False,
+            dockerhub_source=None,
         )
         mock_fpath.return_value = uv_lock_file_with_typo
         error = check_dependencies()
@@ -514,6 +519,7 @@ class TestCheckDependencies:
             npm_source=None,
             package_ecosystem=None,
             recursive=False,
+            dockerhub_source=None,
         )
 
         # Check that the package is no longer an error
@@ -550,6 +556,7 @@ class TestCheckDependencies:
             use_cache=False,
             package_ecosystem=None,
             recursive=False,
+            dockerhub_source=None,
         )
         mock_get_packages.return_value = {"requests"}
         with patch("rich.progress.track") as m_track:
@@ -568,6 +575,7 @@ class TestCheckDependencies:
             use_cache=False,
             package_ecosystem=None,
             recursive=False,
+            dockerhub_source=None,
         )
         mock_get_packages.return_value = {"requests"}
         with patch("rich.progress.track") as m_track:
@@ -675,3 +683,21 @@ class TestCheckDependencies:
         assert error.results[0].errors == [TyposquatCheckResultEntry(dependency="reqests", similars=["requests"])]
 
         assert error.get_results_from_source(str(empty_file)) is None
+
+    def test_dockerfile_dependencies(self, dockerfile: Path) -> None:
+        with patch_dockerhub_images_download(["internal-registry.company.com/backend-tea/alpine"]) as m_download:
+            result = check_dependencies(dependency_files={str(dockerfile)}, use_cache=False)
+
+        assert m_download.call_count == 1
+        assert len(result.results) == 1  # only one file was scanned
+        assert result.results == [
+            TyposquatCheckResultFromSource(
+                errors=[
+                    TyposquatCheckResultEntry(
+                        dependency="internal-registry.company.com/backend-team/alpine",
+                        similars=["internal-registry.company.com/backend-tea/alpine"],
+                    )
+                ],
+                source=str(dockerfile),
+            )
+        ]

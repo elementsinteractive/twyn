@@ -70,7 +70,7 @@ docker run elementsinteractive/twyn --help
 | `--dependency-file`      | `str` (path)                                       | Dependency file to analyze. Supported: `requirements.txt`, `poetry.lock`, `uv.lock`, etc.     |
 | `--dependency`           | `str` (multiple allowed)                           | Dependency to analyze directly. Can be specified multiple times.                              |
 | `--selector-method`      | `all`, `first-letter`, `nearby-letter`             | Method for selecting possible typosquats.                                                     |
-| `--package-ecosystem`    | `pypi`, `npm`                                      | Package ecosystem for analysis.                                                               |
+| `--package-ecosystem`    | `pypi`, `npm`, `dockerhub`                                      | Package ecosystem for analysis.                                                               |
 | `-v`                     | flag                                               | Enable info-level logging.                                                                    |
 | `-vv`                    | flag                                               | Enable debug-level logging.                                                                   |
 | `--no-cache`             | flag                                               | Disable use of trusted packages cache. Always fetch from the source.                          |
@@ -170,6 +170,7 @@ The following dependency file formats are supported:
 - `package-lock.json` (v1, v2, v3)
 - `yarn.lock` (v1, v2)
 - `pnpm-lock.yaml` (v9)
+- `Dockerfile`
 
 ### Check dependencies introduced through the CLI
 
@@ -226,6 +227,7 @@ logging_level="debug"
 allowlist=["my_package"]
 pypi_source="https://mirror-with-trusted-dependencies.com/file-pypi.json"
 npm_source="https://mirror-with-trusted-dependencies.com/file-npm.json"
+dockerhub_source="https://mirror-with-trusted-dependencies.com/file-dh.json"
 ```
 
 The file format for each reference is as follows:

@@ -47,3 +47,9 @@ class InvalidArgumentsError(TwynError):
     """Exception raised when invalid arguments are passed to a function or method."""
 
     message = "Invalid arguments provided."
+
+
+class InvalidPackageNameError(TwynError):
+    """Exception for when the package name is not valid."""
+
+    message = "Invalid package name"

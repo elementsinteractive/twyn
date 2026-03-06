@@ -74,7 +74,7 @@ def entry_point() -> None:
 )
 @click.option(
     "--package-ecosystem",
-    type=click.Choice(["pypi", "npm"]),
+    type=click.Choice(["pypi", "npm", "dockerhub"]),
     default=None,
     help="Package ecosystem for dependency analysis (pypi or npm).",
 )
@@ -129,6 +129,11 @@ def entry_point() -> None:
     type=str,
     help="Alternative npm source URL to use for fetching trusted packages.",
 )
+@click.option(
+    "--dockerhub-source",
+    type=str,
+    help="Alternative DockerHub source URL to use for fetching trusted packages.",
+)
 def run(  # noqa: C901, PLR0912
     config: str,
     dependency_file: tuple[str],
@@ -144,6 +149,7 @@ def run(  # noqa: C901, PLR0912
     recursive: bool,
     pypi_source: str | None,
     npm_source: str | None,
+    dockerhub_source: str | None,
 ) -> NoReturn:
     if vv:
         logger.setLevel(logging.DEBUG)
@@ -175,6 +181,7 @@ def run(  # noqa: C901, PLR0912
             recursive=recursive,
             pypi_source=pypi_source,
             npm_source=npm_source,
+            dockerhub_source=dockerhub_source,
         )
     except TwynError as e:
         raise CliError(str(e)) from e

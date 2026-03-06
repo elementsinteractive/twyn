@@ -46,6 +46,7 @@ def check_dependencies(
     recursive: bool | None = None,
     pypi_source: str | None = None,
     npm_source: str | None = None,
+    dockerhub_source: str | None = None,
 ) -> TyposquatCheckResults:
     """
     Check if the provided dependencies are potential typosquats of trusted packages.
@@ -76,6 +77,7 @@ def check_dependencies(
         recursive=recursive,
         pypi_source=pypi_source,
         npm_source=npm_source,
+        dockerhub_source=dockerhub_source,
     )
     maybe_cache_handler = CacheHandler() if config.use_cache else None
     selector_method_obj = _get_selector_method(config.selector_method)
@@ -85,6 +87,7 @@ def check_dependencies(
             selector_method=selector_method_obj,
             pypi_source=config.pypi_source,
             npm_source=config.npm_source,
+            dockerhub_source=dockerhub_source,
             maybe_cache_handler=maybe_cache_handler,
             allowlist=config.allowlist,
             show_progress_bar=show_progress_bar,
@@ -111,6 +114,7 @@ def check_dependencies(
         allowlist=config.allowlist,
         show_progress_bar=show_progress_bar,
         dependency_files=config.dependency_files,
+        dockerhub_source=dockerhub_source,
     )
 
 
@@ -119,6 +123,7 @@ def _analyze_dependencies_from_input(
     selector_method: SelectorMethod,
     pypi_source: str | None,
     npm_source: str | None,
+    dockerhub_source: str | None,
     maybe_cache_handler: CacheHandler | None,
     dependencies: set[str],
     allowlist: set[str],
@@ -134,7 +139,9 @@ def _analyze_dependencies_from_input(
         raise InvalidArgumentsError("Not a valid `package_ecosystem`.")
 
     dependency_manager = get_dependency_manager_from_name(package_ecosystem)
-    source = dependency_manager.get_alternative_source({"pypi": pypi_source, "npm": npm_source})
+    source = dependency_manager.get_alternative_source(
+        {"pypi": pypi_source, "npm": npm_source, "dockerhub": dockerhub_source}
+    )
     top_package_reference = dependency_manager.trusted_packages_source(source, maybe_cache_handler)
     trusted_packages = dependency_manager.trusted_packages_manager(
         names=top_package_reference.get_packages(),
@@ -164,6 +171,7 @@ def _analyze_dependencies_from_source(
     dependency_files: set[str] | None,
     pypi_source: str | None,
     npm_source: str | None,
+    dockerhub_source: str | None,
     maybe_cache_handler: CacheHandler | None,
 ) -> TyposquatCheckResults:
     """Analyze dependencies from a dependencies file.
@@ -175,7 +183,7 @@ def _analyze_dependencies_from_source(
     dependency_managers = _get_dependency_managers_and_parsers_mapping(dependency_files)
     for ecosystem_name, parsers in dependency_managers.items():
         manager = get_dependency_manager_from_name(ecosystem_name)
-        source = manager.get_alternative_source({"pypi": pypi_source, "npm": npm_source})
+        source = manager.get_alternative_source({"pypi": pypi_source, "npm": npm_source, "dockerhub": dockerhub_source})
         top_package_reference = manager.trusted_packages_source(source, maybe_cache_handler)
 
         packages_from_source = top_package_reference.get_packages()
@@ -236,7 +244,7 @@ def _analyze_dependencies(
             logger.info("Dependency %s is in the allowlist", dependency)
             continue
 
-        logger.info("Analyzing %s", dependency)
+        logger.info("Analyzing `%s`", dependency)
         if dependency not in trusted_packages and (typosquat_results := trusted_packages.get_typosquat(dependency)):
             errors.append(typosquat_results)
 
@@ -305,6 +313,7 @@ def _get_config(
     recursive: bool | None,
     pypi_source: str | None,
     npm_source: str | None,
+    dockerhub_source: str | None,
 ) -> TwynConfiguration:
     """Given the arguments passed to the main function and the configuration loaded from the config file (if any), return a config object."""
     if load_config_from_file:
@@ -319,4 +328,5 @@ def _get_config(
         recursive=recursive,
         pypi_source=pypi_source,
         npm_source=npm_source,
+        dockerhub_source=dockerhub_source,
     )

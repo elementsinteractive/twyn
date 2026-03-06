@@ -15,3 +15,6 @@ REQUIREMENTS_TXT = "requirements.txt"
 
 YARN_LOCK = "yarn.lock"
 """Filename for Yarn package lock files."""
+
+DOCKERFILE = "Dockerfile"
+"""Filename for Docker container definition files."""

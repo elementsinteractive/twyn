@@ -42,6 +42,8 @@ class TwynConfiguration:
     """Alternative PyPI source URL."""
     npm_source: str | None
     """Alternative npm source URL."""
+    dockerhub_source: str | None
+    """Alternative DockerHub source URL."""
     use_cache: bool
     """Whether to use cached trusted packages."""
     package_ecosystem: PackageEcosystems | None
@@ -64,6 +66,8 @@ class ReadTwynConfiguration:
     """Optional alternative PyPI source URL."""
     npm_source: str | None = None
     """Optional alternative npm source URL."""
+    dockerhub_source: str | None = None
+    """Optional alternative DockerHub source URL."""
     use_cache: bool | None = None
     """Optional setting for using cached trusted packages."""
     package_ecosystem: PackageEcosystems | None = None
@@ -87,6 +91,7 @@ class ConfigHandler:
         recursive: bool | None = None,
         pypi_source: str | None = None,
         npm_source: str | None = None,
+        dockerhub_source: str | None = None,
     ) -> TwynConfiguration:
         """Resolve the configuration for Twyn.
 
@@ -141,12 +146,21 @@ class ConfigHandler:
         else:
             final_npm_source = None
 
+        # Determine final dockerhub_source from CLI, config file, or default
+        if dockerhub_source is not None:
+            final_dockerhub_source = dockerhub_source
+        elif read_config.dockerhub_source is not None:
+            final_dockerhub_source = read_config.dockerhub_source
+        else:
+            final_dockerhub_source = None
+
         return TwynConfiguration(
             dependency_files=dependency_files or read_config.dependency_files or set(),
             selector_method=final_selector_method,
             allowlist=read_config.allowlist,
             pypi_source=final_pypi_source,
             npm_source=final_npm_source,
+            dockerhub_source=final_dockerhub_source,
             use_cache=final_use_cache,
             package_ecosystem=package_ecosystem or read_config.package_ecosystem,
             recursive=final_recursive,
@@ -196,6 +210,7 @@ class ConfigHandler:
             allowlist=allowlist,
             pypi_source=twyn_config_data.get("pypi_source"),
             npm_source=twyn_config_data.get("npm_source"),
+            dockerhub_source=twyn_config_data.get("dockerhub_source"),
             use_cache=twyn_config_data.get("use_cache"),
             package_ecosystem=twyn_config_data.get("package_ecosystem"),
             recursive=twyn_config_data.get("recursive"),

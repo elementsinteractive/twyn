@@ -32,6 +32,7 @@ DEPENDENCY_FILE_MAPPING: dict[str, type[AbstractParser]] = {
     "package-lock.json": dependency_parser.PackageLockJsonParser,
     "pnpm-lock.yaml": dependency_parser.PnpmLockParser,
     "yarn.lock": dependency_parser.YarnLockParser,
+    "Dockerfile": dependency_parser.DockerfileParser,
 }
 """Mapping of dependency file names to their parser classes."""
 
