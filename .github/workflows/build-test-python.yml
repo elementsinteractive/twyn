@@ -5,16 +5,37 @@ name: Build and Test Python Package
 on:
   pull_request:
     branches: ["main"]
-  push:
-    branches: ["main"]
+  workflow_call:
 
 env:
   PYTHON_VERSION: "3.10"
 
 jobs:
+  build-package:
+    name: Build Package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Build package
+        uses: ./.github/actions/python-package-build
+        id: build
+        with:
+          uv-version: "0.8.22"
+          python-version: "$PYTHON_VERSION"
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: python-package-${{ github.sha }}
+          path: dist/
+          retention-days: 1
+
   test-build-package-extras:
     name: Test package build ${{ matrix.name}}
     runs-on: ubuntu-latest
+    needs: build-package
     permissions:
       contents: read
     strategy:
@@ -32,35 +53,46 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Build package
-        uses: ./.github/actions/python-package-build
-        id: build
+      - name: Download package artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          uv-version: "0.8.22"
-          python-version: "$PYTHON_VERSION"
+          name: python-package-${{ github.sha }}
+          path: dist/
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098 # v7.3.1
+        with:
+          version: "0.8.22"
       - name: Test package
         run: |
           uv venv --python $PYTHON_VERSION
-          uv pip install "${{ steps.build.outputs.wheel-file }}[${{ matrix.name }}]"
+          WHEEL_FILE=$(ls dist/*.whl)
+          uv pip install "$WHEEL_FILE[${{ matrix.name }}]"
           uv run ${{ matrix.test-args }}
 
-  test-build-package:
+  test-build-package-no-extras:
     name: Test package build no extras
     runs-on: ubuntu-latest
+    needs: build-package
     permissions:
       contents: read
     steps:
       - name: Check out the repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Build package
-        uses: ./.github/actions/python-package-build
-        id: build
+      - name: Download package artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          uv-version: "0.8.22"
-          python-version: "$PYTHON_VERSION"
+          name: python-package-${{ github.sha }}
+          path: dist/
+      - name: Install uv
+        uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098 # v7.3.1
+        with:
+          version: "0.8.22"
+
       - name: Test package
         run: |
           uv venv --python $PYTHON_VERSION
-          uv pip install "${{ steps.build.outputs.wheel-file }}"
+          WHEEL_FILE=$(ls dist/*.whl)
+          uv pip install "$WHEEL_FILE"
           uv run python -c 'import twyn; twyn.check_dependencies()'
