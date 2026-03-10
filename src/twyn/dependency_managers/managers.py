@@ -3,6 +3,10 @@ from pathlib import Path
 
 from twyn.dependency_managers.exceptions import NoMatchingDependencyManagerError
 from twyn.dependency_parser.parsers.constants import (
+    COMPOSE_YAML,
+    COMPOSE_YML,
+    DOCKER_COMPOSE_YAML,
+    DOCKER_COMPOSE_YML,
     DOCKERFILE,
     PACKAGE_LOCK_JSON,
     PNPM_LOCK_YAML,
@@ -66,7 +70,7 @@ pypi_dependency_manager = DependencyManager(
 dockerhub_dependency_manager = DependencyManager(
     name="dockerhub",
     trusted_packages_source=TopDockerHubReference,
-    dependency_files={DOCKERFILE},
+    dependency_files={DOCKERFILE, DOCKER_COMPOSE_YML, DOCKER_COMPOSE_YAML, COMPOSE_YML, COMPOSE_YAML},
     trusted_packages_manager=TrustedDockerHubPackageManager,
 )
 

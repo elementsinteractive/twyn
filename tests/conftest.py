@@ -654,6 +654,54 @@ def package_lock_json_file_with_namespace_typo(tmp_path: Path) -> Iterator[Path]
         yield tmp_file
 
 
+@pytest.fixture
+def docker_compose_file(tmp_path: Path) -> Iterator[Path]:
+    """Docker compose file."""
+    docker_compose = tmp_path / "docker-compose.yml"
+    data = """version: '3.8'
+
+services:
+  web:
+    image: nginx:latest
+
+  api:
+    image: my-registry.io/backend/python:3.11-slim
+
+  custom:
+    image: ${CUSTOM_IMAGE:-default-image}:${VERSION:-latest}
+
+  with-digest:
+    image: alpine@sha256:123456789abcdef
+
+  build-only:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+
+  unresolved-var:
+    image: ${REGISTRY}/myapp:${TAG}
+
+  private-registry:
+    image: internal-registry.company.com:5000/team/service:v1.2.3
+"""
+    with create_tmp_file(docker_compose, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
+def docker_compose_file_legacy(tmp_path: Path) -> Iterator[Path]:
+    """Docker compose file in legacy v1 format."""
+    docker_compose = tmp_path / "docker-compose.yml"
+    data = """web:
+  image: nginx:latest
+
+db:
+  image: mysql:8
+"""
+    with create_tmp_file(docker_compose, data) as tmp_file:
+        yield tmp_file
+
+
 @pytest.fixture(autouse=True)
 def fail_on_requests_get(request) -> Generator[None, Any, None]:
     with mock.patch("requests.get") as m_get:

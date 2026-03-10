@@ -171,6 +171,7 @@ The following dependency file formats are supported:
 - `yarn.lock` (v1, v2)
 - `pnpm-lock.yaml` (v9)
 - `Dockerfile`
+- `docker-compose.yml`, `docker-compose.yaml`, `compose.yml`, `compose.yaml` (v1, v2, v3) 
 
 ### Check dependencies introduced through the CLI
 

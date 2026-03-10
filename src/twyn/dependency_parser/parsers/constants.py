@@ -18,3 +18,15 @@ YARN_LOCK = "yarn.lock"
 
 DOCKERFILE = "Dockerfile"
 """Filename for Docker container definition files."""
+
+DOCKER_COMPOSE_YML = "docker-compose.yml"
+"""Filename for Docker Compose configuration files."""
+
+DOCKER_COMPOSE_YAML = "docker-compose.yaml"
+"""Alternative filename for Docker Compose configuration files."""
+
+COMPOSE_YML = "compose.yml"
+"""Modern filename for Docker Compose configuration files."""
+
+COMPOSE_YAML = "compose.yaml"
+"""Modern alternative filename for Docker Compose configuration files."""

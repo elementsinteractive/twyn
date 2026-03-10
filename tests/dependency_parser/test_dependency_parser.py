@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from twyn.dependency_parser import (
+    DockerComposeParser,
     PackageLockJsonParser,
     PnpmLockParser,
     PoetryLockParser,
@@ -167,3 +168,29 @@ class TestDockerfileParser:
             "my-registry/nginx",
             "nginx",
         }
+
+
+class TestDockerComposeParser:
+    def test_docker_compose_parser(self, docker_compose_file: Path) -> None:
+        parser = DockerComposeParser(file_path=str(docker_compose_file))
+        result = parser.parse()
+
+        # Should find all services with explicit images
+        assert "nginx" in result
+        assert "my-registry.io/backend/python" in result
+        assert "default-image" in result  # Variable with default resolved
+        assert "alpine" in result  # Image with digest
+        assert "internal-registry.company.com:5000/team/service" in result
+
+        # Should NOT include services with only build context (no image)
+        # Should NOT include services with unresolved variables
+        assert len(result) == 5
+
+    def test_docker_compose_parser_legacy_format(self, docker_compose_file_legacy: Path) -> None:
+        parser = DockerComposeParser(file_path=str(docker_compose_file_legacy))
+        result = parser.parse()
+
+        # Should find services in v1 format (without services key)
+        assert "nginx" in result
+        assert "mysql" in result
+        assert len(result) == 2
