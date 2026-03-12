@@ -42,10 +42,12 @@ class DependencySelector:
         """Get parsers for dependency files based on their names."""
         parsers = []
         for dependency_file in self.dependency_files:
+            dependency_filename = Path(dependency_file).name
             for known_dependency_file_name in DEPENDENCY_FILE_MAPPING:
-                if dependency_file.endswith(known_dependency_file_name):
+                if dependency_filename == known_dependency_file_name:
                     file_parser = DEPENDENCY_FILE_MAPPING[known_dependency_file_name](dependency_file)
                     parsers.append(file_parser)
+                    break
         if not parsers:
             raise NoMatchingParserError
 

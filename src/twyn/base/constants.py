@@ -33,6 +33,10 @@ DEPENDENCY_FILE_MAPPING: dict[str, type[AbstractParser]] = {
     "pnpm-lock.yaml": dependency_parser.PnpmLockParser,
     "yarn.lock": dependency_parser.YarnLockParser,
     "Dockerfile": dependency_parser.DockerfileParser,
+    "docker-compose.yml": dependency_parser.DockerComposeParser,
+    "docker-compose.yaml": dependency_parser.DockerComposeParser,
+    "compose.yml": dependency_parser.DockerComposeParser,
+    "compose.yaml": dependency_parser.DockerComposeParser,
 }
 """Mapping of dependency file names to their parser classes."""
 

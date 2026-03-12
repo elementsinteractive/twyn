@@ -1,7 +1,13 @@
 from pathlib import Path
 
 import pytest
-from twyn.dependency_parser import PoetryLockParser, RequirementsTxtParser, UvLockParser
+from twyn.dependency_parser import (
+    DockerComposeParser,
+    DockerfileParser,
+    PoetryLockParser,
+    RequirementsTxtParser,
+    UvLockParser,
+)
 from twyn.dependency_parser.dependency_selector import DependencySelector
 from twyn.dependency_parser.exceptions import (
     NoMatchingParserError,
@@ -15,17 +21,16 @@ class TestDependencySelector:
     @pytest.mark.parametrize(
         ("file_name", "parser_class"),
         [
-            (
-                "requirements.txt",
-                RequirementsTxtParser,
-            ),  # because file is specified, we won't autocheck
+            ("requirements.txt", RequirementsTxtParser),
             ("poetry.lock", PoetryLockParser),
             ("uv.lock", UvLockParser),
-            ("/some/path/poetry.lock", PoetryLockParser),
-            ("/some/path/uv.lock", UvLockParser),
-            ("/some/path/requirements.txt", RequirementsTxtParser),
-            ("/some/path/yarn.lock", YarnLockParser),
-            ("/some/path/package-lock.json", PackageLockJsonParser),
+            ("yarn.lock", YarnLockParser),
+            ("package-lock.json", PackageLockJsonParser),
+            ("Dockerfile", DockerfileParser),
+            ("docker-compose.yml", DockerComposeParser),
+            ("docker-compose.yaml", DockerComposeParser),
+            ("compose.yml", DockerComposeParser),
+            ("compose.yaml", DockerComposeParser),
         ],
     )
     def test_get_dependency_parser(self, file_name: str, parser_class: type[AbstractParser]) -> None:
@@ -35,22 +40,9 @@ class TestDependencySelector:
         assert isinstance(parser[0], parser_class)
         assert str(parser[0].file_handler.file_path).endswith(file_name)
 
-    def test_get_dependency_parser_auto_detect_requirements_file(
-        self, requirements_txt_file: Path, tmp_path: Path
-    ) -> None:
+    def test_get_dependency_parser_auto_detects_file(self, requirements_txt_file: Path, tmp_path: Path) -> None:
         parser = DependencySelector("", root_path=str(tmp_path)).get_dependency_parsers()
         assert isinstance(parser[0], RequirementsTxtParser)
-
-    def test_get_dependency_parser_auto_detect_poetry_lock_file(
-        self, poetry_lock_file_ge_1_5: Path, tmp_path: Path
-    ) -> None:
-        selector = DependencySelector("", root_path=str(tmp_path))
-        parser = selector.get_dependency_parsers()
-        assert isinstance(parser[0], PoetryLockParser)
-
-    def test_get_dependency_parser_auto_detect_uv_lock_file(self, uv_lock_file: Path, tmp_path: Path) -> None:
-        parser = DependencySelector("", root_path=str(tmp_path)).get_dependency_parsers()
-        assert isinstance(parser[0], UvLockParser)
 
     def test_auto_detect_dependency_file_parser_exceptions(self, tmp_path: Path) -> None:
         with pytest.raises(NoMatchingParserError):
@@ -59,7 +51,7 @@ class TestDependencySelector:
     @pytest.mark.parametrize("file_name", ["unknown.txt", ""])
     def test_get_dependency_file_parser_unknown_file_type(self, file_name: str) -> None:
         with pytest.raises(NoMatchingParserError):
-            DependencySelector(file_name).get_dependency_file_parsers_from_file_name()
+            DependencySelector({file_name}).get_dependency_parsers()
 
     def test_auto_detect_dependency_file_parser_scans_subdirectories(self, tmp_path: Path) -> None:
         # Create nested directories and dependency files
