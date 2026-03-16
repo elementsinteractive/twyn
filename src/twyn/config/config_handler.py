@@ -221,7 +221,7 @@ class ConfigHandler:
 
         All null values are simply omitted from the toml file.
         """
-        twyn_toml_data = asdict(config, dict_factory=lambda x: _serialize_config(x))
+        twyn_toml_data = asdict(config, dict_factory=_serialize_config)
 
         if "tool" not in toml:
             toml.add("tool", table())

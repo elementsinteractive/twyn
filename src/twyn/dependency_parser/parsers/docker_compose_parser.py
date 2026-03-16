@@ -98,7 +98,7 @@ class DockerComposeParser(AbstractParser):
         """
         # Strip off the digest FIRST
         if "@" in image_with_tag:
-            image_with_tag = image_with_tag.split("@")[0]
+            image_with_tag = image_with_tag.split("@", maxsplit=1)[0]
 
         # Find the last ':' in the string
         last_colon_idx = image_with_tag.rfind(":")
