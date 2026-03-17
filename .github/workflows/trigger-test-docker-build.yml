@@ -37,5 +37,26 @@ jobs:
     name: Trigger test Docker build
     if: (needs.should-test-docker-build.outputs.workflow == 'true' || needs.should-test-docker-build.outputs.docker == 'true')
     uses: ./.github/workflows/build-test-docker.yml
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-amd64
+            cache-to: ""
+            image-name: build-amd64
+            setup-qemu: false
+          - platform: linux/arm64
+            cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-arm64
+            cache-to: ""
+            image-name: build-arm64
+            setup-qemu: true
+
     with:
       image-tag: "pr-${{ github.event.pull_request.number }}"
+      platform: ${{ matrix.platform }}
+      cache-from: ${{ matrix.cache-from }}
+      cache-to: ${{ matrix.cache-to }}
+      image-name: ${{ matrix.image-name }}
+      setup-qemu: ${{ matrix.setup-qemu }}
+
+    secrets: inherit
