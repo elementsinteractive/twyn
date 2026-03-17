@@ -6,6 +6,25 @@ on:
       image-tag:
         type: string
         required: true
+      platform:
+        type: string
+        required: false
+        default: "linux/amd64"
+      image-name:
+        type: string
+        required: true
+      cache-from:
+        type: string
+        required: false
+        default: ""
+      cache-to:
+        type: string
+        required: false
+        default: ""
+      setup-qemu:
+        type: string
+        required: false
+        default: "false"
 
 jobs:
   test-docker-build:
@@ -14,17 +33,7 @@ jobs:
     permissions:
       contents: read
       packages: read
-    strategy:
-      matrix:
-        include:
-          - arch: amd64
-            platform: linux/amd64
-            image-name: build-amd64
-            needs-qemu: false
-          - arch: arm64
-            platform: linux/arm64
-            image-name: build-arm64
-            needs-qemu: true
+
     steps:
       - name: Check out the repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -43,11 +52,12 @@ jobs:
           file: ./Dockerfile
           push: false
           load: true
-          platforms: ${{ matrix.platform }}
-          cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-${{ matrix.arch }}
-          image-name: ${{ matrix.image-name }}
-          setup-qemu: ${{ matrix.needs-qemu }}
+          platforms: ${{ inputs.platform }}
+          cache-from: ${{ inputs.cache-from }}
+          cache-to: ${{ inputs.cache-to }}
+          image-name: ${{ inputs.image-name }}
+          setup-qemu: ${{ inputs.setup-qemu }}
 
       - name: Test
         run: |
-          docker run --platform ${{ matrix.platform }} --rm ${{ matrix.image-name }}:${{ inputs.image-tag }} --version
+          docker run --platform ${{ inputs.platform }} --rm ${{ inputs.image-name }}:${{ inputs.image-tag }} --version
