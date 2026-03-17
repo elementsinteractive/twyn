@@ -1,3 +1,38 @@
+## v6.1.0 (2026-03-17)
+
+### Feat
+
+- docker-compose parser (#427)
+- Scan Dockerfile for typos (#422)
+- download DockerHub top packages weekly (#420)
+- MCP support (#417)
+
+### CI
+
+- fix weekly download of top packages (#441)
+- require to test python package and docker build before publishing (#423)
+
+### Technical
+
+- bump actions/create-github-app-token from 2.2.1 to 3.0.0 (#431)
+- bump ruff from 0.12.3 to 0.15.6 (#437)
+- bump dorny/paths-filter from 3.0.2 to 4.0.1 (#433)
+- bump astral-sh/setup-uv from 7.3.1 to 7.6.0 (#432)
+- bump softprops/action-gh-release from 2.5.0 to 2.6.1 (#430)
+- bump actions/download-artifact from 7.0.0 to 8.0.1 (#434)
+- bump commitizen from 4.13.8 to 4.13.9 in the patch-updates group (#435)
+- bump mypy from 1.16.1 to 1.19.1 (#439)
+- bump tomlkit from 0.13.3 to 0.14.0 (#438)
+- bump types-python-dateutil from 2.9.0.20260124 to 2.9.0.20260305 (#436)
+- bump authlib from 1.6.8 to 1.6.9 (#440)
+- bump pyjwt from 2.11.0 to 2.12.0 (#429)
+- bump docker/login-action from 3.7.0 to 4.0.0 (#426)
+- bump astral-sh/setup-uv from 7.3.0 to 7.3.1 in the patch-updates group (#424)
+- bump astral-sh/setup-uv in the patch-updates group
+- bump astral-sh/setup-uv from 7.3.0 to 7.3.1 in the patch-updates group (#419)
+- bump astral-sh/setup-uv in the patch-updates group
+- Weekly update of trusted packages
+
 ## v6.0.4 (2026-02-25)
 
 ### Technical
