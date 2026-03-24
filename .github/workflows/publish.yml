@@ -14,8 +14,29 @@ jobs:
 
   build_and_test_docker:
     uses: ./.github/workflows/build-test-docker.yml
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-amd64
+            cache-to: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-amd64
+            image-name: build-amd64
+            setup-qemu: false
+          - platform: linux/arm64
+            cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-arm64
+            cache-to: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-arm64
+            image-name: build-arm64
+            setup-qemu: true
+
     with:
-      image-tag: latest
+      image-tag: "pr-${{ github.event.pull_request.number }}"
+      platform: ${{ matrix.platform }}
+      cache-from: ${{ matrix.cache-from }}
+      cache-to: ${{ matrix.cache-to }}
+      image-name: ${{ matrix.image-name }}
+      setup-qemu: ${{ matrix.setup-qemu }}
+
+    secrets: inherit
 
   publish_to_pypi:
     name: Publish to PyPI
@@ -76,22 +97,6 @@ jobs:
           cache-from: |
             type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-amd64
             type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-arm64
-
-      - name: Delete old cache entries
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # Get all versions of the container package
-          versions=$(gh api "orgs/elementsinteractive/packages/container/twyn/versions" --paginate)
-
-          # Extract version IDs that do NOT have any buildcache-* tags (buildcache-amd64, buildcache-arm64, etc.)
-          ids_to_delete=$(echo "$versions" | jq -r '.[] | select(.metadata.container.tags | map(test("^buildcache-")) | any | not) | .id')
-
-          # Delete them
-          for id in $ids_to_delete; do
-            echo "Deleting old cache version ID: $id"
-            gh api -X DELETE "orgs/elementsinteractive/packages/container/twyn/versions/$id"
-          done
 
   release_notes:
     runs-on: ubuntu-latest
