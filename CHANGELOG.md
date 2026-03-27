@@ -1,3 +1,20 @@
+## v6.1.1 (2026-03-27)
+
+### CI
+
+- remove osv GH action job and bump requests depenency (#450)
+- remove osv action job and bump requests depenency
+
+### Technical
+
+- bump ruff from 0.15.6 to 0.15.7 in the patch-updates group (#444)
+- bump fastmcp from 3.0.2 to 3.1.1 (#446)
+- bump fastmcp from 3.0.2 to 3.1.1 (#446)
+- bump pytest-cov from 6.3.0 to 7.1.0 (#445)
+- bump types-python-dateutil from 2.9.0.20260305 to 2.9.0.20260323 (#447)
+- bump pytest from 8.4.2 to 9.0.2 (#448)
+- bump actions/cache from 5.0.3 to 5.0.4 in the patch-updates group (#443)
+
 ## v6.1.0 (2026-03-17)
 
 ### Feat
