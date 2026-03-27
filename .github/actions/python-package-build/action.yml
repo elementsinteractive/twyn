@@ -42,8 +42,10 @@ runs:
     - name: Build the package
       id: build
       shell: bash
+      env:
+        PYTHON_VERSION: ${{ inputs.python-version }}
       run: |
-        uv build --python ${{ inputs.python-version }}
+        uv build --python "$PYTHON_VERSION"
 
         # Set outputs
         WHEEL_FILE=$(ls dist/*.whl | head -1)

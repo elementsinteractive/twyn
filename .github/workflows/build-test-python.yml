@@ -23,7 +23,7 @@ jobs:
         id: build
         with:
           uv-version: "0.8.22"
-          python-version: "$PYTHON_VERSION"
+          python-version: "${{ env.PYTHON_VERSION }}"
 
       - name: Upload package artifact
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0

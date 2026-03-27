@@ -48,6 +48,11 @@ jobs:
           image-name: ${{ matrix.image-name }}
           setup-qemu: ${{ matrix.needs-qemu }}
 
-      - name: Test
+      - name: Test Docker image
+        shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          IMAGE_NAME: ${{ matrix.image-name }}
+          IMAGE_TAG: ${{ inputs.image-tag }}
         run: |
-          docker run --platform ${{ matrix.platform }} --rm ${{ matrix.image-name }}:${{ inputs.image-tag }} --version
+          docker run --platform "$PLATFORM" --rm "$IMAGE_NAME":"$IMAGE_TAG" --version
