@@ -1,0 +1,6 @@
+technologies = ["Python"]
+categories = ["Correctness", "Quality", "Testing", "Security"]
+exclude = ["*.md", "uv.lock", "eval/classified_articles.py"]
+model = "gemini-2.5-pro"
+silent = false
+publish = true

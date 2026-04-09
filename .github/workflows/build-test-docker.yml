@@ -1,0 +1,58 @@
+name: Build and Test Docker Image
+
+on:
+  workflow_call:
+    inputs:
+      image-tag:
+        type: string
+        required: true
+
+jobs:
+  test-docker-build:
+    name: Test Docker build ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            image-name: build-amd64
+            needs-qemu: false
+          - arch: arm64
+            platform: linux/arm64
+            image-name: build-arm64
+            needs-qemu: true
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        uses: ./.github/actions/docker-build
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          platforms: ${{ matrix.platform }}
+          cache-from: type=registry,ref=ghcr.io/elementsinteractive/twyn:buildcache-${{ matrix.arch }}
+          image-name: ${{ matrix.image-name }}
+          setup-qemu: ${{ matrix.needs-qemu }}
+
+      - name: Test Docker image
+        shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          IMAGE_NAME: ${{ matrix.image-name }}
+          IMAGE_TAG: ${{ inputs.image-tag }}
+        run: |
+          docker run --platform "$PLATFORM" --rm "$IMAGE_NAME":"$IMAGE_TAG" --version

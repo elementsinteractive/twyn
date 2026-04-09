@@ -1,0 +1,259 @@
+import logging
+import sys
+from typing import NoReturn
+
+from twyn.__version__ import __version__
+from twyn.base.constants import (
+    DEFAULT_PROJECT_TOML_FILE,
+    DEPENDENCY_FILE_MAPPING,
+    SELECTOR_METHOD_MAPPING,
+)
+from twyn.base.exceptions import TwynError
+from twyn.config.config_handler import ConfigHandler
+from twyn.file_handler.file_handler import FileHandler
+from twyn.main import check_dependencies
+from twyn.trusted_packages.cache_handler import CacheHandler
+from twyn.trusted_packages.constants import CACHE_DIR
+
+try:
+    import click
+    from rich.console import Console
+    from rich.logging import RichHandler
+    from rich.table import Table
+
+    from twyn.base.exceptions import CliError
+except ImportError:
+    print("Could not run twyn as a cli tool, some dependencies are missing! Run `pip install twyn[cli]`.")
+    import sys
+
+    sys.exit(1)
+
+logger = logging.getLogger("twyn")
+
+logging.basicConfig(
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True, show_path=False, console=Console(stderr=True))],
+)
+
+
+@click.group()
+@click.version_option(__version__, "--version")
+def entry_point() -> None:
+    """Provide main CLI entry point for Twyn."""
+    pass
+
+
+@entry_point.command()
+@click.option("--config", type=click.STRING)
+@click.option(
+    "--dependency-file",
+    type=str,
+    multiple=True,
+    help=(
+        "Dependency file to analyze. By default, twyn will search in the current directory "
+        "for supported files, but this option will override that behavior."
+    ),
+)
+@click.option(
+    "--dependency",
+    type=str,
+    multiple=True,
+    help="Dependency to analyze. Cannot be set together with --dependency-file. If provided, it will take precedence over the default dependency file.",
+)
+@click.option(
+    "--selector-method",
+    type=click.Choice(list(SELECTOR_METHOD_MAPPING.keys())),
+    help=(
+        "Which method twyn should use to select possible typosquats. "
+        "`first-letter` only compares dependencies that share the first letter, "
+        "while `nearby-letter` compares against dependencies whose first letter "
+        "is nearby in an English keyboard. `all` compares the given dependencies "
+        "against all of those in the reference."
+    ),
+)
+@click.option(
+    "--package-ecosystem",
+    type=click.Choice(["pypi", "npm", "dockerhub"]),
+    default=None,
+    help="Package ecosystem for dependency analysis (pypi or npm).",
+)
+@click.option(
+    "-v",
+    default=False,
+    is_flag=True,
+)
+@click.option(
+    "-vv",
+    default=False,
+    is_flag=True,
+)
+@click.option(
+    "--no-cache",
+    is_flag=True,
+    default=None,
+    help="Disable use of the trusted packages cache. Always fetch from the source.",
+)
+@click.option(
+    "--no-track",
+    is_flag=True,
+    default=False,
+    help="Do not show the progress bar while processing packages.",
+)
+@click.option(
+    "--json",
+    is_flag=True,
+    default=False,
+    help="Display the results in json format. It implies --no-track.",
+)
+@click.option(
+    "--table",
+    is_flag=True,
+    default=False,
+    help="Display the results in a table format. It implies --no-track.",
+)
+@click.option(
+    "-r",
+    "--recursive",
+    is_flag=True,
+    default=False,
+    help="Recursively look for files when trying to locate them automatically. Ignored if --dependency-file is given.",
+)
+@click.option(
+    "--pypi-source",
+    type=str,
+    help="Alternative PyPI source URL to use for fetching trusted packages.",
+)
+@click.option(
+    "--npm-source",
+    type=str,
+    help="Alternative npm source URL to use for fetching trusted packages.",
+)
+@click.option(
+    "--dockerhub-source",
+    type=str,
+    help="Alternative DockerHub source URL to use for fetching trusted packages.",
+)
+def run(  # noqa: C901, PLR0912
+    config: str,
+    dependency_file: tuple[str],
+    dependency: tuple[str],
+    selector_method: str,
+    v: bool,
+    vv: bool,
+    no_cache: bool | None,
+    no_track: bool,
+    json: bool,
+    table: bool,
+    package_ecosystem: str | None,
+    recursive: bool,
+    pypi_source: str | None,
+    npm_source: str | None,
+    dockerhub_source: str | None,
+) -> NoReturn:
+    if vv:
+        logger.setLevel(logging.DEBUG)
+    elif v:
+        logger.setLevel(logging.INFO)
+
+    if dependency and dependency_file:
+        raise click.UsageError(
+            "Only one of --dependency or --dependency-file can be set at a time.", ctx=click.get_current_context()
+        )
+
+    if json and table:
+        raise click.UsageError("`--json` and `--table` are mutually exclusive. Select only one.")
+
+    for dep_file in dependency_file:
+        if dep_file and not any(dep_file.endswith(key) for key in DEPENDENCY_FILE_MAPPING):
+            raise click.UsageError(f"Dependency file name {dep_file} not supported.", ctx=click.get_current_context())
+
+    try:
+        possible_typos = check_dependencies(
+            selector_method=selector_method,
+            dependencies=set(dependency) or None,
+            config_file=config,
+            dependency_files=set(dependency_file) or None,
+            use_cache=not no_cache if no_cache is not None else no_cache,
+            show_progress_bar=False if (json or table) else not no_track,
+            load_config_from_file=True,
+            package_ecosystem=package_ecosystem,
+            recursive=recursive,
+            pypi_source=pypi_source,
+            npm_source=npm_source,
+            dockerhub_source=dockerhub_source,
+        )
+    except TwynError as e:
+        raise CliError(str(e)) from e
+    except Exception as e:
+        raise CliError("Unhandled exception occured.") from e
+    else:
+        if json:
+            click.echo(possible_typos.model_dump_json(indent=2))
+        elif not possible_typos:
+            click.echo("✅ No typosquats detected")
+        elif table:
+            console = Console()
+            table_obj = Table(title="❌ Twyn Detection Results")
+            table_obj.add_column("Source")
+            table_obj.add_column("Dependency")
+            table_obj.add_column("Similar trusted packages")
+
+            for possible_typosquats in possible_typos.results:
+                for error in possible_typosquats.errors:
+                    table_obj.add_row(str(possible_typosquats.source), error.dependency, ", ".join(error.similars))
+
+            console.print(table_obj)
+        elif possible_typos:
+            for possible_typosquats in possible_typos.results:
+                for error in possible_typosquats.errors:
+                    click.echo(
+                        click.style("Possible typosquat detected: ", fg="red") + f"`{error.dependency}`, "
+                        f"did you mean any of [{', '.join(error.similars)}]?",
+                        color=True,
+                    )
+
+        sys.exit(int(bool(possible_typos)))
+
+
+@entry_point.group()
+def allowlist() -> None:
+    """Manage package allowlist configuration."""
+    pass
+
+
+@allowlist.command()
+@click.option("--config", type=click.STRING)
+@click.argument("package_name")
+def add(package_name: str, config: str) -> None:
+    """Add package to allowlist."""
+    fh = FileHandler(config or ConfigHandler.get_default_config_file_path())
+    ConfigHandler(fh).add_package_to_allowlist(package_name)
+
+
+@allowlist.command()
+@click.option("--config", type=click.STRING)
+@click.argument("package_name")
+def remove(package_name: str, config: str) -> None:
+    """Remove package from allowlist."""
+    fh = FileHandler(config or DEFAULT_PROJECT_TOML_FILE)
+    ConfigHandler(fh).remove_package_from_allowlist(package_name)
+
+
+@entry_point.group()
+def cache() -> None:
+    """Manage cache operations."""
+    pass
+
+
+@cache.command()
+def clear() -> None:
+    """Clear cached trusted packages data."""
+    cache_handler = CacheHandler(CACHE_DIR)
+
+    cache_handler.clear_all()
+    click.echo(click.style("All cache cleared", fg="green"))
+
+
+if __name__ == "__main__":
+    entry_point()

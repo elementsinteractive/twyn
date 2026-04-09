@@ -1,0 +1,12 @@
+on:
+  pull_request_target:
+    branches: ["main"]
+
+name: conventional-release-labels
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: bcoe/conventional-release-labels@886f696738527c7be444262c327c89436dfb95a8 #v1.3.1
+        with:
+          type_labels: '{"feat": "feature", "fix": "fix", "BREAKING CHANGE": "breaking", "ci": "CI", "build": "build", "refactor": "refactor", "test": "test"}'

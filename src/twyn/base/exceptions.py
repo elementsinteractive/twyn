@@ -1,0 +1,37 @@
+import logging
+from typing import IO, Any
+
+logger = logging.getLogger("twyn")
+
+
+class TwynError(Exception):
+    """
+    Base exception from where all application errors will inherit.
+
+    Provides a default message field, that subclasses will override to provide more information in case it is not provided during the exception handling.
+    """
+
+    message = ""
+
+    def __init__(self, message: str = "") -> None:
+        super().__init__(message or self.message)
+
+
+try:
+    import click
+
+    class CliError(click.ClickException):
+        """Error that will populate application errors to stdout. It does not inherit from `TwynError`."""
+
+        message = "CLI error"
+
+        def __init__(self, message: str = "") -> None:
+            super().__init__(message)
+
+        def show(self, file: IO[Any] | None = None) -> None:
+            """Display the error message."""
+            logger.debug(self.format_message(), exc_info=True)
+            logger.error(self.format_message(), exc_info=False)
+
+except ModuleNotFoundError:
+    pass
