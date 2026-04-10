@@ -1,3 +1,23 @@
+## v6.1.2 (2026-04-10)
+
+### Technical
+
+- bump cryptography from 46.0.6 to 46.0.7 (#464)
+- bump dependabot/fetch-metadata from 2.5.0 to 3.0.0 (#452)
+- bump astral-sh/setup-uv from 7.6.0 to 8.0.0 (#453)
+- bump pytest-cov from 6.3.0 to 7.1.0 (#456)
+- bump the patch-updates group across 1 directory with 2 updates (#460)
+- bump the patch-updates group with 2 updates
+- bump types-requests from 2.33.0.20260327 to 2.33.0.20260402 (#461)
+- bump types-python-dateutil from 2.9.0.20260323 to 2.9.0.20260402 (#462)
+- bump mypy from 1.19.1 to 1.20.0 (#463)
+- bump docker/login-action from 4.0.0 to 4.1.0 (#459)
+- bump fastmcp from 3.1.1 to 3.2.0 (#458)
+- bump types-requests from 2.32.4.20260107 to 2.33.0.20260327 (#455)
+- bump pygments from 2.19.2 to 2.20.0 (#457)
+- bump the patch-updates group with 2 updates (#454)
+- bump cryptography from 46.0.5 to 46.0.6 (#451)
+
 ## v6.1.1 (2026-03-27)
 
 ### CI
