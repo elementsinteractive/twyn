@@ -272,14 +272,14 @@ def _get_dependencies_list(
         raise InvalidArgumentsError(
             "Cannot show progress bar because `rich` and `click` dependencies are not installed. "
             "It is only meant to be shown when running `twyn` as a cli tool. "
-            "If this is you case, install all the dependencies with `pip install twyn[cli]`. "
+            "If this is your case, install all the dependencies with `pip install twyn[cli]`. "
         ) from e
 
 
 def _get_selector_method(selector_method: str) -> SelectorMethod:
     """Return the selector_method from set of available ones."""
     if selector_method not in SELECTOR_METHOD_MAPPING:
-        InvalidSelectorMethodError("Invalid selector method")
+        raise InvalidSelectorMethodError("Invalid selector method")
 
     return SELECTOR_METHOD_MAPPING[selector_method]()
 

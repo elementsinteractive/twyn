@@ -163,6 +163,11 @@ class TestCheckDependencies:
             ]
         )
 
+    def test_check_dependencies_fails_if_unkown_selector_method(self) -> None:
+        """Check that if an invalid selector method is given, it raises InvalidSelectorMethodError."""
+        with pytest.raises(InvalidSelectorMethodError):
+            check_dependencies(selector_method="asfd")
+
     @patch("twyn.trusted_packages.TopPyPiReference.get_packages")
     def test_check_dependencies_detects_typosquats_from_file_and_language_is_set(
         self, mock_get_packages: Mock, uv_lock_file_with_typo: Path
