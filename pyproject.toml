@@ -26,7 +26,7 @@ dynamic = ["version"]
 [project.optional-dependencies]
 cli = [
     "click<9.0.0,>=8.1.8",
-    "rich<15.0.0,>=14.0.0",
+    "rich>=14.0.0,<16.0.0",
 ]
 mcp = [
     "fastmcp>=3.0.2",
