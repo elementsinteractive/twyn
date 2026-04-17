@@ -68,7 +68,7 @@ class AbstractPackageReference:
 
     def _download(self) -> dict[str, Any]:
         """Download data from the source URL."""
-        response = requests.get(self.source)
+        response = requests.get(self.source, timeout=30)
         response.raise_for_status()
 
         try:
