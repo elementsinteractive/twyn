@@ -1,3 +1,32 @@
+## v6.1.3 (2026-05-05)
+
+### Fix
+
+- raise custom exception on an invalid selector method (#466)
+
+### Technical
+
+- bump stamina from 25.2.0 to 26.1.0 (#483)
+- bump types-requests from 2.33.0.20260408 to 2.33.0.20260503 (#489)
+- bump commitizen from 4.13.10 to 4.15.0 (#488)
+- bump the patch-updates group across 1 directory with 4 updates (#487)
+- bump types-requests from 2.33.0.20260402 to 2.33.0.20260408 (#484)
+- bump python-dotenv from 1.2.1 to 1.2.2 (#485)
+- bump astral-sh/setup-uv from 8.0.0 to 8.1.0 (#480)
+- bump dependabot/fetch-metadata from 3.0.0 to 3.1.0 (#481)
+- bump authlib from 1.6.9 to 1.6.11 (#478)
+- bump softprops/action-gh-release from 2.6.1 to 3.0.0 (#469)
+- bump rich from 14.3.3 to 15.0.0 (#471)
+- bump python-multipart from 0.0.22 to 0.0.26 (#477)
+- bump the patch-updates group across 1 directory with 5 updates (#476)
+- bump types-pyyaml from 6.0.12.20250915 to 6.0.12.20260408 (#473)
+- bump types-python-dateutil from 2.9.0.20260402 to 2.9.0.20260408 (#472)
+- bump pydantic from 2.12.5 to 2.13.0 (#474)
+- bump pytest from 9.0.2 to 9.0.3 (#475)
+- bump the patch-updates group across 1 directory with 2 updates (#467)
+- bump the patch-updates group with 2 updates
+- bump actions/create-github-app-token from 3.0.0 to 3.1.1 (#468)
+
 ## v6.1.2 (2026-04-10)
 
 ### Technical
