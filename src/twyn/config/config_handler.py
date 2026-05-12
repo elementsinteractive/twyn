@@ -225,9 +225,9 @@ class ConfigHandler:
 
         if "tool" not in toml:
             toml.add("tool", table())
-        if "twyn" not in toml["tool"]:  # type: ignore[operator]
-            toml["tool"]["twyn"] = {}  # type: ignore[index]
-        toml["tool"]["twyn"] = twyn_toml_data  # type: ignore[index]
+        if "twyn" not in toml["tool"]:
+            toml["tool"]["twyn"] = {}
+        toml["tool"]["twyn"] = twyn_toml_data
         self._write_toml(toml)
 
     def _write_toml(self, toml: TOMLDocument) -> None:
