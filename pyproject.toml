@@ -14,7 +14,7 @@ dependencies = [
     "requests<3.0.0,>=2.32.4",
     "rapidfuzz<4.0.0,>=2.13.7",
     "pyparsing<4.0.0,>=3.2.3",
-    "tomlkit>=0.11.6,<0.15.0",
+    "tomlkit>=0.11.6,<0.16.0",
     "pydantic>=2.11.7,<3.0.0",
     "pyyaml>=6.0.2",
 ]
