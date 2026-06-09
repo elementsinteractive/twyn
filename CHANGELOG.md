@@ -1,3 +1,33 @@
+## v6.1.4 (2026-06-09)
+
+### Technical
+
+- bump starlette from 0.52.1 to 1.0.1 (#510)
+- bump the patch-updates group across 1 directory with 3 updates (#509)
+- bump astral-sh/setup-uv from 8.1.0 to 8.2.0 in the minor-updates group (#511)
+- bump astral-sh/setup-uv in the minor-updates group
+- bump actions/checkout from 6.0.2 to 6.0.3 in the patch-updates group (#508)
+- bump actions/checkout in the patch-updates group
+- bump docker/login-action from 4.1.0 to 4.2.0 in the minor-updates group (#506)
+- bump docker/login-action in the minor-updates group
+- bump the patch-updates group across 1 directory with 2 updates (#500)
+- bump the minor-updates group across 1 directory with 3 updates (#501)
+- bump types-pyyaml from 6.0.12.20260510 to 6.0.12.20260518 (#502)
+- bump types-python-dateutil from 2.9.0.20260408 to 2.9.0.20260518 (#504)
+- bump types-requests from 2.33.0.20260508 to 2.33.0.20260518 (#503)
+- bump idna from 3.11 to 3.15 (#505)
+- bump actions/create-github-app-token from 3.1.1 to 3.2.0 in the minor-updates group (#499)
+- bump actions/create-github-app-token in the minor-updates group
+- bump authlib from 1.6.11 to 1.6.12 (#498)
+- bump tomlkit from 0.14.0 to 0.15.0 (#497)
+- bump requests from 2.33.1 to 2.34.0 (#494)
+- bump mypy from 1.20.2 to 2.1.0 (#496)
+- bump types-pyyaml from 6.0.12.20260408 to 6.0.12.20260510 (#495)
+- bump types-requests from 2.33.0.20260503 to 2.33.0.20260508 (#493)
+- bump the patch-updates group with 2 updates (#492)
+- bump urllib3 from 2.6.3 to 2.7.0 (#491)
+- bump python-multipart from 0.0.26 to 0.0.27 (#490)
+
 ## v6.1.3 (2026-05-05)
 
 ### Fix
