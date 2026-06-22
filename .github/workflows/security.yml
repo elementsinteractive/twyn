@@ -15,7 +15,7 @@ jobs:
     container:
       image: returntocorp/semgrep:1.128.1@sha256:144d315f7354c2b2c53021a76165a500f67252c47464be75e951b67050f54a9e
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Run Semgrep
         run: |
           semgrep scan --config auto --error
@@ -24,7 +24,7 @@ jobs:
     if: github.event_name != 'schedule' && !startsWith(github.event.head_commit.message, 'bump:')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Install uv
         uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
