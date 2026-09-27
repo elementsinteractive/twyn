@@ -100,9 +100,7 @@ class TestDownload:
 
         # Check the HTTP request with its parameters
         assert m_client.call_count == 1
-        assert m_client.call_args == call(
-            "https://hugovk.github.io/top-pypi-packages/top-pypi-packages.min.json", params={}
-        )
+        assert m_client.call_args == call("https://hugovk.dev/top-pypi-packages/top-pypi-packages.min.json", params={})
 
         # Check the file path
         assert m_open.call_args_list[0] == call(str(Path(DEPENDENCIES_DIR) / "pypi.json"), "w")

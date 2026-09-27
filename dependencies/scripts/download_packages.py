@@ -9,9 +9,8 @@ from zoneinfo import ZoneInfo
 import click
 import httpx
 import stamina
-from requests.exceptions import InvalidJSONError
 
-from scripts.exceptions import ServerError
+from scripts.exceptions import InvalidJSONError, ServerError
 from scripts.utils import (
     DEPENDENCIES_DIR,
     ECOSYSTEMS,
