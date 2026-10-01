@@ -1,6 +1,7 @@
 import json
 from collections.abc import Iterator
 from contextlib import contextmanager
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, call, patch
@@ -184,6 +185,42 @@ class TestDownload:
                 _run("pypi")
 
             assert mock_client.call_count == RETRY_ATTEMPTS
+
+    def test_client_error_is_raised(self) -> None:
+        """Test that a non-5xx HTTP error is raised as is, without retrying or parsing the body."""
+        mock_response = Mock()
+        mock_response.is_server_error = False
+        mock_response.status_code = 404
+
+        client_error = httpx.HTTPStatusError("Not Found", request=Mock(), response=mock_response)
+
+        with patch_client_error(client_error) as mock_client:
+            with pytest.raises(httpx.HTTPStatusError):
+                _run("pypi")
+
+            assert mock_client.call_count == 1
+            mock_client.return_value.json.assert_not_called()
+
+    def test_redirect_is_followed(self) -> None:
+        """Test that a source that moved is followed to its new location."""
+        data = {"rows": [{"project": "requests"}, {"project": "numpy"}]}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if request.url.host == "old.example":
+                return httpx.Response(301, headers={"Location": "https://new.example/top.json"})
+            return httpx.Response(200, json=data)
+
+        moved = replace(ECOSYSTEMS["pypi"], url="https://old.example/top.json")
+        with (
+            patch.dict(ECOSYSTEMS, {"pypi": moved}),
+            patch("httpx.HTTPTransport.handle_request", side_effect=handler) as m_transport,
+            patch_save_to_file() as m_save,
+            patch_open_file(),
+        ):
+            _run("pypi")
+
+        assert [c.args[0].url.host for c in m_transport.call_args_list] == ["old.example", "new.example"]
+        assert set(m_save.call_args[0][0]["packages"]) == {"requests", "numpy"}
 
     def test_npm_download_with_multiple_pages(self) -> None:
         """Test that the script will iterate through pages if provided."""

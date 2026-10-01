@@ -48,7 +48,7 @@ def _run(ecosystem: str) -> None:
     all_packages: set[str] = set()
 
     n_pages = selected_ecosystem.pages or 1
-    with httpx.Client(timeout=TIMEOUT) as client:
+    with httpx.Client(timeout=TIMEOUT, follow_redirects=True) as client:
         for page in range(1, n_pages + 1):
             params = get_params(selected_ecosystem.params, page if selected_ecosystem.pages else None)
             all_packages.update(get_packages(client, selected_ecosystem.url, selected_ecosystem.parser, params))
@@ -100,6 +100,7 @@ def get_packages(
             except httpx.HTTPStatusError as e:
                 if e.response.is_server_error:
                     raise ServerError from e
+                raise
     try:
         json_data = response.json()
     except json.JSONDecodeError as e:
