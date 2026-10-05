@@ -29,7 +29,7 @@ cli = [
     "rich>=14.0.0,<16.0.0",
 ]
 mcp = [
-    "fastmcp>=3.0.2",
+    "fastmcp>=4.0.0,<5.0.0",
 ]
 
 [tool.hatch.version]
@@ -63,7 +63,9 @@ download = [
 ]
 local = ["ipdb<1.0.0,>=0.13.9", "commitizen<5.0,>=2.38", "pdbpp<1.0.0,>=0.11.6"]
 
-[tool.uv]
+# CI pins uv 0.8.22, which cannot parse relative `exclude-newer` durations (needs >=0.9.17).
+# Dependency cooldown is enforced through Dependabot instead (see .github/dependabot.yml).
+[tool.uv]  # nosemgrep: package_managers.uv.uv-missing-dependency-cooldown.uv-missing-dependency-cooldown
 default-groups = []
 
 [build-system]
