@@ -37,7 +37,6 @@ jobs:
         run: uv sync --locked --only-group download --python 3.14
 
       - name: Download ${{ matrix.name }} packages
-        continue-on-error: true
         run: |
           PYTHONPATH=dependencies/ uv run --no-project dependencies/scripts/download_packages.py download ${{ matrix.name }}
 

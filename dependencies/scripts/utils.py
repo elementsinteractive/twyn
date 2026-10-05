@@ -3,15 +3,14 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import httpx
-from requests.exceptions import InvalidJSONError
 
-from scripts.exceptions import ServerError
+from scripts.exceptions import InvalidJSONError, ServerError
 
 DEPENDENCIES_DIR = "dependencies"
 """Directory name where dependency files will be saved."""
 
 # Sources
-TOP_PYPI_SOURCE = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages.min.json"
+TOP_PYPI_SOURCE = "https://hugovk.dev/top-pypi-packages/top-pypi-packages.min.json"
 """URL for fetching top PyPI packages data."""
 
 TOP_NPM_SOURCE = "https://packages.ecosyste.ms/api/v1/registries/npmjs.org/packages"
