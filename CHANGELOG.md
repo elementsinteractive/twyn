@@ -1,3 +1,42 @@
+## v6.1.5 (2026-10-10)
+
+### Fix
+
+- read files included with -r in the requirements.txt parser (#551)
+- **ci**: repair the weekly trusted-packages download (#540)
+
+### Technical
+
+- Weekly update of dockerhub trusted packages
+- Weekly update of npm trusted packages
+- Weekly update of pypi trusted packages
+- bump astral-sh/setup-uv from 8.2.0 to 10.2.0 (#546)
+- bump types-requests from 2.33.0.20260518 to 2.33.0.20260906 (#549)
+- bump types-pyyaml from 6.0.12.20260518 to 6.0.12.20260906 (#548)
+- bump types-python-dateutil from 2.9.0.20260518 to 2.9.0.20260807 (#550)
+- bump the patch-updates group with 3 updates (#545)
+- bump cryptography from 48.0.1 to 50.0.0 (#535)
+- bump the patch-updates group across 1 directory with 3 updates (#541)
+- bump actions/checkout from 6.0.3 to 7.0.0 (#519)
+- bump pyjwt from 2.13.0 to 2.15.0 (#542)
+- bump actions/cache from 5.0.5 to 6.1.0 (#522)
+- bump urllib3 from 2.7.0 to 2.8.0 (#543)
+- bump anyio from 4.12.1 to 4.14.2 (#538)
+- bump docker/login-action from 4.2.0 to 4.6.0 in the minor-updates group across 1 directory (#532)
+- bump docker/login-action
+- bump  and pin fastmcp and solve semgrep issues (#544)
+- Update dependencies
+- bump the patch-updates group across 1 directory with 4 updates (#523)
+- bump pydantic-settings from 2.13.1 to 2.14.2 (#521)
+- bump softprops/action-gh-release from 3.0.0 to 3.0.1 in the patch-updates group (#518)
+- bump softprops/action-gh-release in the patch-updates group
+- bump cryptography from 46.0.7 to 48.0.1 (#517)
+- bump the minor-updates group across 1 directory with 2 updates (#513)
+- bump python-multipart from 0.0.27 to 0.0.31 (#516)
+- bump starlette from 1.0.1 to 1.3.1 (#515)
+- bump pyjwt from 2.12.0 to 2.13.0 (#514)
+- bump ruff from 0.15.15 to 0.15.17 in the patch-updates group (#512)
+
 ## v6.1.4 (2026-06-09)
 
 ### Technical
