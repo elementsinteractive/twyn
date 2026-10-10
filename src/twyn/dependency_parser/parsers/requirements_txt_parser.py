@@ -1,5 +1,6 @@
 """Parser for requirements.txt dependencies."""
 
+import logging
 import re
 from pathlib import Path
 
@@ -7,6 +8,10 @@ from typing_extensions import override
 
 from twyn.dependency_parser.parsers.abstract_parser import AbstractParser
 from twyn.dependency_parser.parsers.constants import REQUIREMENTS_TXT
+from twyn.file_handler.exceptions import EmptyFileError, PathIsNotFileError, PathNotFoundError
+from twyn.file_handler.file_handler import FileHandler
+
+logger = logging.getLogger("twyn")
 
 
 class RequirementsTxtParser(AbstractParser):
@@ -37,11 +42,17 @@ class RequirementsTxtParser(AbstractParser):
         return self._parse_internal(self.file_path, seen_files=set())
 
     def _parse_internal(self, source: str | Path, seen_files: set[Path]) -> set[str]:
-        """Parse requirements file and handle includes recursively."""
+        """Parse a requirements file and handle ``-r`` includes recursively."""
         packages: set[str] = set()
-        base_dir = Path(source).parent if isinstance(source, Path) else Path(".")
+        source = Path(source)
+        base_dir = source.parent
 
-        with self.file_handler.open("r") as fp:
+        # The entry file reuses the parser's own handler (keeping its
+        # existence/emptiness errors); every ``-r`` include is read from its
+        # own path instead of re-reading the entry file.
+        handler = self.file_handler if source == self.file_path else FileHandler(str(source))
+
+        with handler.open("r") as fp:
             for raw_line in fp:
                 line = raw_line.strip()
 
@@ -49,11 +60,7 @@ class RequirementsTxtParser(AbstractParser):
                     continue
 
                 if line.startswith("-r "):
-                    ref = line[3:].strip()
-                    ref_path = (base_dir / ref).resolve()
-                    if ref_path not in seen_files:
-                        seen_files.add(ref_path)
-                        packages.update(self._parse_internal(ref_path, seen_files))
+                    packages.update(self._parse_include(line[3:].strip(), base_dir, seen_files))
                     continue
 
                 if line.startswith("-e "):
@@ -72,6 +79,18 @@ class RequirementsTxtParser(AbstractParser):
                     packages.add(match.group("name"))
 
         return packages
+
+    def _parse_include(self, ref: str, base_dir: Path, seen_files: set[Path]) -> set[str]:
+        """Parse a file referenced with ``-r``, skipping it if already seen, missing, or empty."""
+        ref_path = (base_dir / ref).resolve()
+        if ref_path in seen_files:
+            return set()
+        seen_files.add(ref_path)
+        try:
+            return self._parse_internal(ref_path, seen_files)
+        except (PathNotFoundError, PathIsNotFileError, EmptyFileError):
+            logger.warning("Skipping referenced requirements file (missing or empty): %s", ref_path)
+            return set()
 
     @staticmethod
     def _is_valid_line(line: str) -> bool:

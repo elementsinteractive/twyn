@@ -73,6 +73,24 @@ class TestRequirementsTxtParser:
         parser = RequirementsTxtParser(file_path=requirements_txt_file)
         assert parser.parse() == {"South", "pycrypto", "Flask", "django", "requests", "urllib3"}
 
+    def test_parse_requirements_txt_file_with_includes(self, tmp_path: Path) -> None:
+        """Packages from files pulled in with ``-r`` are included, recursively."""
+        (tmp_path / "deep.txt").write_text("rich\n")
+        (tmp_path / "extra.txt").write_text("requests==2.31\ncolorama>=0.4\n-r deep.txt\n")
+        main = tmp_path / "requirements.txt"
+        main.write_text("flask==2.0\n-r extra.txt\n")
+
+        parser = RequirementsTxtParser(file_path=str(main))
+        assert parser.parse() == {"flask", "requests", "colorama", "rich"}
+
+    def test_parse_requirements_txt_file_skips_missing_include(self, tmp_path: Path) -> None:
+        """A missing ``-r`` target is skipped without aborting the rest of the parse."""
+        main = tmp_path / "requirements.txt"
+        main.write_text("flask==2.0\n-r does-not-exist.txt\n")
+
+        parser = RequirementsTxtParser(file_path=str(main))
+        assert parser.parse() == {"flask"}
+
 
 class TestLockParser:
     def test_parse_poetry_lock_file_lt_1_5(self, poetry_lock_file_lt_1_5: Path) -> None:
