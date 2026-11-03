@@ -1,3 +1,34 @@
+## v6.1.6 (2026-11-03)
+
+### Technical
+
+- bump dnspython (#565)
+- bump the minor-updates group across 1 directory with 5 updates (#559)
+- bump astral-sh/setup-uv from 10.3.0 to 10.3.2 in the patch-updates group across 1 directory (#561)
+- bump astral-sh/setup-uv
+- bump joserfc from 1.7.1 to 1.7.6 (#564)
+- bump docker/login-action from 4.6.0 to 4.7.0 in the minor-updates group (#562)
+- bump docker/login-action
+- bump authlib from 1.6.12 to 1.9.1 (#560)
+- add .semgrepignore file (#563)
+- Weekly update of dockerhub trusted packages
+- Weekly update of npm trusted packages
+- Weekly update of pypi trusted packages
+- Weekly update of dockerhub trusted packages
+- Weekly update of npm trusted packages
+- Weekly update of pypi trusted packages
+- bump opentelemetry-api from 1.39.1 to 1.45.1 (#558)
+- bump fastmcp from 4.0.11 to 4.1.2 (#556)
+- bump certifi from 2026.1.4 to 2026.10.19 (#555)
+- bump the minor-updates group across 1 directory with 2 updates (#553)
+- bump the patch-updates group with 2 updates (#552)
+- Weekly update of dockerhub trusted packages
+- Weekly update of npm trusted packages
+- Weekly update of pypi trusted packages
+- Weekly update of dockerhub trusted packages
+- Weekly update of npm trusted packages
+- Weekly update of pypi trusted packages
+
 ## v6.1.5 (2026-10-10)
 
 ### Fix
