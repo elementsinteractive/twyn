@@ -23,10 +23,8 @@ try:
     class CliError(click.ClickException):
         """Error that will populate application errors to stdout. It does not inherit from `TwynError`."""
 
-        message = "CLI error"
-
         def __init__(self, message: str = "") -> None:
-            super().__init__(message)
+            super().__init__(message or "CLI error")
 
         def show(self, file: IO[Any] | None = None) -> None:
             """Display the error message."""
