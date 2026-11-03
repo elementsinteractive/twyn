@@ -1,0 +1,20 @@
+# Semgrep defaults (a custom .semgrepignore replaces them, so they're repeated here)
+node_modules/
+build/
+dist/
+vendor/
+.env/
+.venv/
+.tox/
+*.min.js
+.npm/
+.yarn/
+test/
+tests/
+*_test.go
+.semgrep
+.semgrep_logs/
+
+# Auto-generated trusted package lists. They're one huge line of package names,
+# which trips the secret-detection rules with false positives.
+dependencies/*.json
